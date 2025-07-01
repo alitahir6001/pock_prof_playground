@@ -49,53 +49,56 @@ TODO: create a polished "version 0.01" of the app that had the original question
 <!-->
 
 
-# 📚 Pocket Professor
-
-Your personal AI-powered syllabus generator for lifelong learners.
-
----
+# 📚 The Pocket Professor
+## A structured learning engine for the motivated career-switcher.
 
 <p align="center">
   <img src="https://cafans.b-cdn.net/images/Category_22057/subcat_38643/Hcolor3.jpg" style="width:400px;" alt="The Pocket Professor"/>
 </p>
 
----
+## 🎯 The Problem: "The Chasm"
+For every person who wants to switch to a new, more rewarding career, there is a chasm. On one side is their current job; on the other is the new industry they want to enter. In between is a confusing jungle of YouTube tutorials, expensive institutions like bootcamps, college, trade-schools, and a paralyzing fear of not knowing where to start or if you're even learning the right things.
 
-### 👋 About The Project
+This project is for the person standing at the edge of that chasm. The motivated individual who is tired of their job and has the drive to change, but lacks a clear path and a way to build real, provable confidence.
 
-### Pocket Professor is both a way to learn emerging tech and also combine my passions for education and technology. I am an academic at heart and I wanted to make something for my fellow autodidacts.
+This isn't a tool for casual learning. It's a bridge.
 
-### Since I was about 13, anything I was interested in I explored deeply and tried to emulate by learning how to do it. I have taught myself how to play drums, taught myself how to cook, and taught myself how to code before attending the now defunct Coding Dojo bootcamp. Just to name a few things I was curious about and wanted to explore further.
+## 🌉 The Solution: A Structured Bridge
+Pocket Professor aims to solve this by providing what self-guided learners lack most: structure and a feedback loop.
 
-### The internet is vast and varied, and while there are a plethora of learning platforms, tools, videos and docs at ones disposal, creating a learning guide/syllabus catered to ones own learning style is difficult. We have to create a hodge-podge, castaway type raft of assembled tools to learn our own way and I love the idea of a college-style syllabus that can be made to appeal to that need. So I figured why not make it myself?
-This repository is currently under active development and is being shared with friends and collaborators.
+Instead of leaving you to assemble a rickety raft of random resources, this app is being built to provide an engineered bridge to get you to the other side. It's designed to bring the curriculum and accountability of a structured program to you, without the prohibitive cost.
 
-### ✨ Core Features (MVP Goal)
+## ✨ Core Features (The MVP Plan)
+The entire system is being built around a simple, powerful, and evidence-based learning loop:
 
-* **Personalized Syllabus Generation:** Takes a user's subject, desired difficulty, learning goal, and time commitment.
-* **Clear Learning Goals:** Creates a dedicated learning guide to help you achieve your objectives with a detailed and structured breakdown.
-* **Focused Learning:** One primary function, executed well. The app generates your guide and then exits, allowing you to focus on learning.
+- Generate Your Path: It starts by creating a clear, structured, step-by-step syllabus for any topic, giving you a roadmap from A to B.
 
----
+- Test for Understanding: After you engage with a topic, the app doesn't just move on. It tests you with Active Recall to ensure you can retrieve the information, not just recognize it.
 
-### 🚀 Project Status & Roadmap
+- Get Adaptive Feedback: The core of the engine. Based on your answer and your self-rated confidence, the system provides hyper-targeted feedback. Its primary job is to destroy the "illusion of competence"—that dangerous feeling of understanding something when you actually don't.
 
-**Current Version:** `v0.0.3` (In Development)
+## 🚀 Project Status & Roadmap
+Current Version: `v0.04` (Pivoting & Rebuilding)
 
-**As of June 16th, 2025:**
+## As of June 30th, 2025:
 
-* ✅ cleaned up `app.py` to remove the now un-used question/answer loop code blocks from the very first version of this app
-* ✅ I moved the unused blocks over to `snippets.py` as an in-project repository of sorts to reference the earlier version of this project.
-* 🏁 The `main` branch is now a template for the new MVP.
+- ✅ Strategic Pivot Complete: The project's focus has shifted from a general-purpose syllabus generator to a targeted, adaptive learning engine for career-switchers.
 
-**Next Steps & To-Do List:**
+- ✅ Tech Stack Defined: The backend will be built with FastAPI for performance and the frontend will be a clean HTML/JS/CSS interface. Firestore will be used for data persistence.
 
-* [ ] **Flesh out MVP:** Implement the core feature of generating a learning guide from user prompts.
-* [ ] **Create "Version 0.04":** Re-integrate the original Q&A loop as a secondary feature.
-    * [ ] Use the knowledge base module (dictionary).
-    * [ ] Re-implement Jaccard similarity for typo correction.
-    * [ ] Re-add LLM call for questions outside the knowledge base.
-* [ ] **Add a Project Logo:** Create a simple, memorable logo for Pocket Professor.
+- ✅ Syllabus generator is complete, and able to produce a clean JSON object as the foundation for the scaffolding.
+
+## 🏗️ Backend Scaffolding in Progress: The initial FastAPI application structure is being built out, with Pydantic models defined for the core learning loop.
+
+Next Steps: The MVP Build
+
+[ ] Deploy Backend v1: Get the FastAPI backend live with the core /quiz/submit endpoint that handles the adaptive feedback logic.
+
+[ ] Implement Core Loop UI: Build the frontend interface to guide the user through the Study -> Test -> Rate Confidence -> Get Feedback workflow.
+
+[ ] Integrate Firestore: Connect the backend to a Firestore database to begin logging all quizInteractions. This data is the fuel for all future intelligence.
+
+[ ] Find "Alex": Begin alpha testing with a small, focused group of career-switchers to get the first critical pieces of user feedback.
 
 ---
 
