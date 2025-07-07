@@ -59,7 +59,7 @@ TODO: create a polished "version 0.01" of the app that had the original question
 ## 🎯 The Problem: "The Chasm"
 For every person who wants to switch to a new, more rewarding career, there is a chasm. On one side is their current job; on the other is the new industry they want to enter. In between is a confusing jungle of YouTube tutorials, expensive institutions like bootcamps, college, trade-schools, and a paralyzing fear of not knowing where to start or if you're even learning the right things.
 
-This project is for the person standing at the edge of that chasm. The motivated individual who is tired of their job and has the drive to change, but lacks a clear path and a way to build real, provable confidence.
+I have stood before this chasm myself, and this project is for the person like me 5 years ago, standing at the edge of that chasm. The motivated individual who is tired of their job and has the drive to change, but lacks a clear path and a way to build real, provable confidence.
 
 This isn't a tool for casual learning. It's a bridge.
 
