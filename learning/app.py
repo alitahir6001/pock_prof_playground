@@ -4,6 +4,13 @@ import sys
     
 if __name__ == "__main__":     # guard
     try:
+        def get_input_with_exit_check(prompt):
+            """ Prompts the user for input and checks for exit commands ('quit' or 'exit').
+                Args:
+                    prompt (str): The text to display to the user.
+                Returns:
+                    str: The user's input if it's not an exit command. """
+            
         # Get user prompts for generating syllabus
         advisor_prompt = "\nWelcome to Pocket Professor! I'm your personal academic advisor, designed to help you create a specialized learning path that aligns with your needs. To get started, what subject matter are you looking to learn about? "
         
@@ -35,3 +42,9 @@ if __name__ == "__main__":     # guard
         print(f"An Unexpected Attribute error occured: {attErr}")
     except Exception as excepErr:
         print(f"Unexpected exception occurred: {excepErr}")
+
+
+        # future feature idea:
+        # Once the user is a few weeks into their learning, maybe offer a "check-in" of sorts to see if they want to increase
+        # or decrease their hours per week commitment, or refine their subject, or something like that.
+        

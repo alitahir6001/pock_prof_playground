@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pocket Professor - AI Learning Assistant</title>
+    <style>
+        :root {
+            --deep-blue: #1a1a2e;
+            --blue-accent: #16213e;
+            --purple-main: #301b3f;
+            --purple-light: #4d2d60;
+            --deep-brown: #3c2a21;
+            --white-text: #f0f0f0;
+            --accent: #7b68ee;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--deep-blue), var(--purple-main));
+            color: var(--white-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .form-container {
+            background-color: rgba(26, 26, 46, 0.8);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            color: var(--white-text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: rgba(240, 240, 240, 0.5);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        select.form-control option {
+            background-color: var(--deep-blue);
+            color: var(--white-text);
+            padding: 0.5rem;
+        }
+
+        select.form-control option:hover {
+            background-color: var(--accent);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            color: white;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(123, 104, 238, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(123, 104, 238, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            background-color: rgba(26, 26, 46, 0.8);
+            border-radius: 15px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .results h2 {
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            border-bottom: 2px solid var(--purple-light);
+            padding-bottom: 0.5rem;
+        }
+
+        .syllabus-content {
+            white-space: pre-wrap;
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .error {
+            background-color: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .demo-examples {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .demo-examples h3 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .example-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .example-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--purple-light);
+            border: none;
+            border-radius: 20px;
+            color: var(--white-text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .example-btn:hover {
+            background-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 1rem 0;
+            }
+
+            .form-container, .results {
+                padding: 1.5rem;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .example-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .example-btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">🎓 Pocket Professor</h1>
+            <p class="tagline">Your AI-powered learning companion that creates personalized curricula for any subject</p>
+        </div>
+
+        <div class="form-container">
+            <form id="syllabusForm">
+                <div class="form-group">
+                    <label for="subject">What do you want to learn?</label>
+                    <input type="text" id="subject" class="form-control" placeholder="e.g., React.js, Data Science, Spanish, Guitar" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulty">Your current level</label>
+                    <select id="difficulty" class="form-control" required>
+                        <option value="">Select your level...</option>
+                        <option value="complete beginner">Complete Beginner</option>
+                        <option value="novice">Novice</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="goal">What's your learning goal?</label>
+                    <select id="goal" class="form-control" required>
+                        <option value="">Select your goal...</option>
+                        <option value="get a job">Get a Job</option>
+                        <option value="pass certification">Pass Certification</option>
+                        <option value="personal interest">Personal Interest</option>
+                        <option value="academic project">Academic Project</option>
+                        <option value="career change">Career Change</option>
+                        <option value="skill improvement">Skill Improvement</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="timeCommitment">How many hours per week can you dedicate?</label>
+                    <select id="timeCommitment" class="form-control" required>
+                        <option value="">Select time commitment...</option>
+                        <option value="2-3 hours">2-3 hours</option>
+                        <option value="4-6 hours">4-6 hours</option>
+                        <option value="7-10 hours">7-10 hours</option>
+                        <option value="10+ hours">10+ hours</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn" id="generateBtn">
+                    Generate My Learning Plan 🚀
+                </button>
+            </form>
+
+            <div class="error" id="errorMessage"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Creating your personalized learning plan...</p>
+        </div>
+
+        <div class="results" id="results">
+            <h2>Your Personalized Learning Syllabus</h2>
+            <div class="syllabus-content" id="syllabusContent"></div>
+        </div>
+
+        <div class="demo-examples">
+            <h3>Try these examples:</h3>
+            <div class="example-buttons">
+                <button class="example-btn" onclick="fillExample('react')">Learn React.js</button>
+                <button class="example-btn" onclick="fillExample('python')">Python for Data Science</button>
+                <button class="example-btn" onclick="fillExample('aws')">AWS Certification</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('syllabusForm');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorMessage = document.getElementById('errorMessage');
+        const generateBtn = document.getElementById('generateBtn');
+
+        // Example data to fill form
+        const examples = {
+            react: {
+                subject: 'React.js',
+                difficulty: 'novice',
+                goal: 'get a job',
+                timeCommitment: '7-10 hours'
+            },
+            python: {
+                subject: 'Python for Data Science',
+                difficulty: 'intermediate',
+                goal: 'career change',
+                timeCommitment: '10+ hours'
+            },
+            aws: {
+                subject: 'AWS Cloud Practitioner',
+                difficulty: 'complete beginner',
+                goal: 'pass certification',
+                timeCommitment: '4-6 hours'
+            }
+        };
+
+        function fillExample(type) {
+            const example = examples[type];
+            document.getElementById('subject').value = example.subject;
+            document.getElementById('difficulty').value = example.difficulty;
+            document.getElementById('goal').value = example.goal;
+            document.getElementById('timeCommitment').value = example.timeCommitment;
+        }
+
+// Real API call to your FastAPI backend
+        async function generateSyllabus(data) {
+            const response = await fetch('http://localhost:8000/generate-curriculum', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    subject: data.subject,
+                    skill_level: data.difficulty,
+                    learning_goal: data.goal,
+                    time_commitment: extractHours(data.timeCommitment)
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return formatCurriculumResponse(result);
+        }
+
+        // Helper function to extract hours from timeCommitment
+        function extractHours(timeCommitment) {
+            if (timeCommitment.includes('2-3')) return '3';
+            if (timeCommitment.includes('4-6')) return '5';
+            if (timeCommitment.includes('7-10')) return '8';
+            if (timeCommitment.includes('10+')) return '12';
+            return '5';
+        }
+
+        // Format the JSON response into readable text
+        function formatCurriculumResponse(curriculum) {
+            let formatted = `# ${curriculum.subject} Learning Plan\n\n`;
+            formatted += `**Duration:** ${curriculum.total_weeks} weeks\n\n`;
+            
+            if (curriculum.prerequisites && curriculum.prerequisites.length > 0) {
+                formatted += `## Prerequisites\n`;
+                curriculum.prerequisites.forEach(prereq => {
+                    formatted += `- ${prereq}\n`;
+                });
+                formatted += '\n';
+            }
+            
+            curriculum.modules.forEach(module => {
+                formatted += `## Week ${module.week}: ${module.title}\n`;
+                formatted += `**Estimated Hours:** ${module.estimated_hours}\n\n`;
+                
+                if (module.topics && module.topics.length > 0) {
+                    formatted += `**Topics:**\n`;
+                    module.topics.forEach(topic => {
+                        formatted += `- ${topic}\n`;
+                    });
+                    formatted += '\n';
+                }
+                
+                if (module.resources && module.resources.length > 0) {
+                    formatted += `**Resources:**\n`;
+                    module.resources.forEach(resource => {
+                        formatted += `- ${resource}\n`;
+                    });
+                    formatted += '\n';
+                }
+                formatted += '---\n\n';
+            });
+            
+            return formatted;
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                subject: document.getElementById('subject').value,
+                difficulty: document.getElementById('difficulty').value,
+                goal: document.getElementById('goal').value,
+                timeCommitment: document.getElementById('timeCommitment').value
+            };
+
+            // Hide previous results and errors
+            results.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            // Show loading
+            loading.style.display = 'block';
+            generateBtn.disabled = true;
+
+            try {
+                const syllabus = await generateSyllabus(formData);
+                
+                // Hide loading
+                loading.style.display = 'none';
+                
+                // Show results
+                document.getElementById('syllabusContent').textContent = syllabus;
+                results.style.display = 'block';
+                results.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('Error generating syllabus:', error);
+                loading.style.display = 'none';
+                errorMessage.textContent = 'Sorry, there was an error generating your syllabus. Please try again.';
+                errorMessage.style.display = 'block';
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
