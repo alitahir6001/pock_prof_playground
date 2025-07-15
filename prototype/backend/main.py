@@ -1,33 +1,49 @@
+# main.py - Refactored for Gemini API and Railway Deployment
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import requests
+from pydantic import BaseModel, ValidationError
+import google.generativeai as genai
 import os
-from typing import List, Dict
 import json
+from dotenv import load_dotenv
+from typing import List
 
-app = FastAPI(title="Pocket Professor API", version="1.0.0")
+# --- Configuration & Setup ---
 
-# CORS middleware to allow your GitHub Pages frontend to call this API
+# Load environment variables from .env file for local development
+load_dotenv()
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Pocket Professor API",
+    description="Generates structured learning curricula using the Google Gemini API.",
+    version="1.1.0"
+)
+
+# Configure CORS to allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://*pakfro.dev", "http://localhost:3000", "http://127.0.0.1:3000",],  # Add your domain
+    allow_origins=["https://*.pakfro.dev", "http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configuration - easily switch between Ollama and OpenAI
-USE_OLLAMA = True  # Set to False to use OpenAI instead
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "gemma3:12b-it-q4_K_M"  # Change to your preferred model
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# Configure the Gemini API client
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY environment variable not set.")
+genai.configure(api_key=GEMINI_API_KEY)
+
+
+# --- Pydantic Models (Our Structured Data Contract) ---
 
 class CurriculumRequest(BaseModel):
     subject: str
-    skill_level: str  # beginner, intermediate, advanced
-    learning_goal: str  # job, certification, personal, etc.
-    time_commitment: str  # hours per week
+    skill_level: str
+    learning_goal: str
+    time_commitment: str
 
 class WeeklyModule(BaseModel):
     week: int
@@ -43,116 +59,91 @@ class CurriculumResponse(BaseModel):
     prerequisites: List[str]
     recommended_resources: List[str]
 
-@app.get("/")
+
+# --- API Endpoints ---
+
+@app.get("/", tags=["Status"])
 async def root():
+    """Health check endpoint to confirm the API is running."""
     return {"message": "Pocket Professor API is running!", "status": "healthy"}
 
-async def call_ollama(prompt: str, system_prompt: str) -> str:
-    """Call Ollama API"""
+async def call_gemini_api(prompt: str) -> str:
+    """
+    Calls the Gemini API to generate content.
+    Uses JSON mode for reliable, structured output.
+    """
     try:
-        response = requests.post(
-            f"{OLLAMA_BASE_URL}/api/generate",
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": f"System: {system_prompt}\n\nUser: {prompt}",
-                "stream": False,
-                "options": {
-                    "temperature": 0.7,
-                    "num_predict": 2000
-                }
-            },
-            timeout=180
+        # Using a model that supports JSON mode and is efficient.
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                response_mime_type="application/json",
+                temperature=0.7
+            )
         )
-        response.raise_for_status()
-        return response.json()["response"]
+        return response.text
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ollama API error: {str(e)}")
+        # Broad exception to catch potential API errors
+        print(f"Gemini API Error: {e}")
+        raise HTTPException(status_code=502, detail=f"Error communicating with Gemini API: {str(e)}")
 
-async def call_openai(prompt: str, system_prompt: str) -> str:
-    """Call OpenAI API"""
-    import openai
-    openai.api_key = OPENAI_API_KEY
-    
-    response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=2000,
-        temperature=0.7
-    )
-    return response.choices[0].message.content
 
-@app.post("/generate-curriculum", response_model=CurriculumResponse)
+@app.post("/generate-curriculum", response_model=CurriculumResponse, tags=["Curriculum"])
 async def generate_curriculum(request: CurriculumRequest):
-    try:
-        # Construct the prompt
-        prompt = f"""
-        Create a detailed learning curriculum for the following requirements:
-        
-        Subject: {request.subject}
-        Current Skill Level: {request.skill_level}
-        Learning Goal: {request.learning_goal}
-        Time Commitment: {request.time_commitment} hours per week
-        
-        Please provide a structured curriculum with:
-        1. Weekly modules (aim for 8-16 weeks depending on complexity)
-        2. Each week should have specific topics to cover
-        3. Estimated hours for each week
-        4. Recommended resources (books, courses, tutorials, practice projects)
-        5. Prerequisites if any
-        
-        Format the response as JSON with this structure:
-        {{
-            "subject": "{request.subject}",
-            "total_weeks": <number>,
-            "modules": [
-                {{
-                    "week": <number>,
-                    "title": "<descriptive title>",
-                    "topics": ["<topic1>", "<topic2>"],
-                    "estimated_hours": <hours as decimal>,
-                    "resources": ["<resource1>", "<resource2>"]
-                }}
-            ],
-            "prerequisites": ["<prerequisite1>", "<prerequisite2>"],
-            "recommended_resources": ["<general resource1>", "<general resource2>"]
-        }}
-        
-        Make it practical and actionable for someone with {request.skill_level} level experience.
-        IMPORTANT: Return ONLY the JSON, no additional text or formatting.
-        """
-        
-        system_prompt = "You are an expert curriculum designer and educational consultant. Create structured, practical learning paths for any subject. Always respond with valid JSON only."
-        
-        # Call the appropriate API based on configuration
-        if USE_OLLAMA:
-            ai_response = await call_ollama(prompt, system_prompt)
-        else:
-            ai_response = await call_openai(prompt, system_prompt)
-        
-        # Clean up the response (remove any markdown formatting)
-        curriculum_json = ai_response.strip()
-        if curriculum_json.startswith("```json"):
-            curriculum_json = curriculum_json[7:]
-        if curriculum_json.endswith("```"):
-            curriculum_json = curriculum_json[:-3]
-        curriculum_json = curriculum_json.strip()
-        
-        curriculum_data = json.loads(curriculum_json)
-        
-        # Validate and return structured response
-        return CurriculumResponse(**curriculum_data)
-        
-    except json.JSONDecodeError as e:
-        raise HTTPException(status_code=500, detail=f"Failed to parse AI response: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating curriculum: {str(e)}")
+    """
+    The core endpoint that generates a learning curriculum based on user input.
+    """
+    prompt = f"""
+    You are an expert curriculum designer. Your task is to create a structured, practical, and actionable learning path based on the user's request.
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "message": "Pocket Professor API is running"}
+    User Request:
+    - Subject: {request.subject}
+    - Current Skill Level: {request.skill_level}
+    - Learning Goal: {request.learning_goal}
+    - Time Commitment: {request.time_commitment} per week
+
+    Your response MUST be a valid JSON object that adheres to the following structure. Do not add any extra text, commentary, or markdown formatting like ```json. Return ONLY the raw JSON.
+
+    JSON Structure:
+    {{
+      "subject": "{request.subject}",
+      "total_weeks": <integer, typically between 8 and 16>,
+      "modules": [
+        {{
+          "week": <integer>,
+          "title": "<string, descriptive title for the week's module>",
+          "topics": ["<string, specific topic>", "<string, another topic>"],
+          "estimated_hours": <float, estimated hours for the week>,
+          "resources": ["<string, a book, course, or tutorial>", "<string, another resource>"]
+        }}
+      ],
+      "prerequisites": ["<string, prerequisite skill or knowledge>", "<string, another prerequisite>"],
+      "recommended_resources": ["<string, general resource for the whole course>", "<string, another general resource>"]
+    }}
+    """
+
+    try:
+        ai_response_text = await call_gemini_api(prompt)
+        curriculum_data = json.loads(ai_response_text)
+        validated_response = CurriculumResponse(**curriculum_data)
+        return validated_response
+
+    except json.JSONDecodeError as e:
+        print(f"JSON Decode Error: {e}")
+        print(f"Raw AI Response that failed parsing: {ai_response_text}")
+        raise HTTPException(status_code=500, detail="Failed to parse the structured response from the AI.")
+    except ValidationError as e:
+        print(f"Pydantic Validation Error: {e}")
+        print(f"Data that failed validation: {curriculum_data}")
+        raise HTTPException(status_code=500, detail="AI response did not match the required data structure.")
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+
 
 if __name__ == "__main__":
     import uvicorn
