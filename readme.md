@@ -59,7 +59,7 @@ TODO: create a polished "version 0.01" of the app that had the original question
 ## 🎯 The Problem: "The Chasm"
 For every person who wants to switch to a new, more rewarding career, there is a chasm. On one side is their current job; on the other is the new industry they want to enter. In between is a confusing jungle of YouTube tutorials, expensive institutions like bootcamps, college, trade-schools, and a paralyzing fear of not knowing where to start or if you're even learning the right things.
 
-This project is for the person standing at the edge of that chasm. The motivated individual who is tired of their job and has the drive to change, but lacks a clear path and a way to build real, provable confidence.
+I have stood before this chasm myself, and this project is for the person like me 5 years ago, standing at the edge of that chasm. The motivated individual who is tired of their job and has the drive to change, but lacks a clear path and a way to build real, provable confidence.
 
 This isn't a tool for casual learning. It's a bridge.
 
@@ -77,14 +77,33 @@ The entire system is being built around a simple, powerful, and evidence-based l
 
 - Get Adaptive Feedback: The core of the engine. Based on your answer and your self-rated confidence, the system provides hyper-targeted feedback. Its primary job is to destroy the "illusion of competence"—that dangerous feeling of understanding something when you actually don't.
 
-## 🚀 Project Status & Roadmap
-Current Version: `v0.04` (Pivoting & Rebuilding)
+## 🧠 The Science: An Evidence-Based Engine
+The core feedback loop is just the beginning. The long-term vision for Pocket Professor is to build a truly adaptive engine based on a suite of proven principles using my background in behavior psychology and cognitive science. I <b>explicitly reject</b> ineffective neuromyths like "learning styles". Instead, our engine will be built on the following pillars:
+
+- Spaced Repetition: To fight the natural "forgetting curve," the system will intelligently schedule when you should review specific topics. Difficult concepts are shown more frequently, while mastered ones appear less often, making your study time dramatically more efficient.
+
+- Interleaving: Instead of practicing one topic to death before moving on ("blocked practice"), the engine will learn to mix different but related concepts within a single study session. This forces your brain to work harder to differentiate between similar ideas, leading to deeper, more flexible knowledge that you can apply in the real world.
+
+- Desirable Difficulties: The engine will act as a "difficulty thermostat". Learning shouldn't be frustratingly hard, but it also shouldn't be too easy. The system's goal is to introduce achievable challenges—like longer spacing between reviews or harder question formats—to ensure you are always engaged in effortful learning, which is proven to create stronger long-term retention.
+
+- Cognitive Load Management: Your working memory is extremely limited. The app's interface and the way we present information will be meticulously designed to minimize distracting, irrelevant information ("extraneous load") so you can focus your mental energy on what matters: understanding and learning the material.
+
+## 🛠️ Tech Stack
+This project uses a modern, performant, and scalable stack:
+
+- **Backend:** FastAPI (Python 3.10+)
+- **Frontend:** Plain HTML, CSS, and JavaScript (No framework)
+- **AI Integration:** Google Gemini API
+- **Database:** Google Firestore (for the MVP feedback loop)
+- **Deployment:** Railway
 
 ## As of June 30th, 2025:
 
+Current Version: `v0.04`
+
 - ✅ Strategic Pivot Complete: The project's focus has shifted from a general-purpose syllabus generator to a targeted, adaptive learning engine for career-switchers.
 
-- ✅ Tech Stack Defined: The backend will be built with FastAPI for performance and the frontend will be a clean HTML/JS/CSS interface. Firestore will be used for data persistence.
+- ✅ Tech Stack Defined: The backend will be built with FastAPI for performance and the frontend will be a clean HTML/JS/CSS interface. Firestore will be used for data persistence. Railway is used to host the app.
 
 - ✅ Syllabus generator is complete, and able to produce a clean JSON object as the foundation for the scaffolding.
 
@@ -92,7 +111,9 @@ Current Version: `v0.04` (Pivoting & Rebuilding)
 
 Next Steps: The MVP Build
 
-[ ] Deploy Backend v1: Get the FastAPI backend live with the core /quiz/submit endpoint that handles the adaptive feedback logic.
+[ ] Gap Analysis Tool: Using an Agent => LLM loop to find and rate relevant job descriptions and listings to align the adaptive learning with real-world requirements.
+
+[ ] Deploy Backend: Get the FastAPI backend live with the core /quiz/submit endpoint that handles the adaptive feedback logic.
 
 [ ] Implement Core Loop UI: Build the frontend interface to guide the user through the Study -> Test -> Rate Confidence -> Get Feedback workflow.
 
