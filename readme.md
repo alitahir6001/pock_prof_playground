@@ -139,7 +139,7 @@ A brief overview of the key files in this repository:
 
 ## Project Status & Roadmap
 
-### As of June 30th, 2025:
+### As of July 2025:
 
 Current Version: `v0.04`
 
@@ -147,7 +147,7 @@ Current Version: `v0.04`
 
 - ✅ Tech Stack Defined: The backend will be built with FastAPI for performance and the frontend will be a clean HTML/JS/CSS interface. Firestore will be used for data persistence. Railway is used to host the app.
 
-- ✅ Syllabus generator is complete, and able to produce a clean JSON object as the foundation for the scaffolding.
+- ✅ Syllabus generator is live on the /demo.html endpoint, and able to produce a clean JSON object as the foundation for the scaffolding.
 
 ## 🏗️ Backend Scaffolding in Progress: The initial FastAPI application structure is being built out, with Pydantic models defined for the core learning loop.
 
