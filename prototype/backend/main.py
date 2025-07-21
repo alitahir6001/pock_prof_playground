@@ -1,27 +1,21 @@
-# main.py - Refactored for Gemini API and Railway Deployment
+# main.py - v1.3.1 - Corrected to use latest Gemini 2.5 models
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, Field
 import google.generativeai as genai
 import os
 import json
 from dotenv import load_dotenv
-from typing import List
+from typing import List, Optional
 
 # --- Configuration & Setup ---
-
-# Load environment variables from .env file for local development
 load_dotenv()
-
-# Initialize FastAPI app
 app = FastAPI(
     title="Pocket Professor API",
-    description="Generates structured learning curricula using the Google Gemini API.",
-    version="1.1.0"
+    description="Generates structured, project-based learning curricula.",
+    version="1.3.1"
 )
-
-# Configure CORS to allow frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://pakfro.dev", "https://*.pakfro.dev", "http://localhost:3000", "http://127.0.0.1:3000"],
@@ -29,15 +23,44 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+try:
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY environment variable not set.")
+    genai.configure(api_key=GEMINI_API_KEY)
+except Exception as e:
+    print(f"Error configuring Gemini API: {e}")
 
-# Configure the Gemini API client
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY environment variable not set.")
-genai.configure(api_key=GEMINI_API_KEY)
 
+# --- Pydantic Models (Unchanged) ---
 
-# --- Pydantic Models (Our Structured Data Contract) ---
+class TopicDetail(BaseModel):
+    topic_name: str = Field(..., description="A specific concept or skill to be learned.")
+    description: str = Field(..., description="A brief, 1-2 sentence explanation of the topic's importance.")
+    resources: List[str] = Field(..., description="List of 1-3 specific, high-quality learning resources (articles, docs, videos).")
+
+class WeeklyAssignment(BaseModel):
+    title: str = Field(..., description="A clear, actionable title for the weekly assignment.")
+    description: str = Field(..., description="A detailed description of the task, what to build, and what success looks like.")
+    estimated_hours: float = Field(..., description="Estimated hours to complete the assignment.")
+
+class WeeklyModule(BaseModel):
+    week: int
+    title: str = Field(..., description="A compelling theme or title for the week's learning.")
+    topics: List[TopicDetail] = Field(..., description="A list of detailed topics to cover this week.")
+    weekly_project: WeeklyAssignment = Field(..., description="A practical, hands-on project to apply the week's learning.")
+
+class CapstoneProject(BaseModel):
+    title: str = Field(..., description="The title of a final, cumulative project that uses all learned skills.")
+    description: str = Field(..., description="A comprehensive description of the capstone project.")
+
+class CurriculumResponse(BaseModel):
+    subject: str
+    total_weeks: int
+    prerequisites: List[str]
+    introduction: str = Field(..., description="A motivational intro explaining the learning journey and the final outcome.")
+    modules: List[WeeklyModule]
+    capstone_project: CapstoneProject
 
 class CurriculumRequest(BaseModel):
     subject: str
@@ -45,106 +68,96 @@ class CurriculumRequest(BaseModel):
     learning_goal: str
     time_commitment: str
 
-class WeeklyModule(BaseModel):
-    week: int
-    title: str
-    topics: List[str]
-    estimated_hours: float
-    resources: List[str]
-
-class CurriculumResponse(BaseModel):
-    subject: str
-    total_weeks: int
-    modules: List[WeeklyModule]
-    prerequisites: List[str]
-    recommended_resources: List[str]
-
 
 # --- API Endpoints ---
 
 @app.get("/", tags=["Status"])
 async def root():
-    """Health check endpoint to confirm the API is running."""
     return {"message": "Pocket Professor API is running!", "status": "healthy"}
-
-async def call_gemini_api(prompt: str) -> str:
-    """
-    Calls the Gemini API to generate content.
-    Uses JSON mode for reliable, structured output.
-    """
-    try:
-        # Using a model that supports JSON mode and is efficient.
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
-        
-        response = await model.generate_content_async(
-            prompt,
-            generation_config=genai.types.GenerationConfig(
-                response_mime_type="application/json",
-                temperature=0.7
-            )
-        )
-        return response.text
-    except Exception as e:
-        # Broad exception to catch potential API errors
-        print(f"Gemini API Error: {e}")
-        raise HTTPException(status_code=502, detail=f"Error communicating with Gemini API: {str(e)}")
-
 
 @app.post("/generate-curriculum", response_model=CurriculumResponse, tags=["Curriculum"])
 async def generate_curriculum(request: CurriculumRequest):
-    """
-    The core endpoint that generates a learning curriculum based on user input.
-    """
+    
+    # --- CORRECTED: Model Selection Logic ---
+    # Now points to the non-deprecated Gemini 2.5 models.
+    model_choice = os.getenv("GEMINI_MODEL", "flash").lower()
+    if model_choice == "pro":
+        model_name = 'gemini-2.5-pro'
+        print("Using Gemini 2.5 Pro model.")
+    else:
+        model_name = 'gemini-2.5-flash'
+        print("Using Gemini 2.5 Flash model.")
+
     prompt = f"""
-    You are an expert curriculum designer. Your task is to create a structured, practical, and actionable learning path based on the user's request.
+    You are an expert instructional designer and curriculum developer for a world-class academic institution and workforce development center. Your target student is a motivated career-switcher who is time-poor and needs a clear, actionable, and project-heavy learning path to build confidence and tangible skills.
 
-    User Request:
-    - Subject: {request.subject}
-    - Current Skill Level: {request.skill_level}
-    - Learning Goal: {request.learning_goal}
-    - Time Commitment: {request.time_commitment} per week
+    Generate a comprehensive, project-based learning curriculum based on the following request.
 
-    Your response MUST be a valid JSON object that adheres to the following structure. Do not add any extra text, commentary, or markdown formatting like ```json. Return ONLY the raw JSON.
+    **User Request:**
+    - **Subject:** {request.subject}
+    - **Current Skill Level:** {request.skill_level}
+    - **Learning Goal:** {request.learning_goal}
+    - **Time Commitment:** {request.time_commitment} per week
 
-    JSON Structure:
+    **Your Task:**
+    Fill out the following JSON structure with a detailed, practical, and engaging curriculum.
+
+    **CRITICAL INSTRUCTIONS:**
+    1.  **Project-Centric:** Each week MUST culminate in a practical `weekly_project`. The learning should always be in service of the building.
+    2.  **Extreme Detail:** `topics` should not be a simple list. Each topic needs a `topic_name`, a `description` of why it's important, and a list of specific `resources`.
+    3.  **Motivational Tone:** The `introduction` should be inspiring and set the stage for the journey, explaining what the student will be able to achieve by the end.
+    4.  **Capstone Project:** The curriculum must conclude with a significant `capstone_project` that integrates all the skills learned.
+    5.  **JSON ONLY:** Your entire response MUST be a single, valid JSON object that adheres to the structure defined below. Do not include any commentary, markdown, or extra text.
+
+    **JSON STRUCTURE TO FILL:**
     {{
       "subject": "{request.subject}",
-      "total_weeks": <integer, typically between 8 and 16>,
+      "total_weeks": <integer, typically 8-12>,
+      "prerequisites": ["<list of essential prerequisite skills>"],
+      "introduction": "<string, a motivational paragraph>",
       "modules": [
         {{
           "week": <integer>,
-          "title": "<string, descriptive title for the week's module>",
-          "topics": ["<string, specific topic>", "<string, another topic>"],
-          "estimated_hours": <float, estimated hours for the week>,
-          "resources": ["<string, a book, course, or tutorial>", "<string, another resource>"]
+          "title": "<string, a compelling theme for the week>",
+          "topics": [
+            {{
+              "topic_name": "<string>",
+              "description": "<string, 1-2 sentences on why this matters>",
+              "resources": ["<string, link to specific docs page or tutorial>"]
+            }}
+          ],
+          "weekly_project": {{
+            "title": "<string, e.g., 'Build a Mini-Component Library'>",
+            "description": "<string, detailed steps for the project>",
+            "estimated_hours": <float>
+          }}
         }}
       ],
-      "prerequisites": ["<string, prerequisite skill or knowledge>", "<string, another prerequisite>"],
-      "recommended_resources": ["<string, general resource for the whole course>", "<string, another general resource>"]
+      "capstone_project": {{
+        "title": "<string, e.g., 'Full-Stack E-Commerce Dashboard'>",
+        "description": "<string, a detailed description of the final project>"
+      }}
     }}
     """
 
     try:
-        ai_response_text = await call_gemini_api(prompt)
-        curriculum_data = json.loads(ai_response_text)
+        model = genai.GenerativeModel(model_name) # Use the selected model
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                response_mime_type="application/json",
+                temperature=0.75
+            )
+        )
+        
+        curriculum_data = json.loads(response.text)
         validated_response = CurriculumResponse(**curriculum_data)
         return validated_response
 
-    except json.JSONDecodeError as e:
-        print(f"JSON Decode Error: {e}")
-        print(f"Raw AI Response that failed parsing: {ai_response_text}")
-        raise HTTPException(status_code=500, detail="Failed to parse the structured response from the AI.")
-    except ValidationError as e:
-        print(f"Pydantic Validation Error: {e}")
-        print(f"Data that failed validation: {curriculum_data}")
-        raise HTTPException(status_code=500, detail="AI response did not match the required data structure.")
-    except HTTPException as e:
-        raise e
+    except (json.JSONDecodeError, ValidationError) as e:
+        print(f"Data parsing/validation error: {e}")
+        print(f"Raw AI Response that failed: {response.text}")
+        raise HTTPException(status_code=500, detail="Failed to process the structured response from the AI.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
