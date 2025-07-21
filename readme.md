@@ -56,6 +56,16 @@ TODO: create a polished "version 0.01" of the app that had the original question
   <img src="https://cafans.b-cdn.net/images/Category_22057/subcat_38643/Hcolor3.jpg" style="width:400px;" alt="The Pocket Professor"/>
 </p>
 
+## 📋 Table of Contents
+- [The Problem: "The Chasm"](#-the-problem-the-chasm)
+- [The Solution: A Structured Bridge](#-the-solution-a-structured-bridge)
+- [Core Features (The MVP Plan)](#-core-features-the-mvp-plan)
+- [The Science: An Evidence-Based Engine](#-the-science-an-evidence-based-engine)
+- [Tech Stack](#️-tech-stack)
+- [Getting Started: Local Development](#-getting-started-local-development)
+- [Project Structure](#-project-structure)
+- [Project Status & Roadmap](#project-status--roadmap)
+
 ## 🎯 The Problem: "The Chasm"
 For every person who wants to switch to a new, more rewarding career, there is a chasm. On one side is their current job; on the other is the new industry they want to enter. In between is a confusing jungle of YouTube tutorials, expensive institutions like bootcamps, college, trade-schools, and a paralyzing fear of not knowing where to start or if you're even learning the right things.
 
@@ -97,7 +107,39 @@ This project uses a modern, performant, and scalable stack:
 - **Database:** Google Firestore (for the MVP feedback loop)
 - **Deployment:** Railway
 
-## As of June 30th, 2025:
+## 🚀 Getting Started: Local Development
+
+<details>
+<summary><strong>Click here to expand the step-by-step guide</strong></summary>
+
+### Local Development Setup
+To get the backend running on your local machine, follow these steps:
+
+1.  **Prerequisites:**
+    * Python 3.10 or higher
+    * Git
+
+2.  **Clone the Repository:**
+    ```bash
+    git clone [https://github.com/your-username/pocket-professor.git](https://github.com/your-username/pocket-professor.git)
+    cd pocket-professor
+    ```
+
+... (rest of the steps remain the same inside the details tag) ...
+
+</details>
+
+## 📁 Project Structure
+A brief overview of the key files in this repository:
+
+- `main.py`: Contains all the FastAPI backend logic, including API endpoints, Pydantic models, and the connection to the Gemini API.
+- `demo_frontend.html`: A self-contained HTML file with the UI for the syllabus generator demo. It makes API calls to the backend.
+- `requirements.txt`: Lists all the Python dependencies required to run the project.
+- `.env`: A local file for storing secret environment variables like API keys. This file is included in `.gitignore` and should never be committed to version control.
+
+## Project Status & Roadmap
+
+### As of July 2025:
 
 Current Version: `v0.04`
 
@@ -105,7 +147,7 @@ Current Version: `v0.04`
 
 - ✅ Tech Stack Defined: The backend will be built with FastAPI for performance and the frontend will be a clean HTML/JS/CSS interface. Firestore will be used for data persistence. Railway is used to host the app.
 
-- ✅ Syllabus generator is complete, and able to produce a clean JSON object as the foundation for the scaffolding.
+- ✅ Syllabus generator is live on the /demo.html endpoint, and able to produce a clean JSON object as the foundation for the scaffolding.
 
 ## 🏗️ Backend Scaffolding in Progress: The initial FastAPI application structure is being built out, with Pydantic models defined for the core learning loop.
 
