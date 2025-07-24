@@ -32,7 +32,7 @@ except Exception as e:
     print(f"Error configuring Gemini API: {e}")
 
 
-# --- Pydantic Models (Unchanged) ---
+# --- Pydantic Models ---
 
 class TopicDetail(BaseModel):
     topic_name: str = Field(..., description="A specific concept or skill to be learned.")
@@ -78,8 +78,8 @@ async def root():
 @app.post("/generate-curriculum", response_model=CurriculumResponse, tags=["Curriculum"])
 async def generate_curriculum(request: CurriculumRequest):
     
-    # --- CORRECTED: Model Selection Logic ---
-    # Now points to the non-deprecated Gemini 2.5 models.
+    # --- Model Selection Logic ---
+
     model_choice = os.getenv("GEMINI_MODEL", "flash").lower()
     if model_choice == "pro":
         model_name = 'gemini-2.5-pro'
@@ -89,7 +89,7 @@ async def generate_curriculum(request: CurriculumRequest):
         print("Using Gemini 2.5 Flash model.")
 
     prompt = f"""
-    You are an expert instructional designer and curriculum developer for a world-class academic institution and workforce development center. Your target student is a motivated career-switcher who is time-poor and needs a clear, actionable, and project-heavy learning path to build confidence and tangible skills.
+    You are an expert instructional designer and curriculum developer for a world-class academic institution and workforce development center. Your target student is a motivated autodidact and self-learner who is time-poor and needs a clear, actionable, and project-heavy learning path to build confidence and tangible skills in the subject they wish to learn.
 
     Generate a comprehensive, project-based learning curriculum based on the following request.
 
@@ -104,10 +104,11 @@ async def generate_curriculum(request: CurriculumRequest):
 
     **CRITICAL INSTRUCTIONS:**
     1.  **Project-Centric:** Each week MUST culminate in a practical `weekly_project`. The learning should always be in service of the building.
-    2.  **Extreme Detail:** `topics` should not be a simple list. Each topic needs a `topic_name`, a `description` of why it's important, and a list of specific `resources`.
+    2.  **Extreme Detail:** `topics` should not be a simple list. Each topic needs a `topic_name`, a `description` of why it's important, and a list of specific, current, and relevant `resources`.
     3.  **Motivational Tone:** The `introduction` should be inspiring and set the stage for the journey, explaining what the student will be able to achieve by the end.
-    4.  **Capstone Project:** The curriculum must conclude with a significant `capstone_project` that integrates all the skills learned.
+    4.  **Capstone Project:** The curriculum must conclude with a significant, subject-relevant `capstone_project` that integrates all the skills learned.
     5.  **JSON ONLY:** Your entire response MUST be a single, valid JSON object that adheres to the structure defined below. Do not include any commentary, markdown, or extra text.
+    6.  **Resources guidelines:** To avoid broken tutorial links, when suggesting `resources`, avoid any Youtube or other video platform links, and instead suggest search queries the user can search on Youtube themselves.
 
     **JSON STRUCTURE TO FILL:**
     {{
@@ -123,7 +124,7 @@ async def generate_curriculum(request: CurriculumRequest):
             {{
               "topic_name": "<string>",
               "description": "<string, 1-2 sentences on why this matters>",
-              "resources": ["<string, link to specific docs page or tutorial>"]
+              "resources": ["<string, link to specific docs page, or tutorial>"]
             }}
           ],
           "weekly_project": {{
