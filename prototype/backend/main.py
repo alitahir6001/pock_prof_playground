@@ -1,11 +1,13 @@
-# main.py - v1.4.3 - Rate Limiter Fix
+# main.py - v1.5.0 - Security & Testing Improvements
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, ValidationError, Field, field_validator
 import google.generativeai as genai
 import os
 import json
+import re
 from dotenv import load_dotenv
 from typing import List
 
@@ -23,19 +25,24 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(
     title="Pocket Professor API",
     description="Generates structured, project-based learning curricula.",
-    version="1.4.3" # Version updated
+    version="1.5.0"
 )
 
 # --- SECURITY: Add Rate Limiter to the App ---
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# --- SECURITY: Trusted Host Middleware ---
+app.add_middleware(
+    TrustedHostMiddleware, 
+    allowed_hosts=["pakfro.dev", "*.pakfro.dev", "localhost", "127.0.0.1"]
+)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://pakfro.dev", "https://*.pakfro.dev", "http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],  # Restrict to needed methods
     allow_headers=["*"],
 )
 try:
@@ -85,13 +92,17 @@ class CurriculumRequest(BaseModel):
 
     @field_validator('subject', 'skill_level', 'learning_goal')
     def prevent_prompt_injection(cls, v):
+        # Remove potential HTML/script tags
+        v = re.sub(r'<[^>]*>', '', v)
+        
         injection_keywords = [
             "ignore previous instructions", "disregard the above", "act as",
-            "your prompt is", "system prompt", "translate", "what is your prompt"
+            "your prompt is", "system prompt", "translate", "what is your prompt",
+            "forget everything", "new instructions", "override"
         ]
         if any(keyword in v.lower() for keyword in injection_keywords):
             raise ValueError("Potentially malicious input detected.")
-        return v
+        return v.strip()
 
 
 # --- API Endpoints ---
