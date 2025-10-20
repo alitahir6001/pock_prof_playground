@@ -35,12 +35,12 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # --- SECURITY: Trusted Host Middleware ---
 app.add_middleware(
     TrustedHostMiddleware, 
-    allowed_hosts=["pakfro.dev", "*.pakfro.dev", "localhost", "127.0.0.1"]
+    allowed_hosts=["*.railway.app", "pakfro.dev", "*.pakfro.dev", "localhost", "127.0.0.1"]
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://pakfro.dev", "https://*.pakfro.dev", "http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["https://pocket-professor-backend-production.up.railway.app", "https://pakfro.dev", "https://*.pakfro.dev", "http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["GET", "POST"],  # Restrict to needed methods
     allow_headers=["*"],
