@@ -1,4 +1,4 @@
-# main.py - v1.5.0 - Security & Testing Improvements
+# main.py - v1.6.0 - Hardened Security with Environment Variables
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,26 +25,50 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(
     title="Pocket Professor API",
     description="Generates structured, project-based learning curricula.",
-    version="1.5.0"
+    version="1.6.0"
 )
 
 # --- SECURITY: Add Rate Limiter to the App ---
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# --- SECURITY: Trusted Host Middleware ---
+
+# --- SECURITY: Hardened Trusted Host Middleware ---
+# Start with a base list for local development and your custom domain.
+allowed_hosts = ["localhost", "127.0.0.1", "pakfro.dev", "*.pakfro.dev"]
+# Get the specific production host from the ALLOWED_HOST environment variable.
+prod_host = os.getenv("ALLOWED_HOST")
+if prod_host:
+    allowed_hosts.append(prod_host)
+
 app.add_middleware(
-    TrustedHostMiddleware, 
-    allowed_hosts=["*.railway.app", "pakfro.dev", "*.pakfro.dev", "localhost", "127.0.0.1"]
+    TrustedHostMiddleware,
+    allowed_hosts=allowed_hosts
 )
+
+
+# --- SECURITY: Hardened CORS Middleware ---
+# Start with a base list of origins for local dev and your custom domain.
+allow_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://pakfro.dev",
+    "https://*.pakfro.dev"
+]
+# Get the specific production frontend URL from the FRONTEND_URL environment variable.
+prod_frontend_url = os.getenv("FRONTEND_URL")
+if prod_frontend_url:
+    allow_origins.append(prod_frontend_url)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://pocket-professor-backend-production.up.railway.app", "https://pakfro.dev", "https://*.pakfro.dev", "http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=allow_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST"],  # Restrict to needed methods
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+
 try:
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     if not GEMINI_API_KEY:
@@ -113,8 +137,6 @@ async def root():
 
 @app.post("/generate-curriculum", response_model=CurriculumResponse, tags=["Curriculum"])
 @limiter.limit("5/minute")
-
-# 'curriculum_request' is our Pydantic model containing the user's input.
 async def generate_curriculum(curriculum_request: CurriculumRequest, request: Request):
     
     model_choice = os.getenv("GEMINI_MODEL", "flash").lower()
