@@ -139,7 +139,7 @@ async def root():
 @limiter.limit("5/minute")
 async def generate_curriculum(curriculum_request: CurriculumRequest, request: Request):
     
-    model_choice = os.getenv("GEMINI_MODEL", "flash").lower()
+    model_choice = os.getenv("GEMINI_MODEL", "pro").lower()
     model_name = 'gemini-2.5-pro' if model_choice == "pro" else 'gemini-2.5-flash'
     print(f"Using Gemini {model_name} model.")
 
