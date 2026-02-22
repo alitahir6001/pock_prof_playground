@@ -156,8 +156,6 @@ Next Steps: The MVP Build
 
 [ ] Implement Core Loop UI: Build the frontend for the Study -> Test -> Feedback workflow.
 
-[ ] Integrate Firestore: Connect to Firestore to log quizInteractions, fueling the adaptive engine.
-
 [ ] Alpha Testing: Begin testing with a small group of career-switchers to gather critical feedback.
 
 ---
