@@ -321,18 +321,33 @@ frontend/
 - **identity_milestones**
   - `id (uuid, pk)`
   - `user_id (fk)`
-  - `milestone_type` (`proof_of_becoming|field_simulation|real_world_preview`)
+  - `milestone_key` (string, deterministic domain key)
   - `title`
   - `linked_artifact_id (fk proof_artifacts.id, nullable)`
   - `linked_checkpoint_number (1-12, nullable)`
+  - `linked_skill_id (fk skill_nodes.id, nullable)`
+  - `trigger_event_id (fk behavioral_events.id)`
   - `achieved_at`
+  - unique (`user_id`, `milestone_key`)
+
+Identity milestone domain examples (POC):
+- `first_proof`
+- `first_interview_critical_skill`
+- `checkpoint_halfway`
+- `checkpoint_complete`
+- `first_field_simulation`
+- `fifty_percent_interview_ready`
+
+Identity milestones are event-triggered and deterministic. Unlock logic is implemented in the adaptation layer, not in agents.
 
 - **behavioral_metrics_daily**
   - `id (uuid, pk)`
   - `user_id (fk)`
   - `metric_date`
   - `momentum_score` (numeric)
+  - `momentum_score_version` (string, required)
   - `volatility_index` (numeric)
+  - `volatility_index_version` (string, required)
   - `computed_from_window` (`7d|14d|21d|30d`)
   - unique (`user_id`, `metric_date`)
 
@@ -406,6 +421,7 @@ Session timing must be persisted in canonical fields:
 - **Pivot events:** `pivot_requested`, `pivot_previewed`, `pivot_committed`
 - **Fatigue/choice friction:** `time_to_first_action_recorded`, `options_rendered`, `option_selected`
 - **Derived metrics:** `momentum_score_computed`, `volatility_index_computed`
+- **Identity milestones:** `identity_milestone_unlocked`
 
 ## Determinism rules
 - All adaptation reads are windowed event queries against `behavioral_events`.
@@ -425,11 +441,13 @@ Session timing must be persisted in canonical fields:
    - Computes deterministic metrics for 7/14/21/30-day windows.
 
 3. **Momentum Score Module**
-   - Derives a deterministic `momentum_score` from completion, recovery latency, and proof-output signals.
+   - Derives a deterministic `momentum_score` from persisted events only.
+   - Formula is explicitly versioned (e.g., `MOMENTUM_V1`) and stored as `momentum_score_version`.
    - Stores daily snapshots in `behavioral_metrics_daily`.
 
 4. **Volatility Index Module**
-   - Derives `volatility_index` from schedule irregularity and execution variance.
+   - Derives `volatility_index` from persisted events only.
+   - Formula is explicitly versioned (e.g., `VOLATILITY_V1`) and stored as `volatility_index_version`.
    - Uses persisted event windows only (no model memory).
 
 5. **Policy Evaluator**
@@ -446,19 +464,44 @@ Session timing must be persisted in canonical fields:
 
 7. **Mutation Planner**
    - Produces concrete plan deltas.
-   - Enforces max **1 structural curriculum mutation per weekly cycle**.
+   - Enforces max **1 structural curriculum mutation per weekly evaluation cycle** (hard constraint).
+   - Allows non-structural nudges daily without counting toward structural cap.
 
 8. **Audit Writer**
    - Persists `rule_id`, `trigger_window`, `events_used`, `mutation_applied`, `previous_state`, `new_state`.
+   - Structural mutations require a full audit record and cannot be applied if audit persistence fails.
 
 ## Metric derivation definitions (POC)
-- **momentum_score (0-100):** weighted deterministic aggregate of (recent completion ratio, recovery speed, proof-output presence), computed daily from rolling 14-day windows.
-- **volatility_index (0-100):** deterministic measure of schedule inconsistency using variance of session start times, missed-session clustering, and time-to-first-action instability over rolling 14-day windows.
+- **Versioning policy (required):**
+  - Every derived metric computation must reference explicit formula versions (`momentum_score_version`, `volatility_index_version`).
+  - Historical metric rows are immutable; no retroactive recomputation is allowed without a version bump.
+  - If formulas change, new rows use new versions while historical rows remain tied to prior versions for auditability.
+
+- **momentum_score (0-100, deterministic, versioned):**
+  - Formula source: constants and computation rules documented in `momentumScore.service.ts` (architecture contract).
+  - Inputs (persisted events only):
+    1) recent session completion ratio,
+    2) recovery latency (resume speed after abandon/miss),
+    3) proof-output presence frequency,
+    4) checkpoint velocity.
+  - Computed daily from rolling 14-day windows.
+  - No LLM involvement, no model memory.
+
+- **volatility_index (0-100, deterministic, versioned):**
+  - Formula source: constants and normalization rules documented in `volatilityIndex.service.ts` (architecture contract).
+  - Inputs (persisted events only):
+    1) variance of `session_start_time` across 14-day window,
+    2) clustering of missed sessions,
+    3) variance in `time_to_first_action`,
+    4) abandonment clustering.
+  - Window + normalization strategy: fixed rolling 14-day window, feature-wise normalization to 0–100, then weighted aggregation with versioned constants.
+  - No LLM involvement, no model memory.
 
 ## Evaluation cadence
-- Daily lightweight evaluation (non-structural hints).
-- Weekly structural evaluation (eligible for one structural mutation).
+- Daily lightweight evaluation (non-structural hints/nudges only).
+- Weekly structural evaluation (eligible for one structural mutation maximum).
 - Immediate evaluation on pivotal events (`pivot_requested`, repeated restarts, high abandon thresholds).
+- Hard cap reminder: max 1 structural curriculum mutation per weekly evaluation; additional qualified structural actions are deferred.
 
 ---
 
@@ -485,18 +528,26 @@ Session timing must be persisted in canonical fields:
 ## Resilience agent output restriction contract
 - Resilience Coach output must validate against strict JSON schema with only:
   - `preserved_progress_summary`
-  - `reframe_message`
-  - `next_actions` (exactly 2 items)
+  - `reframe_message` (string, max 500 chars, no line breaks)
+  - `next_actions` (array with exactly 2 items)
   - `pivot_delay_hours` (must equal `48` when delay is required by policy)
-- Disallowed fields/content:
-  - therapy advice
-  - diagnosis language
-  - mental-health claims
-  - direct pivot commit commands
-- Orchestrator enforcement:
+- Hard restrictions:
+  - no free-form motivational paragraphs
+  - no therapy-style language
+  - no diagnostic phrasing
+  - no mental-health claims
+  - no direct pivot commit commands
+- Explicit validation behavior:
+  - reject payloads exceeding field limits (length, line-break, cardinality, enum/const checks)
   - reject payload on schema mismatch
-  - reject payload containing disallowed categories
+  - reject payload containing disallowed language categories
   - write rejected payload reason to `agent_runs.status`
+
+## Behavioral vs Emotional Layer Boundary
+- Resilience layer exists to preserve momentum and prevent reactive pivots.
+- It is explicitly not therapy, mental health support, or crisis response.
+- Its allowed outputs are operational coaching actions constrained by deterministic policy contracts.
+- Final structural decisions remain in adaptation policy logic, not in emotional language generation.
 
 ---
 
