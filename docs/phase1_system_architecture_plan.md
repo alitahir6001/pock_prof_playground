@@ -33,6 +33,7 @@
 │ - rule evaluator    │ │ - onboarding agent     │ │ - skill graph        │
 │ - priority resolver │ │ - professor agent      │ │ - cert mapping       │
 │ - mutation planner  │ │ - career coach agent   │ │ - overlap preserve   │
+│ - momentum score    │ │ - resilience guardrail │ │ - milestone mapping  │
 └───────┬─────────────┘ └───────┬────────────────┘ └───┬──────────────────┘
         │                        │                        │
         ├──────────────┬─────────┴──────────────┬─────────┤
@@ -113,6 +114,8 @@ backend/
         ruleRegistry.ts
         priorityResolver.ts
         mutationPlanner.ts
+        momentumScore.service.ts
+        volatilityIndex.service.ts
 
       agents/
         orchestrator.service.ts
@@ -120,10 +123,12 @@ backend/
           onboarding.output.schema.ts
           professor.output.schema.ts
           careerCoach.output.schema.ts
+          resilienceCoach.output.schema.ts
         prompts/
           onboarding.system.md
           professor.system.md
           careerCoach.system.md
+          resilienceCoach.system.md
 
       checkpoints/
         checkpoint.routes.ts
@@ -287,8 +292,17 @@ frontend/
   - `user_id (fk)`
   - `skill_id (fk)`
   - `load_level` (`LOW|MEDIUM|HIGH`)
+  - `artifact_required (boolean, default false)`
   - `sequence_index`
   - `status` (`locked|available|in_progress|done`)
+
+- **learning_sessions**
+  - `id (uuid, pk)`
+  - `user_id (fk)`
+  - `curriculum_item_id (fk)`
+  - `session_start_time (timestamptz, required)`
+  - `session_end_time (timestamptz, nullable until completion)`
+  - `status` (`started|completed|abandoned`)
 
 - **interview_checkpoints** (12-step model)
   - `id (uuid, pk)`
@@ -303,6 +317,24 @@ frontend/
   - `artifact_type` (`micro_proof|field_simulation|real_world_preview`)
   - `linked_skill_id (fk)`
   - `created_at`
+
+- **identity_milestones**
+  - `id (uuid, pk)`
+  - `user_id (fk)`
+  - `milestone_type` (`proof_of_becoming|field_simulation|real_world_preview`)
+  - `title`
+  - `linked_artifact_id (fk proof_artifacts.id, nullable)`
+  - `linked_checkpoint_number (1-12, nullable)`
+  - `achieved_at`
+
+- **behavioral_metrics_daily**
+  - `id (uuid, pk)`
+  - `user_id (fk)`
+  - `metric_date`
+  - `momentum_score` (numeric)
+  - `volatility_index` (numeric)
+  - `computed_from_window` (`7d|14d|21d|30d`)
+  - unique (`user_id`, `metric_date`)
 
 - **behavioral_events** (append-only)
   - `id (bigserial, pk)`
@@ -362,6 +394,10 @@ Each event must include:
 - `context` (session_id, path_id, timezone)
 - `payload` (strict typed per event)
 
+Session timing must be persisted in canonical fields:
+- `session_start_time`
+- `session_end_time`
+
 ## P0 event families
 - **Session execution:** `session_started`, `session_completed`, `session_abandoned`, `session_missed`, `session_resumed`
 - **Output proof:** `artifact_submitted`, `node_completed`, `assessment_scored`, `session_has_output`
@@ -369,6 +405,7 @@ Each event must include:
 - **Adaptation outcomes:** `rule_evaluated`, `mutation_applied`, `mutation_skipped`
 - **Pivot events:** `pivot_requested`, `pivot_previewed`, `pivot_committed`
 - **Fatigue/choice friction:** `time_to_first_action_recorded`, `options_rendered`, `option_selected`
+- **Derived metrics:** `momentum_score_computed`, `volatility_index_computed`
 
 ## Determinism rules
 - All adaptation reads are windowed event queries against `behavioral_events`.
@@ -387,10 +424,18 @@ Each event must include:
 2. **Window Aggregator**
    - Computes deterministic metrics for 7/14/21/30-day windows.
 
-3. **Policy Evaluator**
+3. **Momentum Score Module**
+   - Derives a deterministic `momentum_score` from completion, recovery latency, and proof-output signals.
+   - Stores daily snapshots in `behavioral_metrics_daily`.
+
+4. **Volatility Index Module**
+   - Derives `volatility_index` from schedule irregularity and execution variance.
+   - Uses persisted event windows only (no model memory).
+
+5. **Policy Evaluator**
    - Executes rule predicates against aggregated metrics.
 
-4. **Priority Resolver**
+6. **Priority Resolver**
    - Enforces canonical priority order:
      1) Psychological Safety / Resilience
      2) Recovery
@@ -399,12 +444,16 @@ Each event must include:
      5) Progress Acceleration
      6) Pivot Exploration
 
-5. **Mutation Planner**
+7. **Mutation Planner**
    - Produces concrete plan deltas.
    - Enforces max **1 structural curriculum mutation per weekly cycle**.
 
-6. **Audit Writer**
+8. **Audit Writer**
    - Persists `rule_id`, `trigger_window`, `events_used`, `mutation_applied`, `previous_state`, `new_state`.
+
+## Metric derivation definitions (POC)
+- **momentum_score (0-100):** weighted deterministic aggregate of (recent completion ratio, recovery speed, proof-output presence), computed daily from rolling 14-day windows.
+- **volatility_index (0-100):** deterministic measure of schedule inconsistency using variance of session start times, missed-session clustering, and time-to-first-action instability over rolling 14-day windows.
 
 ## Evaluation cadence
 - Daily lightweight evaluation (non-structural hints).
@@ -432,6 +481,22 @@ Each event must include:
 - Agent outputs are advisory unless explicitly mapped to allowed action types.
 - No direct DB writes from agent layer.
 - No memory continuity outside persisted event/state context.
+
+## Resilience agent output restriction contract
+- Resilience Coach output must validate against strict JSON schema with only:
+  - `preserved_progress_summary`
+  - `reframe_message`
+  - `next_actions` (exactly 2 items)
+  - `pivot_delay_hours` (must equal `48` when delay is required by policy)
+- Disallowed fields/content:
+  - therapy advice
+  - diagnosis language
+  - mental-health claims
+  - direct pivot commit commands
+- Orchestrator enforcement:
+  - reject payload on schema mismatch
+  - reject payload containing disallowed categories
+  - write rejected payload reason to `agent_runs.status`
 
 ---
 
