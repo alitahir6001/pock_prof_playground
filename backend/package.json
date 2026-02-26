@@ -1,0 +1,9 @@
+{
+  "name": "pocket-professor-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:phase3": "node --test tests/adaptation/policyEngine.test.mjs"
+  }
+}
