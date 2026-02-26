@@ -4,12 +4,19 @@
  */
 
 export const RULE_IDS = {
-  MISSED_2_IN_7D: "R_MISSED_2_IN_7D_REDUCE_WORKLOAD_25",
-  LATE_NIGHT_3: "R_LATE_NIGHT_3_SHIFT_SCHEDULE",
-  TOPIC_RESISTANCE: "R_TOPIC_RESISTANCE_ESCALATE_CAREER_COACH",
-  PIVOT_INTEREST: "R_PIVOT_INTEREST_RECALCULATE_GRAPH",
-  COMPLETED_5: "R_COMPLETED_5_INCREASE_DIFFICULTY"
+  MISSED_2_IN_7D: 'R_MISSED_2_IN_7D_REDUCE_WORKLOAD_25',
+  LATE_NIGHT_3: 'R_LATE_NIGHT_3_SHIFT_SCHEDULE',
+  TOPIC_RESISTANCE: 'R_TOPIC_RESISTANCE_ESCALATE_CAREER_COACH',
+  PIVOT_INTEREST: 'R_PIVOT_INTEREST_RECALCULATE_GRAPH',
+  COMPLETED_5: 'R_COMPLETED_5_INCREASE_DIFFICULTY'
 };
+
+export const STRUCTURAL_MUTATION_TYPES = new Set([
+  'curriculum_recalculation'
+]);
+
+export const MAX_STRUCTURAL_MUTATIONS_PER_WEEK = 1;
+export const POLICY_ENGINE_VERSION = 'phase3_slice2_v1';
 
 const PRIORITY_ORDER = [
   RULE_IDS.TOPIC_RESISTANCE,
@@ -29,6 +36,10 @@ function assertFiniteNumber(value, fieldName) {
   }
 }
 
+function isStructuralMutation(mutation) {
+  return STRUCTURAL_MUTATION_TYPES.has(mutation.mutation_applied.type);
+}
+
 function validateInput(input) {
   if (!input || typeof input !== 'object') {
     throw new Error('Input is required.');
@@ -40,6 +51,10 @@ function validateInput(input) {
 
   if (typeof input.evaluated_at !== 'string' || Number.isNaN(Date.parse(input.evaluated_at))) {
     throw new Error('evaluated_at must be a valid ISO timestamp string.');
+  }
+
+  if (typeof input.weekly_structural_mutations_applied !== 'number' || input.weekly_structural_mutations_applied < 0) {
+    throw new Error('weekly_structural_mutations_applied must be a non-negative number.');
   }
 
   const c = input.counters;
@@ -64,22 +79,23 @@ function validateInput(input) {
  * @param {object} input
  * @param {string} input.user_id
  * @param {string} input.evaluated_at
+ * @param {number} input.weekly_structural_mutations_applied
  * @param {object} input.counters
  * @param {number} input.counters.missed_sessions_7d
  * @param {number} input.counters.late_night_sessions_7d
  * @param {boolean} input.counters.topic_resistance_triggered
  * @param {boolean} input.counters.pivot_interest_triggered
  * @param {number} input.counters.consecutive_completed_sessions
- * @returns {{evaluated_at:string,applied_rules:Array,mutations:Array}}
+ * @returns {{engine_version:string,evaluated_at:string,applied_rules:Array,mutations:Array,deferred_mutations:Array,structural_cap:{max_per_week:number,already_applied:number}}}
  */
 export function evaluatePolicies(input) {
   validateInput(input);
 
   const c = input.counters;
-  const applied = [];
+  const candidates = [];
 
   if (c.missed_sessions_7d >= 2) {
-    applied.push({
+    candidates.push({
       rule_id: RULE_IDS.MISSED_2_IN_7D,
       trigger_window: '7d',
       events_used: ['session_missed'],
@@ -91,7 +107,7 @@ export function evaluatePolicies(input) {
   }
 
   if (c.late_night_sessions_7d >= 3) {
-    applied.push({
+    candidates.push({
       rule_id: RULE_IDS.LATE_NIGHT_3,
       trigger_window: '7d',
       events_used: ['session_started'],
@@ -103,7 +119,7 @@ export function evaluatePolicies(input) {
   }
 
   if (c.topic_resistance_triggered) {
-    applied.push({
+    candidates.push({
       rule_id: RULE_IDS.TOPIC_RESISTANCE,
       trigger_window: '21d',
       events_used: ['topic_resistance_flag'],
@@ -115,7 +131,7 @@ export function evaluatePolicies(input) {
   }
 
   if (c.pivot_interest_triggered) {
-    applied.push({
+    candidates.push({
       rule_id: RULE_IDS.PIVOT_INTEREST,
       trigger_window: '7d',
       events_used: ['pivot_interest'],
@@ -127,7 +143,7 @@ export function evaluatePolicies(input) {
   }
 
   if (c.consecutive_completed_sessions >= 5) {
-    applied.push({
+    candidates.push({
       rule_id: RULE_IDS.COMPLETED_5,
       trigger_window: '7d',
       events_used: ['session_completed'],
@@ -139,11 +155,41 @@ export function evaluatePolicies(input) {
     });
   }
 
-  applied.sort(byPriority);
+  candidates.sort(byPriority);
+
+  let structuralRemaining = Math.max(
+    0,
+    MAX_STRUCTURAL_MUTATIONS_PER_WEEK - input.weekly_structural_mutations_applied,
+  );
+
+  const applied = [];
+  const deferred = [];
+
+  for (const candidate of candidates) {
+    if (isStructuralMutation(candidate) && structuralRemaining <= 0) {
+      deferred.push({
+        ...candidate,
+        deferred_reason: 'STRUCTURAL_CAP_REACHED'
+      });
+      continue;
+    }
+
+    applied.push(candidate);
+
+    if (isStructuralMutation(candidate)) {
+      structuralRemaining -= 1;
+    }
+  }
 
   return {
+    engine_version: POLICY_ENGINE_VERSION,
     evaluated_at: input.evaluated_at,
     applied_rules: applied.map((x) => x.rule_id),
-    mutations: applied
+    mutations: applied,
+    deferred_mutations: deferred,
+    structural_cap: {
+      max_per_week: MAX_STRUCTURAL_MUTATIONS_PER_WEEK,
+      already_applied: input.weekly_structural_mutations_applied
+    }
   };
 }
