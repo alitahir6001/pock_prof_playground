@@ -1,0 +1,13 @@
+{
+  "name": "pocket-professor-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:phase3": "tsc -p tsconfig.json",
+    "test:phase3": "npm run build:phase3 && node --test dist/tests/adaptation/policyEngine.test.js dist/tests/adaptation/adaptationEvaluationPersistence.test.js dist/tests/agents/agentOutputGuard.test.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}
