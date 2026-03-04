@@ -6,6 +6,7 @@ This slice starts Phase 3 with a deterministic adaptation evaluator module and r
 ### Implemented artifacts
 - `backend/src/modules/adaptation/phase3/policyEngine.ts`
 - `backend/src/modules/adaptation/phase3/adaptationEvaluationRecord.ts`
+- `backend/src/modules/adaptation/phase3/adaptationEvaluationService.ts`
 - `backend/tests/adaptation/policyEngine.test.ts`
 - `backend/package.json` (test script for this slice)
 
@@ -45,9 +46,13 @@ The evaluator returns:
 - Structural mutations are fail-closed: persistence write failures raise `AUDIT_PERSISTENCE_FAILED` after best-effort rollback so structural changes cannot proceed without an audit row.
 - Non-structural persistence failures rethrow original storage errors after rollback attempt.
 
+## Slice 5 orchestration module
+- `runAdaptationEvaluationCycle` composes evaluator -> record builder -> transactional persistence in one deterministic service-level call.
+- Service preserves fail-closed semantics by relying on persistence layer `AUDIT_PERSISTENCE_FAILED` behavior for structural mutation write failures.
+
 ## Current conflicts
 - No conflict with behavioral principles or phase architecture detected.
 - Determinism improvement applied: evaluator no longer uses `new Date()` internally and fails closed on invalid inputs.
 - Remaining gap: concrete DB adapter implementation is still pending (current code defines transaction/repository interfaces and behavior contracts).
-- Known gap: API/queue orchestration integration is not wired yet (engine remains module + tests).
-- TypeScript migration completed for Phase 3 evaluator, adapter scaffold, and slice tests to align with project stack consistency.
+- Remaining gap: API/worker entrypoints are not wired yet (service is currently module + tests).
+- TypeScript migration completed for Phase 3 evaluator, persistence modules, orchestration service, and slice tests.

@@ -296,5 +296,5 @@ Core operating model:
 
 - No direct conflict detected with the behavioral design, architecture plan, or system invariants.
 - Phase 3 progress: adaptation evaluation persistence transaction wiring exists with fail-closed behavior for structural mutations; concrete DB adapter wiring is still pending.
-- Phase 3 current gap: API/worker orchestration integration is not wired yet (engine is currently module + tests).
-- Phase 3 progress: TypeScript migration completed for evaluator, validation guard, and tests.
+- Phase 3 progress: service-level orchestration (`evaluate -> build record -> persist`) is implemented as a module; API/worker entrypoints are still pending.
+- Phase 3 progress: TypeScript migration completed for evaluator, persistence/orchestration modules, validation guard, and tests.
