@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "rootDir": ".",
+    "outDir": "dist"
+  },
+  "include": [
+    "src/modules/adaptation/phase3/**/*.ts",
+    "src/modules/agents/phase2/validation/**/*.ts",
+    "tests/adaptation/**/*.ts",
+    "tests/agents/**/*.ts"
+  ]
+}
