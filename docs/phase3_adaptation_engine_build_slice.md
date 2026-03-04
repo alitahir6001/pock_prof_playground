@@ -4,9 +4,9 @@
 This slice starts Phase 3 with a deterministic adaptation evaluator module and runnable rule tests. Evaluations now require caller-supplied `evaluated_at` timestamps to avoid runtime time-source nondeterminism.
 
 ### Implemented artifacts
-- `backend/src/modules/adaptation/phase3/policyEngine.mjs`
-- `backend/src/modules/adaptation/phase3/adaptationEvaluationRecord.mjs`
-- `backend/tests/adaptation/policyEngine.test.mjs`
+- `backend/src/modules/adaptation/phase3/policyEngine.ts`
+- `backend/src/modules/adaptation/phase3/adaptationEvaluationRecord.ts`
+- `backend/tests/adaptation/policyEngine.test.ts`
 - `backend/package.json` (test script for this slice)
 
 ## Deterministic rule coverage in code
@@ -39,13 +39,15 @@ The evaluator returns:
 - Structural mutations beyond cap are returned in `deferred_mutations` with `STRUCTURAL_CAP_REACHED`.
 - Non-structural mutations continue to apply in the same run.
 
-## Persistence adapter scaffold
+## Persistence adapter + transactional wiring
 - `buildAdaptationEvaluationRecord` prepares a DB-ready payload aligned to `adaptation_evaluations` architecture fields.
-- This slice intentionally stops at adapter payload creation and does not execute DB writes.
+- `persistAdaptationEvaluationOrThrow` now wires transaction lifecycle (`begin -> insert -> commit`) via injected repository/transaction interfaces.
+- Structural mutations are fail-closed: persistence write failures raise `AUDIT_PERSISTENCE_FAILED` after best-effort rollback so structural changes cannot proceed without an audit row.
+- Non-structural persistence failures rethrow original storage errors after rollback attempt.
 
 ## Current conflicts
 - No conflict with behavioral principles or phase architecture detected.
 - Determinism improvement applied: evaluator no longer uses `new Date()` internally and fails closed on invalid inputs.
-- Known gap: adapter scaffolding exists, but actual DB transaction/persistence wiring is not implemented yet.
+- Remaining gap: concrete DB adapter implementation is still pending (current code defines transaction/repository interfaces and behavior contracts).
 - Known gap: API/queue orchestration integration is not wired yet (engine remains module + tests).
-- Known gap: module remains `.mjs` for fast runtime validation in this refactor branch; TS migration is still planned for stack consistency.
+- TypeScript migration completed for Phase 3 evaluator, adapter scaffold, and slice tests to align with project stack consistency.

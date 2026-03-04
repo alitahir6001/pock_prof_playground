@@ -34,3 +34,17 @@ No adaptation policy code, no persistence implementation, and no API orchestrati
 ## Current conflicts
 - No direct conflicts detected in this phase slice.
 - Open dependency (not a conflict): runtime orchestration and schema enforcement wiring are deferred to subsequent build slices.
+
+## Rejection-path hardening (Phase 3.5 support)
+- Added deterministic agent-output guard validation with explicit reject reasons:
+  - `SCHEMA_VALIDATION_FAILED`
+  - `UNMAPPED_ACTION`
+  - `PROHIBITED_CONTENT`
+- Added adversarial tests for:
+  - unknown field injection
+  - enum spoofing
+  - oversized strings
+  - cardinality violations
+  - prohibited-content patterns
+
+This hardening ensures that `soul.md` tone guidance never substitutes for schema enforcement.

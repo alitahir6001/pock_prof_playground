@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:phase3": "node --test tests/adaptation/policyEngine.test.mjs"
+    "build:phase3": "tsc -p tsconfig.json",
+    "test:phase3": "npm run build:phase3 && node --test dist/tests/adaptation/policyEngine.test.js dist/tests/adaptation/adaptationEvaluationPersistence.test.js dist/tests/agents/agentOutputGuard.test.js"
   }
 }
