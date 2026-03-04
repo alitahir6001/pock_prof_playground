@@ -1,0 +1,37 @@
+{
+  "agent": "professor_agent",
+  "schema_version": "1.0.0",
+  "session_objective": "Complete one interview-critical troubleshooting micro-proof in 20 minutes.",
+  "options": [
+    {
+      "option_id": "task_120",
+      "rank": 1,
+      "label": "best_next",
+      "task_summary": "Diagnose a basic network issue and submit your fix notes.",
+      "estimated_minutes": 20,
+      "proof_expected": true
+    },
+    {
+      "option_id": "task_121",
+      "rank": 2,
+      "label": "easier_fallback",
+      "task_summary": "Complete a low-load command-line checklist simulation.",
+      "estimated_minutes": 15,
+      "proof_expected": true
+    },
+    {
+      "option_id": "task_101",
+      "rank": 3,
+      "label": "catch_up",
+      "task_summary": "Review and correct your last missed troubleshooting steps.",
+      "estimated_minutes": 15,
+      "proof_expected": false
+    }
+  ],
+  "resistance_signal": "fatigue_friction",
+  "escalation_recommendation": "none",
+  "next_actions": [
+    "Pick one option in under 2 minutes.",
+    "Submit one concrete output before ending session."
+  ]
+}
