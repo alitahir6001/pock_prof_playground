@@ -1,0 +1,27 @@
+{
+  "agent": "career_coach_agent",
+  "schema_version": "1.0.0",
+  "recommendation_type": "pivot_preview",
+  "rationale_tag": "directional_ambiguity_detected",
+  "pivot_options": [
+    {
+      "path_id": "it_support_specialist",
+      "title": "IT Support Specialist",
+      "rank": 1,
+      "overlap_ratio_preserved": 0.68,
+      "eta_delta_days": -21
+    },
+    {
+      "path_id": "qa_analyst",
+      "title": "QA Analyst",
+      "rank": 2,
+      "overlap_ratio_preserved": 0.54,
+      "eta_delta_days": -7
+    }
+  ],
+  "preserved_progress_summary": "You keep 17 completed competencies and 2 active artifacts if you pivot to IT Support.",
+  "next_actions": [
+    "Review overlap preview and checkpoint impact before deciding.",
+    "Complete one proof task in your current path tonight."
+  ]
+}
