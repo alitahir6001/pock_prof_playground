@@ -8,6 +8,7 @@ This slice starts Phase 3 with a deterministic adaptation evaluator module and r
 - `backend/src/modules/adaptation/phase3/adaptationEvaluationRecord.ts`
 - `backend/src/modules/adaptation/phase3/adaptationEvaluationService.ts`
 - `backend/src/modules/adaptation/phase3/adaptationEvaluationFileAdapter.ts`
+- `backend/src/modules/adaptation/phase3/adaptationEvaluationEntrypoints.ts`
 - `backend/tests/adaptation/policyEngine.test.ts`
 - `backend/package.json` (test script for this slice)
 
@@ -55,9 +56,17 @@ The evaluator returns:
 - Added a concrete file-backed persistence adapter (`adaptationEvaluationFileAdapter.ts`) that satisfies transaction/repository interfaces and writes auditable rows to JSON storage for local development/testing.
 - Adapter is intentionally local-first (JSON file) to keep infrastructure friction low while preserving transaction semantics and fail-closed structural behavior.
 
+## Slice B API/worker entrypoints
+- Added `handleAdaptationEvaluationApiRequest` and `handleAdaptationEvaluationWorkerJob` to wire runtime entrypoints into the deterministic service pipeline.
+- Entrypoints support concrete file adapter defaults plus injectable dependencies for deterministic tests and fail-closed behavior checks.
+
+## Security hardening mini-slice
+- Strengthened prohibited-content guard patterns to catch broader therapeutic/clinical framing variants.
+- Added tamper-evident audit chain fields (`previous_record_hash`, `record_hash`) in file-backed audit persistence and verification helper `verifyStoredEvaluationChain`.
+
 ## Current conflicts
 - No conflict with behavioral principles or phase architecture detected.
 - Determinism improvement applied: evaluator no longer uses `new Date()` internally and fails closed on invalid inputs.
 - Remaining gap: production-grade DB adapter (Postgres/Firebase/etc.) is still pending; current concrete adapter is file-backed for local/pilot plumbing.
-- Remaining gap: API/worker entrypoints are not wired yet (service is currently module + tests).
+- Progress: API/worker entrypoint modules now call deterministic service pipeline; production HTTP/queue framework binding is still pending.
 - TypeScript migration completed for Phase 3 evaluator, persistence modules, orchestration service, and slice tests.

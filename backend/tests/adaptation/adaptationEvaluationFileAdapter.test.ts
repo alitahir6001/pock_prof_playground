@@ -8,6 +8,7 @@ import {
   createFilePersistenceAdapter,
   FileAdaptationEvaluationRepository,
   readStoredEvaluationsOrEmpty,
+  verifyStoredEvaluationChain,
 } from '../../src/modules/adaptation/phase3/adaptationEvaluationFileAdapter.js';
 
 function baseRecord() {
@@ -64,6 +65,9 @@ test('persists adaptation evaluation records to a concrete JSON file store', asy
     assert.equal(rows[0]?.user_id, 'u_file_1');
     assert.equal(rows[1]?.user_id, 'u_file_2');
     assert.equal(typeof rows[0]?.persisted_at, 'string');
+    assert.equal(rows[0]?.previous_record_hash, null);
+    assert.equal(rows[1]?.previous_record_hash, rows[0]?.record_hash);
+    assert.equal(verifyStoredEvaluationChain(rows), true);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -80,4 +84,18 @@ test('throws when file repository receives non-file transaction', async () => {
       }),
     /requires FilePersistenceTransaction/,
   );
+});
+
+test('detects audit chain tampering', () => {
+  const rows = [
+    {
+      ...baseRecord(),
+      evaluation_id: 'eval_1',
+      persisted_at: '2026-02-01T00:00:00.000Z',
+      previous_record_hash: null,
+      record_hash: 'abc',
+    },
+  ];
+
+  assert.equal(verifyStoredEvaluationChain(rows as any), false);
 });

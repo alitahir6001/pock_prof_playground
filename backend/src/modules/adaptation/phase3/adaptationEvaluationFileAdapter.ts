@@ -1,6 +1,6 @@
+import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { randomUUID } from 'node:crypto';
 import type {
   AdaptationEvaluationRecord,
   AdaptationEvaluationRepository,
@@ -11,7 +11,14 @@ import type {
 export type StoredAdaptationEvaluationRecord = AdaptationEvaluationRecord & {
   evaluation_id: string;
   persisted_at: string;
+  previous_record_hash: string | null;
+  record_hash: string;
 };
+
+function computeRecordHash(record: Omit<StoredAdaptationEvaluationRecord, 'record_hash'>): string {
+  const content = JSON.stringify(record);
+  return createHash('sha256').update(content).digest('hex');
+}
 
 export class FilePersistenceTransaction implements PersistenceTransaction {
   private pending: StoredAdaptationEvaluationRecord[] = [];
@@ -19,11 +26,30 @@ export class FilePersistenceTransaction implements PersistenceTransaction {
 
   constructor(private readonly filePath: string) {}
 
-  stage(record: StoredAdaptationEvaluationRecord): void {
+  async stage(record: AdaptationEvaluationRecord): Promise<string> {
     if (this.finalized) {
       throw new Error('transaction already finalized');
     }
-    this.pending.push(record);
+
+    const existing = await readStoredEvaluationsOrEmpty(this.filePath);
+    const previousRecordHash = this.pending.length > 0
+      ? this.pending[this.pending.length - 1]?.record_hash ?? null
+      : existing[existing.length - 1]?.record_hash ?? null;
+
+    const withoutHash = {
+      ...record,
+      evaluation_id: `eval_${randomUUID()}`,
+      persisted_at: new Date().toISOString(),
+      previous_record_hash: previousRecordHash,
+    };
+
+    const storedRecord: StoredAdaptationEvaluationRecord = {
+      ...withoutHash,
+      record_hash: computeRecordHash(withoutHash),
+    };
+
+    this.pending.push(storedRecord);
+    return storedRecord.evaluation_id;
   }
 
   async commit(): Promise<void> {
@@ -65,15 +91,7 @@ export class FileAdaptationEvaluationRepository implements AdaptationEvaluationR
       throw new Error('FileAdaptationEvaluationRepository requires FilePersistenceTransaction');
     }
 
-    const evaluationId = `eval_${randomUUID()}`;
-
-    tx.stage({
-      ...record,
-      evaluation_id: evaluationId,
-      persisted_at: new Date().toISOString(),
-    });
-
-    return evaluationId;
+    return tx.stage(record);
   }
 }
 
@@ -105,4 +123,24 @@ export async function readStoredEvaluationsOrEmpty(
     }
     throw error;
   }
+}
+
+export function verifyStoredEvaluationChain(records: StoredAdaptationEvaluationRecord[]): boolean {
+  for (let i = 0; i < records.length; i += 1) {
+    const current = records[i];
+    if (!current) return false;
+
+    const expectedPrevious = i > 0 ? records[i - 1]?.record_hash ?? null : null;
+    if (current.previous_record_hash !== expectedPrevious) {
+      return false;
+    }
+
+    const { record_hash: _, ...withoutHash } = current;
+    const expectedHash = computeRecordHash(withoutHash);
+    if (current.record_hash !== expectedHash) {
+      return false;
+    }
+  }
+
+  return true;
 }
