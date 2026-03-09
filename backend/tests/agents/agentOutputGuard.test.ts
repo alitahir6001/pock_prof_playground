@@ -82,3 +82,22 @@ test('rejects prohibited content patterns', () => {
   assert.equal(result.ok, false);
   if (!result.ok) assert.equal(result.reason, 'PROHIBITED_CONTENT');
 });
+
+test('rejects non-obvious clinical framing language variants', () => {
+  const variants = [
+    'This sounds like a clinical condition that may need medical intervention.',
+    'Please speak to a psychiatrist so they can evaluate medication options.',
+    'Your stress pattern resembles a trauma response and could be PTSD related.',
+  ];
+
+  for (const phrase of variants) {
+    const payload = {
+      ...validOnboarding,
+      next_actions: [phrase, 'Do one micro-proof.']
+    };
+
+    const result = validateAgentOutput('onboarding_agent', payload);
+    assert.equal(result.ok, false);
+    if (!result.ok) assert.equal(result.reason, 'PROHIBITED_CONTENT');
+  }
+});

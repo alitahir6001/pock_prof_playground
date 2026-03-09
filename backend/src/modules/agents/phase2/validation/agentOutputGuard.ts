@@ -15,7 +15,15 @@ const PROHIBITED_LANGUAGE = [
   /therapy/i,
   /mental health/i,
   /hopeless/i,
-  /panic attack/i
+  /panic attack/i,
+  /ptsd/i,
+  /bipolar/i,
+  /depress(ed|ion)/i,
+  /you should (talk|speak) to (a )?(therapist|psychiatrist|psychologist|counselor)/i,
+  /(clinical|medical) (condition|issue)/i,
+  /trauma response/i,
+  /medication/i,
+  /prescribe/i
 ];
 
 const onboardingRationale = new Set([

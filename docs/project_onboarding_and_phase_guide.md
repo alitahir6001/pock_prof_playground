@@ -295,6 +295,7 @@ Core operating model:
 ## current conflicts
 
 - No direct conflict detected with the behavioral design, architecture plan, or system invariants.
-- Phase 3 progress: adaptation evaluation persistence transaction wiring exists with fail-closed behavior for structural mutations; concrete DB adapter wiring is still pending.
-- Phase 3 progress: service-level orchestration (`evaluate -> build record -> persist`) is implemented as a module; API/worker entrypoints are still pending.
+- Phase 3 progress: concrete local file-backed persistence adapter is now implemented for audit records, preserving fail-closed behavior for structural mutations; production DB adapter is still pending.
+- Phase 3 progress: API/worker entrypoint modules now call service orchestration (`evaluate -> build record -> persist`); framework-level HTTP/queue binding remains pending.
+- Phase 3 progress: security hardening mini-slice added broader prohibited-language patterns and tamper-evident file audit chain verification.
 - Phase 3 progress: TypeScript migration completed for evaluator, persistence/orchestration modules, validation guard, and tests.
