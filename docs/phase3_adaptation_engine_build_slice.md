@@ -9,6 +9,7 @@ This slice starts Phase 3 with a deterministic adaptation evaluator module and r
 - `backend/src/modules/adaptation/phase3/adaptationEvaluationService.ts`
 - `backend/src/modules/adaptation/phase3/adaptationEvaluationFileAdapter.ts`
 - `backend/src/modules/adaptation/phase3/adaptationEvaluationEntrypoints.ts`
+- `backend/src/modules/adaptation/phase3/adaptationFrameworkBindings.ts`
 - `backend/tests/adaptation/policyEngine.test.ts`
 - `backend/package.json` (test script for this slice)
 
@@ -64,9 +65,14 @@ The evaluator returns:
 - Strengthened prohibited-content guard patterns to catch broader therapeutic/clinical framing variants.
 - Added tamper-evident audit chain fields (`previous_record_hash`, `record_hash`) in file-backed audit persistence and verification helper `verifyStoredEvaluationChain`.
 
+## Slice C framework-level bindings
+- Added framework-agnostic HTTP/worker binding module (`adaptationFrameworkBindings.ts`) that maps runtime transport semantics to deterministic entrypoint calls.
+- HTTP binding maps outcomes to explicit statuses (`200`, `400`, `503`) and machine-readable error codes.
+- Worker binding maps outcomes to deterministic result envelopes (`completed`/`failed`) for queue integration.
+
 ## Current conflicts
 - No conflict with behavioral principles or phase architecture detected.
 - Determinism improvement applied: evaluator no longer uses `new Date()` internally and fails closed on invalid inputs.
 - Remaining gap: production-grade DB adapter (Postgres/Firebase/etc.) is still pending; current concrete adapter is file-backed for local/pilot plumbing.
-- Progress: API/worker entrypoint modules now call deterministic service pipeline; production HTTP/queue framework binding is still pending.
+- Progress: framework-agnostic HTTP/worker bindings are now implemented and tested; concrete web server/queue runtime integration is still pending.
 - TypeScript migration completed for Phase 3 evaluator, persistence modules, orchestration service, and slice tests.
