@@ -1,0 +1,41 @@
+{
+  "agent": "onboarding_agent",
+  "schema_version": "1.0.0",
+  "career_options": [
+    {
+      "path_id": "it_support_specialist",
+      "title": "IT Support Specialist",
+      "rank": 1,
+      "rationale_tag": "fast_interview_path"
+    },
+    {
+      "path_id": "junior_data_analyst",
+      "title": "Junior Data Analyst",
+      "rank": 2,
+      "rationale_tag": "high_overlap"
+    },
+    {
+      "path_id": "qa_analyst",
+      "title": "QA Analyst",
+      "rank": 3,
+      "rationale_tag": "schedule_compatible"
+    }
+  ],
+  "trigger_plan": {
+    "primary_trigger": "After my first coffee before noon shift",
+    "fallback_trigger": "After shower on late-shift days"
+  },
+  "sprint_recommendation": {
+    "duration_days": 14,
+    "daily_minutes_target": 20,
+    "emphasis": "micro_proof"
+  },
+  "risk_flags": [
+    "low_schedule_stability",
+    "high_fatigue_pattern"
+  ],
+  "next_actions": [
+    "Confirm primary and fallback trigger windows.",
+    "Complete one 15-minute micro-proof session tonight."
+  ]
+}
