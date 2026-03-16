@@ -70,6 +70,10 @@ The evaluator returns:
 - HTTP binding maps outcomes to explicit statuses (`200`, `400`, `503`) and machine-readable error codes.
 - Worker binding maps outcomes to deterministic result envelopes (`completed`/`failed`) for queue integration.
 
+## Slice D Fastify runtime wrapper + smoke script
+- Added concrete Fastify runtime bootstrap script (`backend/scripts/run_adaptation_fastify.mjs`) bound to `POST /adaptation/evaluate` using `handleAdaptationHttpRoute`.
+- Added smoke script (`backend/scripts/smoke_adaptation_runtime.sh`) that validates both success path (`200`) and malformed payload failure path (`400`, `BAD_REQUEST`).
+
 ## Current conflicts
 - No conflict with behavioral principles or phase architecture detected.
 - Determinism improvement applied: evaluator no longer uses `new Date()` internally and fails closed on invalid inputs.

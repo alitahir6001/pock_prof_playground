@@ -132,6 +132,32 @@ npm run test:phase3
 
 ---
 
+
+## Tiny runtime wrapper (Fastify)
+
+To run a local adaptation route using Fastify:
+
+```bash
+cd backend
+npm install
+npm run start:adaptation-runtime
+```
+
+Then in a second terminal run the smoke script:
+
+```bash
+cd backend
+npm run smoke:adaptation-runtime
+```
+
+The smoke script checks both:
+- happy path (`200`)
+- malformed payload failure (`400` with `BAD_REQUEST`)
+
+This confirms deterministic success and deterministic failure behavior at the transport boundary.
+
+---
+
 ## Current status
 
 - ✅ Deterministic policy engine and rule ordering in place.
