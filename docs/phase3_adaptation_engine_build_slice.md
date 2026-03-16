@@ -71,8 +71,8 @@ The evaluator returns:
 - Worker binding maps outcomes to deterministic result envelopes (`completed`/`failed`) for queue integration.
 
 ## Slice D Fastify runtime wrapper + smoke script
-- Added concrete Fastify runtime bootstrap script (`backend/scripts/run_adaptation_fastify.mjs`) bound to `POST /adaptation/evaluate` using `handleAdaptationHttpRoute`.
-- Added smoke script (`backend/scripts/smoke_adaptation_runtime.sh`) that validates both success path (`200`) and malformed payload failure path (`400`, `BAD_REQUEST`).
+- Added concrete Fastify runtime bootstrap script (`backend/scripts/run_adaptation_fastify.mjs`) with health route (`GET /adaptation/health`) and adaptation route (`POST /adaptation/evaluate`) using `handleAdaptationHttpRoute`.
+- Added smoke script (`backend/scripts/smoke_adaptation_runtime.sh`) that validates health, success path (`200`), malformed payload failure (`400`, `BAD_REQUEST`), and oversized payload deterministic 4xx behavior.
 
 ## Current conflicts
 - No conflict with behavioral principles or phase architecture detected.

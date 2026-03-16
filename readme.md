@@ -150,9 +150,11 @@ cd backend
 npm run smoke:adaptation-runtime
 ```
 
-The smoke script checks both:
+The smoke script checks:
+- health endpoint (`GET /adaptation/health` -> `200`)
 - happy path (`200`)
 - malformed payload failure (`400` with `BAD_REQUEST`)
+- oversized payload failure (`4xx`, never silent `500`)
 
 This confirms deterministic success and deterministic failure behavior at the transport boundary.
 
