@@ -72,11 +72,22 @@ cat <<'MSG'
 MSG
 
 OVERSIZED_FILE=/tmp/adapt_oversized.json
-python - <<'PY'
+if command -v python3 >/dev/null 2>&1; then
+  python3 - <<'PY'
 from pathlib import Path
 payload = '{"huge":"' + ('x' * 70000) + '"}'
 Path('/tmp/adapt_oversized_payload.json').write_text(payload)
 PY
+elif command -v python >/dev/null 2>&1; then
+  python - <<'PY'
+from pathlib import Path
+payload = '{"huge":"' + ('x' * 70000) + '"}'
+Path('/tmp/adapt_oversized_payload.json').write_text(payload)
+PY
+else
+  BIG=$(head -c 70000 /dev/zero | tr '\0' 'x')
+  printf '{"huge":"%s"}' "$BIG" > /tmp/adapt_oversized_payload.json
+fi
 
 OVERSIZED_STATUS=$(curl -sS -o "$OVERSIZED_FILE" -w "%{http_code}" \
   -X POST "$BASE_URL/adaptation/evaluate" \
