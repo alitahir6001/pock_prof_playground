@@ -10,6 +10,13 @@ const app = Fastify({
   bodyLimit: 64 * 1024,
 });
 
+app.addHook('onRequest', async (request, reply) => {
+  const contentType = request.headers['content-type'];
+  if (typeof contentType === 'string' && contentType.includes('	')) {
+    return reply.code(400).send({ ok: false, error_code: 'BAD_REQUEST', detail: 'Invalid Content-Type header.' });
+  }
+});
+
 app.setErrorHandler((error, request, reply) => {
   const statusCode = error.statusCode && error.statusCode >= 400 && error.statusCode < 500
     ? error.statusCode

@@ -67,6 +67,24 @@ if ! grep -q 'BAD_REQUEST' /tmp/adapt_invalid.json; then
   exit 1
 fi
 
+
+cat <<'MSG'
+[Smoke] Sending Content-Type tab bypass probe (expect HTTP 400, BAD_REQUEST)...
+MSG
+
+TAB_STATUS=$(curl -sS -o /tmp/adapt_tab_header.json -w "%{http_code}"   -X POST "$BASE_URL/adaptation/evaluate"   -H $'content-type: application/json	a'   -d '{"user_id":"u_tab_probe"}')
+
+echo "Tab-header status: $TAB_STATUS"
+cat /tmp/adapt_tab_header.json
+if [[ "$TAB_STATUS" != "400" ]]; then
+  echo "[Smoke] Expected 400 for tab Content-Type header probe"
+  exit 1
+fi
+if ! grep -q 'BAD_REQUEST' /tmp/adapt_tab_header.json; then
+  echo "[Smoke] Expected BAD_REQUEST for tab Content-Type header probe"
+  exit 1
+fi
+
 cat <<'MSG'
 [Smoke] Sending oversized payload (expect deterministic 4xx and non-500)...
 MSG

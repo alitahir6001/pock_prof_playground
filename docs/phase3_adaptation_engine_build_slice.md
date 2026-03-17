@@ -72,7 +72,8 @@ The evaluator returns:
 
 ## Slice D Fastify runtime wrapper + smoke script
 - Added concrete Fastify runtime bootstrap script (`backend/scripts/run_adaptation_fastify.mjs`) with health route (`GET /adaptation/health`) and adaptation route (`POST /adaptation/evaluate`) using `handleAdaptationHttpRoute`.
-- Added smoke script (`backend/scripts/smoke_adaptation_runtime.sh`) that validates health, success path (`200`), malformed payload failure (`400`, `BAD_REQUEST`), and oversized payload deterministic 4xx behavior.
+- Added smoke script (`backend/scripts/smoke_adaptation_runtime.sh`) that validates health, success path (`200`), malformed payload failure (`400`, `BAD_REQUEST`), tab Content-Type probe failure (`400`, `BAD_REQUEST`), and oversized payload deterministic 4xx behavior.
+- Fastify dependency updated to patched line (`>=5.7.3`) and runtime includes explicit `Content-Type` tab-character rejection hook for defense-in-depth.
 
 ## Current conflicts
 - No conflict with behavioral principles or phase architecture detected.
