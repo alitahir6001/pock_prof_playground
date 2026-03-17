@@ -81,3 +81,15 @@ The evaluator returns:
 - Remaining gap: production-grade DB adapter (Postgres/Firebase/etc.) is still pending; current concrete adapter is file-backed for local/pilot plumbing.
 - Progress: framework-agnostic HTTP/worker bindings are now implemented and tested; concrete web server/queue runtime integration is still pending.
 - TypeScript migration completed for Phase 3 evaluator, persistence modules, orchestration service, and slice tests.
+
+## Summary
+- Phase 3 now has deterministic rule evaluation, typed evaluation-record construction, transaction-aware persistence wiring, and runtime-facing API/worker bindings.
+- Structural adaptations remain fail-closed when audit persistence fails, preserving the system invariant that structural changes must have auditable records.
+- A local file-backed adapter is implemented for immediate runnable validation, while a Postgres-oriented adapter exists for production persistence direction.
+
+## Next steps
+1. Wire adapter selection by environment (`file` vs `postgres`) with identical fail-closed semantics.
+2. Add migration + schema artifacts for `adaptation_evaluations` and document operational roll-forward/rollback.
+3. Integrate worker queue runtime path (real job transport) and add end-to-end smoke checks for replay-safe retries.
+4. Add observability for adaptation runs (counters for applied/deferred structural mutations and audit persistence failures).
+5. Run a micro-pilot gate with explicit success criteria (stability, audit completeness, and intervention quality sampling).
