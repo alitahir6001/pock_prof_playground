@@ -2,14 +2,18 @@ import {
   handleAdaptationEvaluationApiRequest,
   handleAdaptationEvaluationWorkerJob,
   type AdaptationEvaluationRequest,
+  type PersistenceMode,
 } from './adaptationEvaluationEntrypoints.js';
 import type {
   AdaptationEvaluationRepository,
   TransactionFactory,
 } from './adaptationEvaluationPersistence.js';
+import type { PostgresPoolLike } from './adaptationEvaluationPostgresAdapter.js';
 
 export type FrameworkBindingDependencies = {
+  persistenceMode?: PersistenceMode;
   auditFilePath?: string;
+  postgresPool?: PostgresPoolLike;
   txFactory?: TransactionFactory;
   repository?: AdaptationEvaluationRepository;
 };
@@ -82,7 +86,9 @@ export async function handleAdaptationWorkerMessage(
     const result = await handleAdaptationEvaluationWorkerJob({
       job_id: message.job_id,
       request: message.payload,
+      persistenceMode: deps.persistenceMode,
       auditFilePath: deps.auditFilePath,
+      postgresPool: deps.postgresPool,
       txFactory: deps.txFactory,
       repository: deps.repository,
     });

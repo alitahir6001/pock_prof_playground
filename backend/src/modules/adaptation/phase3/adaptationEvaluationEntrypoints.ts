@@ -1,5 +1,9 @@
 import { createFilePersistenceAdapter } from './adaptationEvaluationFileAdapter.js';
 import {
+  createPostgresPersistenceAdapter,
+  type PostgresPoolLike,
+} from './adaptationEvaluationPostgresAdapter.js';
+import {
   AUDIT_PERSISTENCE_FAILED,
   type AdaptationEvaluationRepository,
   type TransactionFactory,
@@ -20,9 +24,19 @@ export type AdaptationEvaluationRequest = {
   new_state: Record<string, unknown>;
 };
 
+export type PersistenceMode = 'file' | 'postgres';
+
 type EntrypointDependencies = {
   txFactory: TransactionFactory;
   repository: AdaptationEvaluationRepository;
+};
+
+export type EntrypointDependencyParams = {
+  persistenceMode?: PersistenceMode;
+  auditFilePath?: string;
+  postgresPool?: PostgresPoolLike;
+  txFactory?: TransactionFactory;
+  repository?: AdaptationEvaluationRepository;
 };
 
 function validateRequest(request: unknown): asserts request is AdaptationEvaluationRequest {
@@ -44,11 +58,7 @@ function validateRequest(request: unknown): asserts request is AdaptationEvaluat
   if (!r.new_state || typeof r.new_state !== 'object') throw new Error('new_state is required.');
 }
 
-function resolveDependencies(params: {
-  auditFilePath?: string;
-  txFactory?: TransactionFactory;
-  repository?: AdaptationEvaluationRepository;
-}): EntrypointDependencies {
+function resolveDependencies(params: EntrypointDependencyParams): EntrypointDependencies {
   if (params.txFactory && params.repository) {
     return { txFactory: params.txFactory, repository: params.repository };
   }
@@ -57,8 +67,18 @@ function resolveDependencies(params: {
     throw new Error('txFactory and repository must be provided together.');
   }
 
+  const persistenceMode = params.persistenceMode ?? 'file';
+
+  if (persistenceMode === 'postgres') {
+    if (!params.postgresPool) {
+      throw new Error('postgresPool is required when persistenceMode is postgres.');
+    }
+
+    return createPostgresPersistenceAdapter(params.postgresPool);
+  }
+
   if (!params.auditFilePath || params.auditFilePath.length < 1) {
-    throw new Error('auditFilePath is required when custom dependencies are not provided.');
+    throw new Error('auditFilePath is required when persistenceMode is file and custom dependencies are not provided.');
   }
 
   return createFilePersistenceAdapter(params.auditFilePath);
@@ -86,7 +106,7 @@ export type AdaptationApiResponse =
 
 export async function handleAdaptationEvaluationApiRequest(
   request: unknown,
-  params: { auditFilePath?: string; txFactory?: TransactionFactory; repository?: AdaptationEvaluationRepository },
+  params: EntrypointDependencyParams,
 ): Promise<AdaptationApiResponse> {
   validateRequest(request);
   const deps = resolveDependencies(params);
@@ -105,7 +125,9 @@ export async function handleAdaptationEvaluationApiRequest(
 export async function handleAdaptationEvaluationWorkerJob(params: {
   job_id: string;
   request: unknown;
+  persistenceMode?: PersistenceMode;
   auditFilePath?: string;
+  postgresPool?: PostgresPoolLike;
   txFactory?: TransactionFactory;
   repository?: AdaptationEvaluationRepository;
 }): Promise<{ job_id: string; status: 'completed'; evaluation_id: string; applied_rule_count: number }> {
@@ -114,7 +136,9 @@ export async function handleAdaptationEvaluationWorkerJob(params: {
   }
 
   const response = await handleAdaptationEvaluationApiRequest(params.request, {
+    persistenceMode: params.persistenceMode,
     auditFilePath: params.auditFilePath,
+    postgresPool: params.postgresPool,
     txFactory: params.txFactory,
     repository: params.repository,
   });

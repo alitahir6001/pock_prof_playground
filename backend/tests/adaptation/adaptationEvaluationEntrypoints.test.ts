@@ -7,6 +7,7 @@ import {
   handleAdaptationEvaluationApiRequest,
   handleAdaptationEvaluationWorkerJob,
 } from '../../src/modules/adaptation/phase3/adaptationEvaluationEntrypoints.js';
+import type { PostgresPoolLike } from '../../src/modules/adaptation/phase3/adaptationEvaluationPostgresAdapter.js';
 
 function baseRequest() {
   return {
@@ -43,6 +44,39 @@ test('API entrypoint executes evaluation cycle with file adapter', async () => {
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
+});
+
+test('API entrypoint executes evaluation cycle with postgres adapter when persistenceMode=postgres', async () => {
+  const calls: string[] = [];
+  const pool: PostgresPoolLike = {
+    async connect() {
+      calls.push('CONNECT');
+      return {
+        async query(sql: string) {
+          calls.push(sql.trim().split(/\s+/)[0] || sql.trim());
+          if (sql.includes('INSERT INTO adaptation_evaluations')) {
+            return { rows: [{ evaluation_id: 'eval_pg_runtime' }] };
+          }
+          return { rows: [] };
+        },
+        release() {
+          calls.push('RELEASE');
+        },
+      };
+    },
+  };
+
+  const response = await handleAdaptationEvaluationApiRequest(baseRequest(), {
+    persistenceMode: 'postgres',
+    postgresPool: pool,
+  });
+
+  assert.equal(response.ok, true);
+  if (response.ok) {
+    assert.equal(response.result.evaluation_id, 'eval_pg_runtime');
+    assert.equal(response.result.policy_output.applied_rules.length, 1);
+  }
+  assert.deepEqual(calls, ['CONNECT', 'BEGIN', 'INSERT', 'COMMIT', 'RELEASE']);
 });
 
 test('worker entrypoint returns deterministic job completion payload', async () => {
@@ -105,5 +139,12 @@ test('entrypoint fails closed on invalid request shape', async () => {
   await assert.rejects(
     () => handleAdaptationEvaluationApiRequest({ user_id: 'u1' }, { auditFilePath: '/tmp/x.json' }),
     /evaluated_at must be valid ISO timestamp string/,
+  );
+});
+
+test('entrypoint rejects postgres mode when no postgresPool is provided', async () => {
+  await assert.rejects(
+    () => handleAdaptationEvaluationApiRequest(baseRequest(), { persistenceMode: 'postgres' }),
+    /postgresPool is required when persistenceMode is postgres/,
   );
 });
