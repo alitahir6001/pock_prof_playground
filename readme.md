@@ -77,6 +77,10 @@ Run inside `backend/`:
 
 - `npm run build:phase3` — compile TypeScript for phase slices.
 - `npm run test:phase3` — compile + run current slice tests.
+- `npm run db:migrate:adaptation:up` — apply `adaptation_evaluations` schema migration (requires `ADAPTATION_DATABASE_URL`).
+- `npm run db:migrate:adaptation:down` — roll back `adaptation_evaluations` schema migration.
+- `npm run start:adaptation-worker` — run queue-style worker runtime script for one worker job payload.
+- `npm run smoke:adaptation-worker` — run deterministic worker smoke checks.
 
 ---
 
@@ -133,6 +137,30 @@ npm run test:phase3
 ---
 
 
+
+## Database migration runbook (adaptation_evaluations)
+
+Migration files:
+- `backend/db/migrations/20260325_001_create_adaptation_evaluations.up.sql`
+- `backend/db/migrations/20260325_001_create_adaptation_evaluations.down.sql`
+
+Operational guide:
+- `backend/docs/adaptation_evaluations_migration_runbook.md`
+
+Apply migration:
+```bash
+cd backend
+export ADAPTATION_DATABASE_URL='postgres://<user>:<pass>@<host>:5432/<db>'
+npm run db:migrate:adaptation:up
+```
+
+Rollback migration:
+```bash
+cd backend
+export ADAPTATION_DATABASE_URL='postgres://<user>:<pass>@<host>:5432/<db>'
+npm run db:migrate:adaptation:down
+```
+
 ## Tiny runtime wrapper (Fastify)
 
 To run a local adaptation route using Fastify:
@@ -167,7 +195,7 @@ This confirms deterministic success and deterministic failure behavior at the tr
 - ✅ Structural mutation cap + deferral behavior implemented.
 - ✅ Fail-closed audit persistence semantics for structural mutations implemented.
 - ✅ Agent output guard + rejection reason paths covered by tests.
-- ⏳ Remaining gap: concrete DB adapter wiring and API/worker orchestration integration.
+- ⏳ Remaining gap: production queue transport integration + observability hardening before micro-pilot.
 
 ---
 
