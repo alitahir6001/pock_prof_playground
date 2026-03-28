@@ -51,6 +51,7 @@ test('HTTP binding maps invalid request to 400 BAD_REQUEST', async () => {
 
   assert.equal(response.status, 400);
   assert.deepEqual(response.json.error_code, 'BAD_REQUEST');
+  assert.deepEqual(response.json.diagnostic_code, 'VALIDATION_ERROR');
 });
 
 test('HTTP binding maps structural audit failure to 503', async () => {
@@ -129,5 +130,6 @@ test('worker binding returns failed message on fail-closed structural error', as
     job_id: 'job_bind_2',
     status: 'failed',
     error_code: 'AUDIT_PERSISTENCE_FAILED',
+    diagnostic_code: 'AUDIT_PERSISTENCE_FAILURE',
   });
 });

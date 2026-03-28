@@ -1,5 +1,7 @@
 import Fastify from 'fastify';
+import { randomUUID } from 'node:crypto';
 import { handleAdaptationHttpRoute } from '../dist/src/modules/adaptation/phase3/adaptationFrameworkBindings.js';
+import { classifyAdaptationError } from '../dist/src/modules/adaptation/phase3/adaptationObservability.js';
 
 const port = Number(process.env.ADAPTATION_PORT || 3040);
 const host = process.env.ADAPTATION_HOST || '127.0.0.1';
@@ -43,7 +45,17 @@ app.setErrorHandler((error, request, reply) => {
     ? 'Internal runtime error.'
     : (error.message || 'Invalid request payload.');
 
-  request.log.warn({ err: error, errorCode, statusCode }, 'Adaptation route rejected request');
+  request.log.warn(
+    {
+      err: error,
+      errorCode,
+      diagnosticCode: classifyAdaptationError(error),
+      statusCode,
+      persistenceMode,
+      requestId: request.id,
+    },
+    'Adaptation route rejected request',
+  );
   reply.code(statusCode).send({ ok: false, error_code: errorCode, detail });
 });
 
@@ -56,6 +68,10 @@ app.get('/adaptation/health', async () => ({
 }));
 
 app.post('/adaptation/evaluate', async (request, reply) => {
+  const requestId = (typeof request.headers['x-request-id'] === 'string' && request.headers['x-request-id'].length > 0)
+    ? request.headers['x-request-id']
+    : randomUUID();
+
   const response = await handleAdaptationHttpRoute(
     { body: request.body },
     {
@@ -66,7 +82,16 @@ app.post('/adaptation/evaluate', async (request, reply) => {
   );
 
   if (response.status >= 400) {
-    request.log.warn({ status: response.status, error: response.json, persistenceMode }, 'Adaptation evaluation failed closed');
+    request.log.warn(
+      {
+        status: response.status,
+        error: response.json,
+        diagnosticCode: response.json.diagnostic_code ?? classifyAdaptationError(response.json.detail),
+        persistenceMode,
+        requestId,
+      },
+      'Adaptation evaluation failed closed',
+    );
   } else {
     request.log.info(
       {
@@ -75,6 +100,7 @@ app.post('/adaptation/evaluate', async (request, reply) => {
           ? response.json.policy_output.applied_rules.length
           : undefined,
         persistenceMode,
+        requestId,
       },
       'Adaptation evaluation completed',
     );
@@ -87,6 +113,6 @@ try {
   await app.listen({ port, host });
   app.log.info({ persistenceMode }, `Adaptation runtime listening at http://${host}:${port}`);
 } catch (error) {
-  app.log.error(error);
+  app.log.error({ err: error, diagnosticCode: classifyAdaptationError(error) }, 'Adaptation runtime failed to start');
   process.exit(1);
 }

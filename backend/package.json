@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build:phase3": "tsc -p tsconfig.json",
-    "test:phase3": "npm run build:phase3 && node --test dist/tests/adaptation/policyEngine.test.js dist/tests/adaptation/adaptationEvaluationPersistence.test.js dist/tests/adaptation/adaptationEvaluationService.test.js dist/tests/adaptation/adaptationEvaluationFileAdapter.test.js dist/tests/adaptation/adaptationEvaluationPostgresAdapter.test.js dist/tests/adaptation/adaptationEvaluationEntrypoints.test.js dist/tests/adaptation/adaptationFrameworkBindings.test.js dist/tests/agents/agentOutputGuard.test.js",
+    "test:phase3": "npm run build:phase3 && node --test dist/tests/adaptation/policyEngine.test.js dist/tests/adaptation/adaptationEvaluationPersistence.test.js dist/tests/adaptation/adaptationEvaluationService.test.js dist/tests/adaptation/adaptationEvaluationFileAdapter.test.js dist/tests/adaptation/adaptationEvaluationPostgresAdapter.test.js dist/tests/adaptation/adaptationEvaluationEntrypoints.test.js dist/tests/adaptation/adaptationFrameworkBindings.test.js dist/tests/adaptation/adaptationObservability.test.js dist/tests/agents/agentOutputGuard.test.js",
     "start:adaptation-runtime": "npm run build:phase3 && node scripts/run_adaptation_fastify.mjs",
     "smoke:adaptation-runtime": "bash scripts/smoke_adaptation_runtime.sh",
     "start:adaptation-worker": "npm run build:phase3 && node scripts/run_adaptation_worker.mjs",

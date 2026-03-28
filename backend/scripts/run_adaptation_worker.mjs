@@ -1,4 +1,5 @@
 import { handleAdaptationWorkerMessage } from '../dist/src/modules/adaptation/phase3/adaptationFrameworkBindings.js';
+import { classifyAdaptationError } from '../dist/src/modules/adaptation/phase3/adaptationObservability.js';
 
 const persistenceMode = process.env.ADAPTATION_PERSISTENCE_MODE === 'postgres' ? 'postgres' : 'file';
 const auditFilePath = process.env.ADAPTATION_AUDIT_FILE || './data/adaptation-evaluations.json';
@@ -37,7 +38,7 @@ try {
   process.stdout.write(`${JSON.stringify({ ok: true, persistence_mode: persistenceMode, result })}\n`);
 } catch (error) {
   process.stdout.write(
-    `${JSON.stringify({ ok: false, persistence_mode: persistenceMode, error: error instanceof Error ? error.message : String(error) })}\n`,
+    `${JSON.stringify({ ok: false, persistence_mode: persistenceMode, diagnostic_code: classifyAdaptationError(error), error: error instanceof Error ? error.message : String(error) })}\n`,
   );
   process.exitCode = 1;
 } finally {

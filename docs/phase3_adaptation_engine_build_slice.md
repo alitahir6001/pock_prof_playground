@@ -80,13 +80,14 @@ The evaluator returns:
 - Added SQL migration artifacts for `adaptation_evaluations` (`up` + `down`) under `backend/db/migrations` with transactional apply/rollback behavior.
 - Added migration runbook (`backend/docs/adaptation_evaluations_migration_runbook.md`) documenting apply checks, rollback checks, and runtime Postgres env wiring.
 - Added a queue-style worker runtime script (`backend/scripts/run_adaptation_worker.mjs`) and smoke script (`backend/scripts/smoke_adaptation_worker.sh`) to exercise deterministic worker `completed`/`failed` envelopes outside HTTP transport.
+- Added observability diagnostics (`diagnostic_code`) classification for adaptation HTTP/worker failures to speed triage and troubleshooting.
 
 ## Current conflicts
 - No conflict with behavioral principles or phase architecture detected.
 - Determinism improvement applied: evaluator no longer uses `new Date()` internally and fails closed on invalid inputs.
 - Progress: environment-selectable persistence wiring now supports file-backed local runs and injected Postgres pool usage for runtime evaluation requests.
 - Progress: migration artifacts + operational runbook now exist for `adaptation_evaluations`, and a deterministic worker runtime path is available for queue-style execution.
-- Remaining gap: production queue transport integration and observability hardening are still pending before micro-pilot.
+- Remaining gap: production queue transport integration and deeper telemetry aggregation are still pending before micro-pilot.
 - TypeScript migration completed for Phase 3 evaluator, persistence modules, orchestration service, and slice tests.
 
 ## Summary
@@ -96,6 +97,6 @@ The evaluator returns:
 
 ## Next steps
 1. Integrate worker queue runtime path with a concrete broker/transport and add replay-safe retry controls.
-2. Add observability for adaptation runs (counters for applied/deferred structural mutations and audit persistence failures).
+2. Add telemetry aggregation for adaptation runs (counters for applied/deferred structural mutations and audit persistence failures).
 3. Run a pre-pilot hardening pass (config validation, failure runbooks, and dependency install checks).
 4. Run a micro-pilot gate with explicit success criteria (stability, audit completeness, and intervention quality sampling).

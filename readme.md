@@ -15,6 +15,8 @@ The system is designed around deterministic adaptation, strict agent contracts, 
   - transactional persistence wiring with fail-closed behavior for structural mutations
   - agent output guard for schema/policy rejection paths
 - **Architecture and phase docs** under `docs/`
+- **Code breakdown planning guide** in `docs/code_breakdown_plan.md`
+- **Adaptation troubleshooting runbook** in `backend/docs/adaptation_troubleshooting_guide.md`
 - **Prototype assets** under `prototype/` (legacy exploratory implementation)
 
 ## Repository layout
@@ -109,6 +111,9 @@ Recommended flow for contributors:
 ---
 
 ## Troubleshooting
+
+Primary troubleshooting guide:
+- `backend/docs/adaptation_troubleshooting_guide.md`
 
 ### `tsc is not recognized as an internal or external command`
 

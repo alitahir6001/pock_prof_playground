@@ -9,6 +9,7 @@ import type {
   TransactionFactory,
 } from './adaptationEvaluationPersistence.js';
 import type { PostgresPoolLike } from './adaptationEvaluationPostgresAdapter.js';
+import { classifyAdaptationError } from './adaptationObservability.js';
 
 export type FrameworkBindingDependencies = {
   persistenceMode?: PersistenceMode;
@@ -60,6 +61,7 @@ export async function handleAdaptationHttpRoute(
         ok: false,
         error_code: 'BAD_REQUEST',
         detail: error instanceof Error ? error.message : 'Unknown request error.',
+        diagnostic_code: classifyAdaptationError(error),
       },
     };
   }
@@ -76,6 +78,7 @@ export type WorkerResultMessage = {
   evaluation_id?: string;
   applied_rule_count?: number;
   error_code?: string;
+  diagnostic_code?: string;
 };
 
 export async function handleAdaptationWorkerMessage(
@@ -105,6 +108,7 @@ export async function handleAdaptationWorkerMessage(
       job_id: message.job_id,
       status: 'failed',
       error_code: code,
+      diagnostic_code: classifyAdaptationError(error),
     };
   }
 }
