@@ -29,10 +29,10 @@ Legend: `[x]` complete, `[ ]` pending.
 - [x] `backend/src/modules/adaptation/phase3/adaptationObservability.ts`
 - [x] `backend/src/modules/adaptation/phase3/adaptationWorkerRetryPolicy.ts`
 - [x] `backend/src/modules/adaptation/phase3/policyEngine.ts`
-- [ ] `backend/src/modules/agents/phase2/career-coach-agent/example_output.json`
-- [ ] `backend/src/modules/agents/phase2/career-coach-agent/output_schema.ts`
-- [ ] `backend/src/modules/agents/phase2/career-coach-agent/soul.md`
-- [ ] `backend/src/modules/agents/phase2/career-coach-agent/system_instructions.md`
+- [x] `backend/src/modules/agents/phase2/career-coach-agent/example_output.json`
+- [x] `backend/src/modules/agents/phase2/career-coach-agent/output_schema.ts`
+- [x] `backend/src/modules/agents/phase2/career-coach-agent/soul.md`
+- [x] `backend/src/modules/agents/phase2/career-coach-agent/system_instructions.md`
 - [ ] `backend/src/modules/agents/phase2/onboarding-agent/example_output.json`
 - [ ] `backend/src/modules/agents/phase2/onboarding-agent/output_schema.ts`
 - [ ] `backend/src/modules/agents/phase2/onboarding-agent/soul.md`

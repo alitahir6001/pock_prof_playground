@@ -26,6 +26,11 @@
 
 ### Phase 2 breakdowns
 - [x] `docs/breakdowns/phase2/phase2_agent_system_design_breakdown.md`
+- [x] `docs/breakdowns/phase2/career-coach-agent/directory_breakdown.md`
+- [x] `docs/breakdowns/phase2/career-coach-agent/soul_breakdown.md`
+- [x] `docs/breakdowns/phase2/career-coach-agent/system_instructions_breakdown.md`
+- [x] `docs/breakdowns/phase2/career-coach-agent/output_schema_breakdown.md`
+- [x] `docs/breakdowns/phase2/career-coach-agent/example_output_breakdown.md`
 
 ### Phase 3 breakdowns
 - [x] `docs/breakdowns/phase3/policyEngine_breakdown.md`
