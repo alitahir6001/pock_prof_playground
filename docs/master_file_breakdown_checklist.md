@@ -1,0 +1,65 @@
+# Master File Breakdown Checklist
+
+Scope: repository files selected for file-by-file breakdown before micro-pilot.
+
+Legend: `[x]` complete, `[ ]` pending.
+
+
+## (root)
+- [ ] `.gitignore`
+- [ ] `readme.md`
+
+## backend
+- [ ] `backend/db/migrations/20260325_001_create_adaptation_evaluations.down.sql`
+- [ ] `backend/db/migrations/20260325_001_create_adaptation_evaluations.up.sql`
+- [ ] `backend/docs/adaptation_evaluations_migration_runbook.md`
+- [ ] `backend/docs/adaptation_troubleshooting_guide.md`
+- [ ] `backend/package.json`
+- [ ] `backend/scripts/run_adaptation_fastify.mjs`
+- [ ] `backend/scripts/run_adaptation_worker.mjs`
+- [ ] `backend/scripts/smoke_adaptation_runtime.sh`
+- [ ] `backend/scripts/smoke_adaptation_worker.sh`
+- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationEntrypoints.ts`
+- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationFileAdapter.ts`
+- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationPersistence.ts`
+- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationPostgresAdapter.ts`
+- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationRecord.ts`
+- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationService.ts`
+- [ ] `backend/src/modules/adaptation/phase3/adaptationFrameworkBindings.ts`
+- [ ] `backend/src/modules/adaptation/phase3/adaptationObservability.ts`
+- [ ] `backend/src/modules/adaptation/phase3/adaptationWorkerRetryPolicy.ts`
+- [x] `backend/src/modules/adaptation/phase3/policyEngine.ts`
+- [ ] `backend/src/modules/agents/phase2/career-coach-agent/example_output.json`
+- [ ] `backend/src/modules/agents/phase2/career-coach-agent/output_schema.ts`
+- [ ] `backend/src/modules/agents/phase2/career-coach-agent/soul.md`
+- [ ] `backend/src/modules/agents/phase2/career-coach-agent/system_instructions.md`
+- [ ] `backend/src/modules/agents/phase2/onboarding-agent/example_output.json`
+- [ ] `backend/src/modules/agents/phase2/onboarding-agent/output_schema.ts`
+- [ ] `backend/src/modules/agents/phase2/onboarding-agent/soul.md`
+- [ ] `backend/src/modules/agents/phase2/onboarding-agent/system_instructions.md`
+- [ ] `backend/src/modules/agents/phase2/professor-agent/example_output.json`
+- [ ] `backend/src/modules/agents/phase2/professor-agent/output_schema.ts`
+- [ ] `backend/src/modules/agents/phase2/professor-agent/soul.md`
+- [ ] `backend/src/modules/agents/phase2/professor-agent/system_instructions.md`
+- [ ] `backend/src/modules/agents/phase2/validation/agentOutputGuard.ts`
+- [ ] `backend/tests/adaptation/adaptationEvaluationEntrypoints.test.ts`
+- [ ] `backend/tests/adaptation/adaptationEvaluationFileAdapter.test.ts`
+- [ ] `backend/tests/adaptation/adaptationEvaluationPersistence.test.ts`
+- [ ] `backend/tests/adaptation/adaptationEvaluationPostgresAdapter.test.ts`
+- [ ] `backend/tests/adaptation/adaptationEvaluationService.test.ts`
+- [ ] `backend/tests/adaptation/adaptationFrameworkBindings.test.ts`
+- [ ] `backend/tests/adaptation/adaptationObservability.test.ts`
+- [ ] `backend/tests/adaptation/adaptationWorkerRetryPolicy.test.ts`
+- [ ] `backend/tests/adaptation/node-shims.d.ts`
+- [ ] `backend/tests/adaptation/policyEngine.test.ts`
+- [ ] `backend/tests/agents/agentOutputGuard.test.ts`
+- [ ] `backend/tsconfig.json`
+
+## docs
+- [ ] `docs/behavioral_design_v1.md`
+- [ ] `docs/code_breakdown_plan.md`
+- [ ] `docs/phase1_system_architecture_plan.md`
+- [ ] `docs/phase2_agent_system_design.md`
+- [ ] `docs/phase3_adaptation_engine_build_slice.md`
+- [ ] `docs/project_onboarding_and_phase_guide.md`
+- [ ] `docs/system_invariants_v1.md`

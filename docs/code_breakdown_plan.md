@@ -59,3 +59,8 @@ For each file produce:
 - Faster debugging under user feedback.
 - Cleaner handoffs between product/engineering.
 - Better incident response because ownership boundaries become explicit.
+
+
+## Execution artifacts
+- Master checklist: `docs/master_file_breakdown_checklist.md`
+- First completed file breakdown: `docs/breakdowns/policyEngine_breakdown.md`
