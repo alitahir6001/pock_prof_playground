@@ -37,11 +37,11 @@ Legend: `[x]` complete, `[ ]` pending.
 - [x] `backend/src/modules/agents/phase2/onboarding-agent/output_schema.ts`
 - [x] `backend/src/modules/agents/phase2/onboarding-agent/soul.md`
 - [x] `backend/src/modules/agents/phase2/onboarding-agent/system_instructions.md`
-- [ ] `backend/src/modules/agents/phase2/professor-agent/example_output.json`
-- [ ] `backend/src/modules/agents/phase2/professor-agent/output_schema.ts`
-- [ ] `backend/src/modules/agents/phase2/professor-agent/soul.md`
-- [ ] `backend/src/modules/agents/phase2/professor-agent/system_instructions.md`
-- [ ] `backend/src/modules/agents/phase2/validation/agentOutputGuard.ts`
+- [x] `backend/src/modules/agents/phase2/professor-agent/example_output.json`
+- [x] `backend/src/modules/agents/phase2/professor-agent/output_schema.ts`
+- [x] `backend/src/modules/agents/phase2/professor-agent/soul.md`
+- [x] `backend/src/modules/agents/phase2/professor-agent/system_instructions.md`
+- [x] `backend/src/modules/agents/phase2/validation/agentOutputGuard.ts`
 - [ ] `backend/tests/adaptation/adaptationEvaluationEntrypoints.test.ts`
 - [ ] `backend/tests/adaptation/adaptationEvaluationFileAdapter.test.ts`
 - [ ] `backend/tests/adaptation/adaptationEvaluationPersistence.test.ts`

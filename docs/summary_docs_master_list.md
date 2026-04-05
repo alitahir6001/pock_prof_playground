@@ -36,6 +36,12 @@
 - [x] `docs/breakdowns/phase2/onboarding-agent/system_instructions_breakdown.md`
 - [x] `docs/breakdowns/phase2/onboarding-agent/output_schema_breakdown.md`
 - [x] `docs/breakdowns/phase2/onboarding-agent/example_output_breakdown.md`
+- [x] `docs/breakdowns/phase2/professor-agent/directory_breakdown.md`
+- [x] `docs/breakdowns/phase2/professor-agent/soul_breakdown.md`
+- [x] `docs/breakdowns/phase2/professor-agent/system_instructions_breakdown.md`
+- [x] `docs/breakdowns/phase2/professor-agent/output_schema_breakdown.md`
+- [x] `docs/breakdowns/phase2/professor-agent/example_output_breakdown.md`
+- [x] `docs/breakdowns/phase2/agentOutputGuard_breakdown.md`
 
 ### Phase 3 breakdowns
 - [x] `docs/breakdowns/phase3/policyEngine_breakdown.md`
@@ -50,4 +56,3 @@
 - [x] `docs/breakdowns/phase3/adaptationWorkerRetryPolicy_breakdown.md`
 - [x] `docs/breakdowns/phase3/adaptationBrokerWorker_breakdown.md`
 - [x] `docs/breakdowns/phase3/adaptationTelemetryAggregator_breakdown.md`
-- [ ] `docs/breakdowns/phase2/agentOutputGuard_breakdown.md`
