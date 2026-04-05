@@ -83,6 +83,8 @@ Run inside `backend/`:
 - `npm run db:migrate:adaptation:down` — roll back `adaptation_evaluations` schema migration.
 - `npm run start:adaptation-worker` — run queue-style worker runtime script for one worker job payload.
 - `npm run smoke:adaptation-worker` — run deterministic worker smoke checks.
+- `npm run start:adaptation-broker-worker` — process a broker-style queue batch (file-queue transport).
+- `npm run smoke:adaptation-broker-worker` — run broker worker smoke checks + telemetry output.
 
 Worker runtime envs (queue-style wrapper):
 - `ADAPTATION_WORKER_JOB_JSON` (required worker envelope including `message_id`, `attempt`, `max_attempts`, `job_id`, `payload`)

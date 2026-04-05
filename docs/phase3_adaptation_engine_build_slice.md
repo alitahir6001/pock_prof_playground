@@ -82,12 +82,18 @@ The evaluator returns:
 - Added a queue-style worker runtime script (`backend/scripts/run_adaptation_worker.mjs`) and smoke script (`backend/scripts/smoke_adaptation_worker.sh`) to exercise deterministic worker `completed`/`failed` envelopes outside HTTP transport, including idempotency + retry directives.
 - Added observability diagnostics (`diagnostic_code`) classification for adaptation HTTP/worker failures to speed triage and troubleshooting.
 
+
+## Slice F broker + telemetry progression
+- Added broker-style worker batch processor (`adaptationBrokerWorker.ts`) with deterministic retry/dead-letter routing.
+- Added telemetry aggregator (`adaptationTelemetryAggregator.ts`) for broker counters (`total`, `completed`, `retried`, `dead_lettered`).
+- Added runnable broker worker runtime wrapper (`backend/scripts/run_adaptation_broker_worker.mjs`) and smoke script (`backend/scripts/smoke_adaptation_broker_worker.sh`).
+
 ## Current conflicts
 - No conflict with behavioral principles or phase architecture detected.
 - Determinism improvement applied: evaluator no longer uses `new Date()` internally and fails closed on invalid inputs.
 - Progress: environment-selectable persistence wiring now supports file-backed local runs and injected Postgres pool usage for runtime evaluation requests.
 - Progress: migration artifacts + operational runbook now exist for `adaptation_evaluations`, and a deterministic worker runtime path is available for queue-style execution.
-- Remaining gap: production queue transport integration and deeper telemetry aggregation are still pending before micro-pilot.
+- Remaining gap: production broker adapter integration (SQS/Rabbit/Redis Streams) and centralized telemetry sink/export are still pending before micro-pilot.
 - TypeScript migration completed for Phase 3 evaluator, persistence modules, orchestration service, and slice tests.
 
 ## Summary
@@ -96,7 +102,7 @@ The evaluator returns:
 - A local file-backed adapter remains the default local path, and the runtime can now select the Postgres-oriented adapter through environment-based wiring for production-style persistence.
 
 ## Next steps
-1. Integrate worker queue runtime path with a concrete broker/transport (SQS/Rabbit/Redis Streams) reusing the existing retry/idempotency controls.
-2. Add telemetry aggregation for adaptation runs (counters for applied/deferred structural mutations and audit persistence failures).
+1. Integrate broker worker path with a production transport adapter (SQS/Rabbit/Redis Streams) instead of file queues.
+2. Add centralized telemetry export/aggregation (e.g., OpenTelemetry/Prometheus sink) for adaptation and broker counters.
 3. Run a pre-pilot hardening pass (config validation, failure runbooks, and dependency install checks).
 4. Run a micro-pilot gate with explicit success criteria (stability, audit completeness, and intervention quality sampling).
