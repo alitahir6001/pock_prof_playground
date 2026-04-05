@@ -56,3 +56,9 @@
 - [x] `docs/breakdowns/phase3/adaptationWorkerRetryPolicy_breakdown.md`
 - [x] `docs/breakdowns/phase3/adaptationBrokerWorker_breakdown.md`
 - [x] `docs/breakdowns/phase3/adaptationTelemetryAggregator_breakdown.md`
+- [x] `docs/breakdowns/phase3/run_adaptation_fastify_script_breakdown.md`
+- [x] `docs/breakdowns/phase3/run_adaptation_worker_script_breakdown.md`
+- [x] `docs/breakdowns/phase3/run_adaptation_broker_worker_script_breakdown.md`
+- [x] `docs/breakdowns/phase3/smoke_adaptation_runtime_script_breakdown.md`
+- [x] `docs/breakdowns/phase3/smoke_adaptation_worker_script_breakdown.md`
+- [x] `docs/breakdowns/phase3/smoke_adaptation_broker_worker_script_breakdown.md`

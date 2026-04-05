@@ -15,10 +15,12 @@ Legend: `[x]` complete, `[ ]` pending.
 - [ ] `backend/docs/adaptation_evaluations_migration_runbook.md`
 - [ ] `backend/docs/adaptation_troubleshooting_guide.md`
 - [ ] `backend/package.json`
-- [ ] `backend/scripts/run_adaptation_fastify.mjs`
-- [ ] `backend/scripts/run_adaptation_worker.mjs`
-- [ ] `backend/scripts/smoke_adaptation_runtime.sh`
-- [ ] `backend/scripts/smoke_adaptation_worker.sh`
+- [x] `backend/scripts/run_adaptation_fastify.mjs`
+- [x] `backend/scripts/run_adaptation_worker.mjs`
+- [x] `backend/scripts/run_adaptation_broker_worker.mjs`
+- [x] `backend/scripts/smoke_adaptation_runtime.sh`
+- [x] `backend/scripts/smoke_adaptation_worker.sh`
+- [x] `backend/scripts/smoke_adaptation_broker_worker.sh`
 - [x] `backend/src/modules/adaptation/phase3/adaptationEvaluationEntrypoints.ts`
 - [x] `backend/src/modules/adaptation/phase3/adaptationEvaluationFileAdapter.ts`
 - [x] `backend/src/modules/adaptation/phase3/adaptationEvaluationPersistence.ts`
