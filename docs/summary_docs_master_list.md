@@ -29,14 +29,15 @@
 
 ### Phase 3 breakdowns
 - [x] `docs/breakdowns/phase3/policyEngine_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationEvaluationService_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationEvaluationPersistence_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationEvaluationFileAdapter_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationEvaluationPostgresAdapter_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationEvaluationEntrypoints_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationFrameworkBindings_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationObservability_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationWorkerRetryPolicy_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationBrokerWorker_breakdown.md`
-- [ ] `docs/breakdowns/phase3/adaptationTelemetryAggregator_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationEvaluationRecord_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationEvaluationService_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationEvaluationPersistence_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationEvaluationFileAdapter_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationEvaluationPostgresAdapter_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationEvaluationEntrypoints_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationFrameworkBindings_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationObservability_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationWorkerRetryPolicy_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationBrokerWorker_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptationTelemetryAggregator_breakdown.md`
 - [ ] `docs/breakdowns/phase2/agentOutputGuard_breakdown.md`

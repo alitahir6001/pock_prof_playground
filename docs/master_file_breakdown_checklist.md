@@ -19,15 +19,15 @@ Legend: `[x]` complete, `[ ]` pending.
 - [ ] `backend/scripts/run_adaptation_worker.mjs`
 - [ ] `backend/scripts/smoke_adaptation_runtime.sh`
 - [ ] `backend/scripts/smoke_adaptation_worker.sh`
-- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationEntrypoints.ts`
-- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationFileAdapter.ts`
-- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationPersistence.ts`
-- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationPostgresAdapter.ts`
-- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationRecord.ts`
-- [ ] `backend/src/modules/adaptation/phase3/adaptationEvaluationService.ts`
-- [ ] `backend/src/modules/adaptation/phase3/adaptationFrameworkBindings.ts`
-- [ ] `backend/src/modules/adaptation/phase3/adaptationObservability.ts`
-- [ ] `backend/src/modules/adaptation/phase3/adaptationWorkerRetryPolicy.ts`
+- [x] `backend/src/modules/adaptation/phase3/adaptationEvaluationEntrypoints.ts`
+- [x] `backend/src/modules/adaptation/phase3/adaptationEvaluationFileAdapter.ts`
+- [x] `backend/src/modules/adaptation/phase3/adaptationEvaluationPersistence.ts`
+- [x] `backend/src/modules/adaptation/phase3/adaptationEvaluationPostgresAdapter.ts`
+- [x] `backend/src/modules/adaptation/phase3/adaptationEvaluationRecord.ts`
+- [x] `backend/src/modules/adaptation/phase3/adaptationEvaluationService.ts`
+- [x] `backend/src/modules/adaptation/phase3/adaptationFrameworkBindings.ts`
+- [x] `backend/src/modules/adaptation/phase3/adaptationObservability.ts`
+- [x] `backend/src/modules/adaptation/phase3/adaptationWorkerRetryPolicy.ts`
 - [x] `backend/src/modules/adaptation/phase3/policyEngine.ts`
 - [ ] `backend/src/modules/agents/phase2/career-coach-agent/example_output.json`
 - [ ] `backend/src/modules/agents/phase2/career-coach-agent/output_schema.ts`
