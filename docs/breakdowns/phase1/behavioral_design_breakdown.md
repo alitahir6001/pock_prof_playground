@@ -1,5 +1,16 @@
 # Breakdown: `docs/behavioral_design_v1.md`
 
+## Layman translation
+### Here's what it means in plain terms
+- This document explains one part of how Pocket Professor gives reliable, safe career guidance instead of random AI advice.
+
+### Why it's built
+- It exists so product, engineering, and operations can make the same decisions from a shared, understandable reference.
+
+### How it helps a service worker switch careers
+- It makes the system more predictable and easier to trust, so learners get practical next steps without confusing plan changes.
+
+
 ## What this document is
 `behavioral_design_v1.md` is the canonical behavioral rule source for Pocket Professor. It defines mission, non-goals, adaptation principles, event/signal requirements, and trigger rules that every downstream technical system must obey.
 

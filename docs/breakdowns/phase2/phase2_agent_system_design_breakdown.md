@@ -1,5 +1,16 @@
 # Breakdown: `docs/phase2_agent_system_design.md`
 
+## Layman translation
+### Here's what it means in plain terms
+- This document explains one part of how Pocket Professor gives reliable, safe career guidance instead of random AI advice.
+
+### Why it's built
+- It exists so product, engineering, and operations can make the same decisions from a shared, understandable reference.
+
+### How it helps a service worker switch careers
+- It makes the system more predictable and easier to trust, so learners get practical next steps without confusing plan changes.
+
+
 ## What this document is
 This Phase 2 design document defines the **agent contract layer** for Pocket Professor: persona intent (`soul.md`), execution boundaries (`system_instructions.md`), strict output schemas (`output_schema.ts`), and canonical payload examples (`example_output.json`).
 

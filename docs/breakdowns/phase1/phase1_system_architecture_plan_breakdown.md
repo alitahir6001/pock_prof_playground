@@ -1,5 +1,16 @@
 # Breakdown: `docs/phase1_system_architecture_plan.md`
 
+## Layman translation
+### Here's what it means in plain terms
+- This document explains one part of how Pocket Professor gives reliable, safe career guidance instead of random AI advice.
+
+### Why it's built
+- It exists so product, engineering, and operations can make the same decisions from a shared, understandable reference.
+
+### How it helps a service worker switch careers
+- It makes the system more predictable and easier to trust, so learners get practical next steps without confusing plan changes.
+
+
 ## What this document is
 The Phase 1 architecture plan is the blueprint translating behavioral policy into system shape: backend/frontend layout, schema, event model, adaptation engine structure, agent orchestration boundaries, pivot logic, and entitlement architecture.
 

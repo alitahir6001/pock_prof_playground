@@ -1,5 +1,16 @@
 # File Breakdown: `backend/src/modules/agents/phase2/career-coach-agent/output_schema.ts`
 
+## Layman translation
+### Here's what it means in plain terms
+- This document explains one part of how Pocket Professor gives reliable, safe career guidance instead of random AI advice.
+
+### Why it's built
+- It exists so product, engineering, and operations can make the same decisions from a shared, understandable reference.
+
+### How it helps a service worker switch careers
+- It makes the system more predictable and easier to trust, so learners get practical next steps without confusing plan changes.
+
+
 ## What this file does
 - Defines Zod schema for the entire Career Coach output payload.
   - **In plain English:** this is the strict checklist a response must pass before the app accepts it.

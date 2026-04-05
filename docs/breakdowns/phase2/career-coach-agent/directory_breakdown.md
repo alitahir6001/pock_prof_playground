@@ -1,5 +1,16 @@
 # Directory Breakdown: `backend/src/modules/agents/phase2/career-coach-agent/`
 
+## Layman translation
+### Here's what it means in plain terms
+- This document explains one part of how Pocket Professor gives reliable, safe career guidance instead of random AI advice.
+
+### Why it's built
+- It exists so product, engineering, and operations can make the same decisions from a shared, understandable reference.
+
+### How it helps a service worker switch careers
+- It makes the system more predictable and easier to trust, so learners get practical next steps without confusing plan changes.
+
+
 ## Purpose of this directory
 - This directory defines one complete AI agent contract for career-pivot coaching: personality, boundaries, output schema, and an example payload.
   - **In plain English:** this folder is the "job description + output form" for the Career Coach AI.

@@ -1,5 +1,16 @@
 # File Breakdown: `backend/src/modules/agents/phase2/career-coach-agent/system_instructions.md`
 
+## Layman translation
+### Here's what it means in plain terms
+- This document explains one part of how Pocket Professor gives reliable, safe career guidance instead of random AI advice.
+
+### Why it's built
+- It exists so product, engineering, and operations can make the same decisions from a shared, understandable reference.
+
+### How it helps a service worker switch careers
+- It makes the system more predictable and easier to trust, so learners get practical next steps without confusing plan changes.
+
+
 ## What this file does
 - Defines scope: structured pivot guidance and path-comparison recommendations.
   - **In plain English:** this agent's job is choosing/screening career pivots, not general chatting.

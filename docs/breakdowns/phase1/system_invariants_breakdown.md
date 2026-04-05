@@ -1,5 +1,16 @@
 # Breakdown: `docs/system_invariants_v1.md`
 
+## Layman translation
+### Here's what it means in plain terms
+- This document explains one part of how Pocket Professor gives reliable, safe career guidance instead of random AI advice.
+
+### Why it's built
+- It exists so product, engineering, and operations can make the same decisions from a shared, understandable reference.
+
+### How it helps a service worker switch careers
+- It makes the system more predictable and easier to trust, so learners get practical next steps without confusing plan changes.
+
+
 ## What this document is
 `system_invariants_v1.md` is the non-negotiable safety/behavior contract for runtime behavior. It defines what must always remain true independent of implementation refactors.
 

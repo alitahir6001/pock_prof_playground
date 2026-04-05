@@ -1,5 +1,16 @@
 # File Breakdown: `backend/src/modules/adaptation/phase3/adaptationEvaluationPersistence.ts`
 
+## Layman translation
+### Here's what it means in plain terms
+- This document explains one part of how Pocket Professor gives reliable, safe career guidance instead of random AI advice.
+
+### Why it's built
+- It exists so product, engineering, and operations can make the same decisions from a shared, understandable reference.
+
+### How it helps a service worker switch careers
+- It makes the system more predictable and easier to trust, so learners get practical next steps without confusing plan changes.
+
+
 ## Purpose
 Defines transaction/repository persistence contracts and implements fail-closed persistence behavior for structural mutations.
 
