@@ -31,6 +31,11 @@
 - [x] `docs/breakdowns/phase2/career-coach-agent/system_instructions_breakdown.md`
 - [x] `docs/breakdowns/phase2/career-coach-agent/output_schema_breakdown.md`
 - [x] `docs/breakdowns/phase2/career-coach-agent/example_output_breakdown.md`
+- [x] `docs/breakdowns/phase2/onboarding-agent/directory_breakdown.md`
+- [x] `docs/breakdowns/phase2/onboarding-agent/soul_breakdown.md`
+- [x] `docs/breakdowns/phase2/onboarding-agent/system_instructions_breakdown.md`
+- [x] `docs/breakdowns/phase2/onboarding-agent/output_schema_breakdown.md`
+- [x] `docs/breakdowns/phase2/onboarding-agent/example_output_breakdown.md`
 
 ### Phase 3 breakdowns
 - [x] `docs/breakdowns/phase3/policyEngine_breakdown.md`
