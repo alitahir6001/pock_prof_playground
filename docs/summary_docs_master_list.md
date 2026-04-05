@@ -18,15 +18,25 @@
 - [x] `docs/master_file_breakdown_checklist.md`
 
 ## File-by-file breakdown summaries
-- [x] `docs/breakdowns/policyEngine_breakdown.md`
-- [ ] `docs/breakdowns/adaptationEvaluationService_breakdown.md`
-- [ ] `docs/breakdowns/adaptationEvaluationPersistence_breakdown.md`
-- [ ] `docs/breakdowns/adaptationEvaluationFileAdapter_breakdown.md`
-- [ ] `docs/breakdowns/adaptationEvaluationPostgresAdapter_breakdown.md`
-- [ ] `docs/breakdowns/adaptationEvaluationEntrypoints_breakdown.md`
-- [ ] `docs/breakdowns/adaptationFrameworkBindings_breakdown.md`
-- [ ] `docs/breakdowns/adaptationObservability_breakdown.md`
-- [ ] `docs/breakdowns/adaptationWorkerRetryPolicy_breakdown.md`
-- [ ] `docs/breakdowns/adaptationBrokerWorker_breakdown.md`
-- [ ] `docs/breakdowns/adaptationTelemetryAggregator_breakdown.md`
-- [ ] `docs/breakdowns/agentOutputGuard_breakdown.md`
+
+### Phase 1 breakdowns
+- [x] `docs/breakdowns/phase1/behavioral_design_breakdown.md`
+- [x] `docs/breakdowns/phase1/phase1_system_architecture_plan_breakdown.md`
+- [x] `docs/breakdowns/phase1/system_invariants_breakdown.md`
+
+### Phase 2 breakdowns
+- [ ] `docs/breakdowns/phase2/phase2_agent_system_design_breakdown.md`
+
+### Phase 3 breakdowns
+- [x] `docs/breakdowns/phase3/policyEngine_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationEvaluationService_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationEvaluationPersistence_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationEvaluationFileAdapter_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationEvaluationPostgresAdapter_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationEvaluationEntrypoints_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationFrameworkBindings_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationObservability_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationWorkerRetryPolicy_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationBrokerWorker_breakdown.md`
+- [ ] `docs/breakdowns/phase3/adaptationTelemetryAggregator_breakdown.md`
+- [ ] `docs/breakdowns/phase2/agentOutputGuard_breakdown.md`
