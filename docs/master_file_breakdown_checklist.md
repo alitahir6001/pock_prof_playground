@@ -59,7 +59,7 @@ Legend: `[x]` complete, `[ ]` pending.
 - [ ] `docs/behavioral_design_v1.md`
 - [ ] `docs/code_breakdown_plan.md`
 - [ ] `docs/phase1_system_architecture_plan.md`
-- [ ] `docs/phase2_agent_system_design.md`
+- [x] `docs/phase2_agent_system_design.md`
 - [ ] `docs/phase3_adaptation_engine_build_slice.md`
 - [ ] `docs/project_onboarding_and_phase_guide.md`
 - [ ] `docs/system_invariants_v1.md`

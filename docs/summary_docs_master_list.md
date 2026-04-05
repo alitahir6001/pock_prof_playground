@@ -4,7 +4,7 @@
 - [ ] `docs/behavioral_design_v1.md`
 - [ ] `docs/phase1_system_architecture_plan.md`
 - [ ] `docs/system_invariants_v1.md`
-- [ ] `docs/phase2_agent_system_design.md`
+- [x] `docs/phase2_agent_system_design.md`
 - [ ] `docs/project_onboarding_and_phase_guide.md`
 
 ## Phase 3 slice summaries
@@ -25,7 +25,7 @@
 - [x] `docs/breakdowns/phase1/system_invariants_breakdown.md`
 
 ### Phase 2 breakdowns
-- [ ] `docs/breakdowns/phase2/phase2_agent_system_design_breakdown.md`
+- [x] `docs/breakdowns/phase2/phase2_agent_system_design_breakdown.md`
 
 ### Phase 3 breakdowns
 - [x] `docs/breakdowns/phase3/policyEngine_breakdown.md`
