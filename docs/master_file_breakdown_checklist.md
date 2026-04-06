@@ -10,11 +10,11 @@ Legend: `[x]` complete, `[ ]` pending.
 - [ ] `readme.md`
 
 ## backend
-- [ ] `backend/db/migrations/20260325_001_create_adaptation_evaluations.down.sql`
-- [ ] `backend/db/migrations/20260325_001_create_adaptation_evaluations.up.sql`
-- [ ] `backend/docs/adaptation_evaluations_migration_runbook.md`
-- [ ] `backend/docs/adaptation_troubleshooting_guide.md`
-- [ ] `backend/package.json`
+- [x] `backend/db/migrations/20260325_001_create_adaptation_evaluations.down.sql`
+- [x] `backend/db/migrations/20260325_001_create_adaptation_evaluations.up.sql`
+- [x] `backend/docs/adaptation_evaluations_migration_runbook.md`
+- [x] `backend/docs/adaptation_troubleshooting_guide.md`
+- [x] `backend/package.json`
 - [x] `backend/scripts/run_adaptation_fastify.mjs`
 - [x] `backend/scripts/run_adaptation_worker.mjs`
 - [x] `backend/scripts/run_adaptation_broker_worker.mjs`

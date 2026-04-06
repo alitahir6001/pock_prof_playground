@@ -62,3 +62,8 @@
 - [x] `docs/breakdowns/phase3/smoke_adaptation_runtime_script_breakdown.md`
 - [x] `docs/breakdowns/phase3/smoke_adaptation_worker_script_breakdown.md`
 - [x] `docs/breakdowns/phase3/smoke_adaptation_broker_worker_script_breakdown.md`
+- [x] `docs/breakdowns/phase3/migration_up_sql_breakdown.md`
+- [x] `docs/breakdowns/phase3/migration_down_sql_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptation_migration_runbook_breakdown.md`
+- [x] `docs/breakdowns/phase3/adaptation_troubleshooting_guide_breakdown.md`
+- [x] `docs/breakdowns/phase3/backend_package_json_breakdown.md`
