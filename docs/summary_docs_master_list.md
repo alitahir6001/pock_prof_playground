@@ -19,6 +19,8 @@
 
 ## File-by-file breakdown summaries
 
+- [x] `docs/breakdowns/master_breakdown_status.md`
+
 ### Phase 1 breakdowns
 - [x] `docs/breakdowns/phase1/behavioral_design_breakdown.md`
 - [x] `docs/breakdowns/phase1/phase1_system_architecture_plan_breakdown.md`

@@ -1,13 +1,10 @@
 # Master File Breakdown Checklist
 
+Scope narrowed to implementation/runtime/ops artifacts; root hygiene files and test-file breakdowns are intentionally excluded.
 Scope: repository files selected for file-by-file breakdown before micro-pilot.
 
 Legend: `[x]` complete, `[ ]` pending.
 
-
-## (root)
-- [ ] `.gitignore`
-- [ ] `readme.md`
 
 ## backend
 - [x] `backend/db/migrations/20260325_001_create_adaptation_evaluations.down.sql`
@@ -44,17 +41,6 @@ Legend: `[x]` complete, `[ ]` pending.
 - [x] `backend/src/modules/agents/phase2/professor-agent/soul.md`
 - [x] `backend/src/modules/agents/phase2/professor-agent/system_instructions.md`
 - [x] `backend/src/modules/agents/phase2/validation/agentOutputGuard.ts`
-- [ ] `backend/tests/adaptation/adaptationEvaluationEntrypoints.test.ts`
-- [ ] `backend/tests/adaptation/adaptationEvaluationFileAdapter.test.ts`
-- [ ] `backend/tests/adaptation/adaptationEvaluationPersistence.test.ts`
-- [ ] `backend/tests/adaptation/adaptationEvaluationPostgresAdapter.test.ts`
-- [ ] `backend/tests/adaptation/adaptationEvaluationService.test.ts`
-- [ ] `backend/tests/adaptation/adaptationFrameworkBindings.test.ts`
-- [ ] `backend/tests/adaptation/adaptationObservability.test.ts`
-- [ ] `backend/tests/adaptation/adaptationWorkerRetryPolicy.test.ts`
-- [ ] `backend/tests/adaptation/node-shims.d.ts`
-- [ ] `backend/tests/adaptation/policyEngine.test.ts`
-- [ ] `backend/tests/agents/agentOutputGuard.test.ts`
 - [ ] `backend/tsconfig.json`
 
 ## docs
