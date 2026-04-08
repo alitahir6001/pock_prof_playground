@@ -5,15 +5,23 @@
   "type": "module",
   "scripts": {
     "build:phase3": "tsc -p tsconfig.json",
+<<<<<<< codex/create-behavioral-design-document-gzi0b6
     "test:phase3": "npm run build:phase3 && node --test dist/tests/adaptation/policyEngine.test.js dist/tests/adaptation/adaptationEvaluationPersistence.test.js dist/tests/adaptation/adaptationEvaluationService.test.js dist/tests/adaptation/adaptationEvaluationFileAdapter.test.js dist/tests/adaptation/adaptationEvaluationPostgresAdapter.test.js dist/tests/adaptation/adaptationEvaluationEntrypoints.test.js dist/tests/adaptation/adaptationFrameworkBindings.test.js dist/tests/adaptation/adaptationObservability.test.js dist/tests/adaptation/adaptationWorkerRetryPolicy.test.js dist/tests/adaptation/adaptationBrokerWorker.test.js dist/tests/agents/agentOutputGuard.test.js",
+=======
+    "test:phase3": "npm run build:phase3 && node --test dist/tests/adaptation/policyEngine.test.js dist/tests/adaptation/adaptationEvaluationPersistence.test.js dist/tests/adaptation/adaptationEvaluationService.test.js dist/tests/adaptation/adaptationEvaluationFileAdapter.test.js dist/tests/adaptation/adaptationEvaluationPostgresAdapter.test.js dist/tests/adaptation/adaptationEvaluationEntrypoints.test.js dist/tests/adaptation/adaptationFrameworkBindings.test.js dist/tests/adaptation/adaptationObservability.test.js dist/tests/agents/agentOutputGuard.test.js",
+>>>>>>> main
     "start:adaptation-runtime": "npm run build:phase3 && node scripts/run_adaptation_fastify.mjs",
     "smoke:adaptation-runtime": "bash scripts/smoke_adaptation_runtime.sh",
     "start:adaptation-worker": "npm run build:phase3 && node scripts/run_adaptation_worker.mjs",
     "smoke:adaptation-worker": "npm run build:phase3 && bash scripts/smoke_adaptation_worker.sh",
     "db:migrate:adaptation:up": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20260325_001_create_adaptation_evaluations.up.sql",
+<<<<<<< codex/create-behavioral-design-document-gzi0b6
     "db:migrate:adaptation:down": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20260325_001_create_adaptation_evaluations.down.sql",
     "start:adaptation-broker-worker": "npm run build:phase3 && node scripts/run_adaptation_broker_worker.mjs",
     "smoke:adaptation-broker-worker": "npm run build:phase3 && bash scripts/smoke_adaptation_broker_worker.sh"
+=======
+    "db:migrate:adaptation:down": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20260325_001_create_adaptation_evaluations.down.sql"
+>>>>>>> main
   },
   "devDependencies": {
     "typescript": "^5.6.3"

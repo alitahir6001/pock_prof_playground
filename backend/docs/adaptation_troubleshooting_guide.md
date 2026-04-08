@@ -68,7 +68,10 @@ npm run start:adaptation-runtime
 Inspect:
 - `error_code`
 - `diagnostic_code`
+<<<<<<< codex/create-behavioral-design-document-gzi0b6
 - `retry` block (`retryable`, `next_attempt`, `reason`)
+=======
+>>>>>>> main
 
 Actions:
 ```bash
@@ -76,6 +79,7 @@ cd backend
 npm run smoke:adaptation-worker
 ```
 
+<<<<<<< codex/create-behavioral-design-document-gzi0b6
 ### 5) Duplicate worker message replay
 Worker runtime stores completed message ids in the idempotency store (`ADAPTATION_WORKER_IDEMPOTENCY_FILE`).
 
@@ -84,6 +88,8 @@ Actions:
 - inspect idempotency file for existing completion record
 - requeue only when retry directive says `retryable=true`
 
+=======
+>>>>>>> main
 ## Database verification commands
 ```bash
 export ADAPTATION_DATABASE_URL='postgres://<user>:<pass>@<host>:5432/<db>'
