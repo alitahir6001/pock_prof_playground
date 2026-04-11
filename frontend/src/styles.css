@@ -1,0 +1,13 @@
+:root { font-family: Inter, Arial, sans-serif; }
+body { margin: 0; background: #0f172a; color: #e2e8f0; }
+.container { max-width: 960px; margin: 0 auto; padding: 24px; }
+.card { background: #111827; border: 1px solid #374151; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+input, textarea, select, button { width: 100%; box-sizing: border-box; margin-top: 8px; margin-bottom: 12px; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #0b1220; color: #e2e8f0; }
+button { cursor: pointer; background: #2563eb; border: none; }
+button.secondary { background: #334155; }
+.row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.stepper { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.badge { padding: 6px 10px; border-radius: 999px; border: 1px solid #475569; font-size: 12px; }
+.badge.active { border-color: #60a5fa; color: #93c5fd; }
+pre { white-space: pre-wrap; background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 12px; max-height: 360px; overflow: auto; }
+.small { font-size: 12px; opacity: 0.8; }
