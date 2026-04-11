@@ -94,6 +94,7 @@ The evaluator returns:
 - Progress: environment-selectable persistence wiring now supports file-backed local runs and injected Postgres pool usage for runtime evaluation requests.
 - Progress: migration artifacts + operational runbook now exist for `adaptation_evaluations`, and a deterministic worker runtime path is available for queue-style execution.
 - Remaining gap: production broker adapter integration (SQS/Rabbit/Redis Streams) and centralized telemetry sink/export are still pending before micro-pilot.
+- Remaining gap: production broker adapter integration (SQS/Rabbit/Redis Streams) and centralized telemetry sink/export are still pending before micro-pilot.
 - TypeScript migration completed for Phase 3 evaluator, persistence modules, orchestration service, and slice tests.
 
 ## Summary
@@ -102,6 +103,8 @@ The evaluator returns:
 - A local file-backed adapter remains the default local path, and the runtime can now select the Postgres-oriented adapter through environment-based wiring for production-style persistence.
 
 ## Next steps
+1. Integrate broker worker path with a production transport adapter (SQS/Rabbit/Redis Streams) instead of file queues.
+2. Add centralized telemetry export/aggregation (e.g., OpenTelemetry/Prometheus sink) for adaptation and broker counters.
 1. Integrate broker worker path with a production transport adapter (SQS/Rabbit/Redis Streams) instead of file queues.
 2. Add centralized telemetry export/aggregation (e.g., OpenTelemetry/Prometheus sink) for adaptation and broker counters.
 3. Run a pre-pilot hardening pass (config validation, failure runbooks, and dependency install checks).

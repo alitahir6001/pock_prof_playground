@@ -69,6 +69,7 @@ Inspect:
 - `error_code`
 - `diagnostic_code`
 - `retry` block (`retryable`, `next_attempt`, `reason`)
+- `retry` block (`retryable`, `next_attempt`, `reason`)
 
 Actions:
 ```bash

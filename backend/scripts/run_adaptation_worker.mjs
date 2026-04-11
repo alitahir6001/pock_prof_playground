@@ -10,6 +10,8 @@ const databaseUrl = process.env.ADAPTATION_DATABASE_URL || process.env.DATABASE_
 const rawJob = process.env.ADAPTATION_WORKER_JOB_JSON || '';
 const maxAttempts = Number(process.env.ADAPTATION_WORKER_MAX_ATTEMPTS || '3');
 const idempotencyFile = process.env.ADAPTATION_WORKER_IDEMPOTENCY_FILE || './data/adaptation-worker-idempotency.json';
+const maxAttempts = Number(process.env.ADAPTATION_WORKER_MAX_ATTEMPTS || '3');
+const idempotencyFile = process.env.ADAPTATION_WORKER_IDEMPOTENCY_FILE || './data/adaptation-worker-idempotency.json';
 
 if (!rawJob) {
   console.error('ADAPTATION_WORKER_JOB_JSON is required (serialized worker message).');
@@ -77,6 +79,7 @@ const postgresPool = persistenceMode === 'postgres'
   : undefined;
 
 try {
+  const result = await handleAdaptationWorkerMessage(envelope.worker_message, {
   const result = await handleAdaptationWorkerMessage(envelope.worker_message, {
     persistenceMode,
     auditFilePath,
