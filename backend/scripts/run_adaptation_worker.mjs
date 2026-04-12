@@ -1,23 +1,17 @@
-<<<<<<< codex/create-behavioral-design-document-gzi0b6
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { handleAdaptationWorkerMessage } from '../dist/src/modules/adaptation/phase3/adaptationFrameworkBindings.js';
 import { classifyAdaptationError } from '../dist/src/modules/adaptation/phase3/adaptationObservability.js';
 import { resolveRetryDirective } from '../dist/src/modules/adaptation/phase3/adaptationWorkerRetryPolicy.js';
-=======
-import { handleAdaptationWorkerMessage } from '../dist/src/modules/adaptation/phase3/adaptationFrameworkBindings.js';
-import { classifyAdaptationError } from '../dist/src/modules/adaptation/phase3/adaptationObservability.js';
->>>>>>> main
 
 const persistenceMode = process.env.ADAPTATION_PERSISTENCE_MODE === 'postgres' ? 'postgres' : 'file';
 const auditFilePath = process.env.ADAPTATION_AUDIT_FILE || './data/adaptation-evaluations.json';
 const databaseUrl = process.env.ADAPTATION_DATABASE_URL || process.env.DATABASE_URL || '';
 const rawJob = process.env.ADAPTATION_WORKER_JOB_JSON || '';
-<<<<<<< codex/create-behavioral-design-document-gzi0b6
 const maxAttempts = Number(process.env.ADAPTATION_WORKER_MAX_ATTEMPTS || '3');
 const idempotencyFile = process.env.ADAPTATION_WORKER_IDEMPOTENCY_FILE || './data/adaptation-worker-idempotency.json';
-=======
->>>>>>> main
+const maxAttempts = Number(process.env.ADAPTATION_WORKER_MAX_ATTEMPTS || '3');
+const idempotencyFile = process.env.ADAPTATION_WORKER_IDEMPOTENCY_FILE || './data/adaptation-worker-idempotency.json';
 
 if (!rawJob) {
   console.error('ADAPTATION_WORKER_JOB_JSON is required (serialized worker message).');
@@ -37,7 +31,6 @@ try {
   process.exit(1);
 }
 
-<<<<<<< codex/create-behavioral-design-document-gzi0b6
 const envelope = {
   message_id: typeof job.message_id === 'string' && job.message_id.length > 0 ? job.message_id : `msg_${job.job_id || 'unknown'}`,
   attempt: Number.isInteger(job.attempt) && job.attempt > 0 ? job.attempt : 1,
@@ -81,24 +74,18 @@ if (existing && existing.status === 'completed') {
   process.exit(0);
 }
 
-=======
->>>>>>> main
 const postgresPool = persistenceMode === 'postgres'
   ? new (await import('pg')).Pool({ connectionString: databaseUrl })
   : undefined;
 
 try {
-<<<<<<< codex/create-behavioral-design-document-gzi0b6
   const result = await handleAdaptationWorkerMessage(envelope.worker_message, {
-=======
-  const result = await handleAdaptationWorkerMessage(job, {
->>>>>>> main
+  const result = await handleAdaptationWorkerMessage(envelope.worker_message, {
     persistenceMode,
     auditFilePath,
     postgresPool,
   });
 
-<<<<<<< codex/create-behavioral-design-document-gzi0b6
   const response = {
     ok: true,
     persistence_mode: persistenceMode,
@@ -145,14 +132,6 @@ try {
     })}\n`,
   );
   process.exit(retryDirective.retryable ? 75 : 1);
-=======
-  process.stdout.write(`${JSON.stringify({ ok: true, persistence_mode: persistenceMode, result })}\n`);
-} catch (error) {
-  process.stdout.write(
-    `${JSON.stringify({ ok: false, persistence_mode: persistenceMode, diagnostic_code: classifyAdaptationError(error), error: error instanceof Error ? error.message : String(error) })}\n`,
-  );
-  process.exitCode = 1;
->>>>>>> main
 } finally {
   if (postgresPool) {
     await postgresPool.end();
