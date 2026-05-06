@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import OnboardingFlow from './onboarding/OnboardingFlow';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
