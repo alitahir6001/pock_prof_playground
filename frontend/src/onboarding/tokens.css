@@ -1,0 +1,31 @@
+/* frontend/src/onboarding/tokens.css
+ * Tailwind v4 CSS-first design tokens for Pocket Professor onboarding.
+ * Import this once in your global stylesheet, AFTER `@import "tailwindcss";`.
+ * The @theme block exposes these as utility classes (bg-paper-1, text-ink-0, etc).
+ */
+
+/* :root { */
+@theme{
+  /* ── Paper (warm cream backgrounds) ─────────── */
+--color-paper-0:    oklch(0.985 0.008 80);
+--color-paper-1:    oklch(0.965 0.012 80);
+--color-paper-2:    oklch(0.94  0.018 75);
+--color-paper-3:    oklch(0.90  0.022 72);
+--color-paper-edge: oklch(0.84  0.025 70);
+
+  /* ── Ink (warm near-black) ──────────────────── */
+--color-ink-0: oklch(0.18 0.012 60);
+--color-ink-1: oklch(0.32 0.014 60);
+--color-ink-2: oklch(0.50 0.014 65);
+--color-ink-3: oklch(0.66 0.012 70);
+
+  /* ── Accent (terracotta) ────────────────────── */
+--color-accent:      oklch(0.55 0.12 40);
+--color-accent-soft: oklch(0.86 0.06 45);
+--color-accent-deep: oklch(0.42 0.13 38);
+
+  /* ── Fonts ──────────────────────────────────── */
+--font-serif: "Newsreader", "Cormorant Garamond", Georgia, serif;
+--font-sans:  "Inter Tight", system-ui, -apple-system, sans-serif;
+--font-mono:  "JetBrains Mono", ui-monospace, monospace;
+}
