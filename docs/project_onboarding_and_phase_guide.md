@@ -45,19 +45,23 @@ For each agent we include:
 
 ---
 
-### Phase 3 — Adaptation engine implementation (**current phase**)
+### Phase 3 — Adaptation engine implementation
 **What this phase does (simple):**
 Phase 3 implements deterministic rule execution against stored behavioral events. The engine evaluates windows, resolves priority, applies allowed mutations, and logs full audit records.
 
-**Current status:** in progress (initial deterministic evaluator + tests added).
+**Current status:** complete.
 
-**Planned output:**
-- policy evaluator runtime
-- rule execution + audit persistence
-- structural mutation cap enforcement in code
+**Delivered:**
+- Policy evaluator runtime (`policyEngine.ts`)
+- Rule execution + audit persistence (file and Postgres adapters)
+- Structural mutation cap enforcement
+- HTTP/worker entrypoints
+- Broker worker + telemetry aggregation
+- Full TypeScript migration
 
-**New file for this slice:**
+**Primary files:**
 - `docs/phase3_adaptation_engine_build_slice.md`
+- `docs/phase3_broker_telemetry_slice.md`
 
 ---
 
@@ -96,7 +100,7 @@ Phase 6 enforces entitlement boundaries so free vs paid capabilities are reliabl
 
 ## 2) Local setup + run/test instructions (step-by-step)
 
-> Current repository state: architecture + contract artifacts exist; full product runtime is not yet wired.
+> Current repository state: Phases 0–3 complete. Active priority is **pilot readiness** — deploying to Railway, wiring real AI into agent endpoints (Gemini → OpenAI → Claude fallback), and replacing the developer-facing JSON wizard with a proper user-facing UI. See `.ai/current-task.md` for active work plan.
 
 ### Step 1 — Prerequisites
 Install:
@@ -255,7 +259,7 @@ Confirm reason codes include:
 
 ---
 
-## 3) How current phase (Phase 2) works — simple explanation
+## 3) How the agent contract layer (Phase 2) works — simple explanation
 
 Think of this as creating **strict interface contracts** before wiring runtime logic.
 
@@ -292,10 +296,14 @@ Core operating model:
 
 ---
 
-## current conflicts
+## Current status + open gaps (as of 2026-05-09)
 
-- No direct conflict detected with the behavioral design, architecture plan, or system invariants.
-- Phase 3 progress: concrete local file-backed persistence adapter is implemented and Postgres adapter wiring can now be selected by runtime mode, preserving fail-closed behavior for structural mutations.
-- Phase 3 progress: API/worker entrypoint modules call service orchestration (`evaluate -> build record -> persist`); framework-level HTTP/worker binding module and runtime wrappers (`Fastify` + worker runtime scripts) are available for local transport verification, while production broker integration remains pending.
-- Phase 3 progress: security hardening mini-slice added broader prohibited-language patterns and tamper-evident file audit chain verification.
-- Phase 3 progress: TypeScript migration completed for evaluator, persistence/orchestration modules, validation guard, and tests.
+**Phases 0–3:** complete. No conflicts with behavioral design, architecture plan, or system invariants.
+
+**Active work (pilot readiness):**
+- Agents currently return static `example_output.json` — real AI not wired yet (Gemini → OpenAI → Claude fallback chain pending)
+- Frontend is a developer JSON wizard — proper user-facing forms and output cards not yet built
+- Railway deployment not yet set up — no live URL exists
+- `OnboardingFlow.jsx` exists in `frontend/src/onboarding/` but is not integrated into `App.jsx`
+
+**Not started (post-pilot):** Phases 4–6 (curriculum graph, market gap intelligence, freemium gating).

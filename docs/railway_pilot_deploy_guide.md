@@ -17,15 +17,19 @@ Get Pocket Professor into a pilot-ready state for 1-12 users with:
 2. Add a **Postgres** service.
 3. Add a **Backend API** service (connect your repo, root dir `backend`).
 4. Add these env vars on backend service:
-   - `ADAPTATION_DATABASE_URL` (from Railway Postgres `DATABASE_URL`)
+   - `DATABASE_URL` (from Railway Postgres `DATABASE_URL`)
+   - `ADAPTATION_DATABASE_URL` (same value as `DATABASE_URL`)
    - `ADAPTATION_PERSISTENCE_MODE=postgres`
    - `ADAPTATION_HOST=0.0.0.0`
    - `ADAPTATION_PORT=${{PORT}}`
-   - `FRONTEND_ORIGIN=https://<your-frontend-domain>`
+   - `FRONTEND_ORIGIN=https://<your-frontend-domain>` (exact URL, no trailing slash, no wildcard)
    - `PILOT_SESSION_TTL_HOURS=720`
    - `PILOT_LOGIN_CODE_TTL_MINUTES=15`
-   - `RESEND_API_KEY=<optional for real email delivery>`
-   - `RESEND_FROM_EMAIL=<optional for real email delivery>`
+   - `RESEND_API_KEY=<required — email login will not work without this>`
+   - `RESEND_FROM_EMAIL=<required — must match a verified Resend sender>`
+   - `GEMINI_API_KEY=<required — primary AI provider>`
+   - `OPENAI_API_KEY=<required — first AI fallback>`
+   - `ANTHROPIC_API_KEY=<required — second AI fallback>`
 
 ## 2) Backend deploy settings
 - Build Command: `npm install && npm run build:phase3`

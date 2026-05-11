@@ -5,7 +5,7 @@
 
 ---
 
-## 1) Determinism Guarantees
+## 1. Determinism Guarantees
 
 ### 1.1 Determinism Definition
 **Rule:** Given identical persisted inputs, formula versions, and evaluation timestamp boundaries, the system **MUST** produce identical adaptation outputs.
@@ -38,7 +38,7 @@ Deterministic components **MUST NOT** read LLM memory, free-form chat history, w
 
 ---
 
-## 2) Structural Mutation Cap
+## 2. Structural Mutation Cap
 
 ### 2.1 Structural Mutation Definition
 **Rule:** A structural mutation is any action that changes curriculum graph shape, sequence, or unlock topology for a user. This includes path pivot commit, node insertion/removal, dependency rewiring, and checkpoint topology change.
@@ -60,7 +60,7 @@ Deterministic components **MUST NOT** read LLM memory, free-form chat history, w
 
 ---
 
-## 3) Structural vs Non-Structural Action Taxonomy
+## 3. Structural vs Non-Structural Action Taxonomy
 
 ### 3.1 Structural Actions (Enumerated)
 The following **MUST** be treated as structural:
@@ -84,7 +84,7 @@ The following **MUST** be treated as non-structural:
 
 ---
 
-## 4) Event Immutability Contract
+## 4. Event Immutability Contract
 
 ### 4.1 Append-Only Requirement
 **Rule:** Behavioral event records **MUST** be append-only. Existing event rows **MUST NOT** be updated or deleted in normal operation.
@@ -106,7 +106,7 @@ The following **MUST** be treated as non-structural:
 
 ---
 
-## 5) Adaptation Evaluation Triggers
+## 5. Adaptation Evaluation Triggers
 
 ### 5.1 Daily vs Weekly Boundaries
 **Rule:** Daily evaluations **MUST** be limited to non-structural actions. Weekly evaluations **MUST** be the only context where structural mutation is eligible.
@@ -131,7 +131,7 @@ The following **MUST** be treated as non-structural:
 
 ---
 
-## 6) Agent Authority Boundary
+## 6. Agent Authority Boundary
 
 ### 6.1 Advisory-Only Authority
 **Rule:** All agent outputs **MUST** be advisory and **MUST** pass through deterministic policy mapping before any action is applied.
@@ -153,7 +153,7 @@ The following **MUST** be treated as non-structural:
 
 ---
 
-## 7) Metric Versioning Contract
+## 7. Metric Versioning Contract
 
 ### 7.1 Version Naming Scheme
 **Rule:** Metric formulas **MUST** use stable identifiers in the pattern:
@@ -184,7 +184,7 @@ Backfills **MAY** be generated as new rows tagged with new versions; they **MUST
 
 ---
 
-## 8) Failure Isolation Rules
+## 8. Failure Isolation Rules
 
 ### 8.1 Agent Schema Validation Failure
 **Rule:** If agent output schema validation fails, the run **MUST** be rejected and no downstream adaptation action **MUST** execute.
@@ -206,7 +206,7 @@ Backfills **MAY** be generated as new rows tagged with new versions; they **MUST
 
 ---
 
-## 9) Detected Architectural Tensions
+## 9. Detected Architectural Tensions
 
 1. **Event versioning gap:** Current Phase 1 plan defines append-only events but does not explicitly define an `event_schema_version` field in the event entity contract. This invariant requires it.
 2. **Deferred-queue specificity gap:** Current Phase 1 plan states structural cap and deferral conceptually but does not define deterministic queue ordering rules for deferred structural mutations. This invariant requires explicit deterministic ranking.
