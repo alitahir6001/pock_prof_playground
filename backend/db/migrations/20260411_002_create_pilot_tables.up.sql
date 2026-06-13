@@ -55,15 +55,9 @@ CREATE TABLE IF NOT EXISTS pilot_feedback_events (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Add onboarding drafts table to store in-progress onboarding states for users
-CREATE TABLE onboarding_drafts (
-  user_id    UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  state_json JSONB NOT NULL,
-  step_idx   INT NOT NULL DEFAULT 0,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX onboarding_drafts_updated_at_idx ON onboarding_drafts (updated_at);
+-- NOTE: onboarding draft persistence is deferred until after the pilot.
+-- The previous onboarding_drafts table referenced a non-existent users(id)
+-- table, which rolled back this entire transaction on a clean database.
 
 CREATE INDEX IF NOT EXISTS idx_pilot_feedback_user_created
   ON pilot_feedback_events (user_id, created_at DESC);
