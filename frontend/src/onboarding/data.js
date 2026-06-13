@@ -61,6 +61,22 @@ export const CAREER_OPTIONS = [
   },
 ];
 
+// Broad career domains for the Direction step. Deliberately wide — the target
+// user often knows what they DON'T want more than what they do. The onboarding
+// agent turns these (+ free-text) into the personalized ranked options on the plan.
+export const DOMAINS = [
+  { id: 'tech_it',        label: 'Tech & IT' },
+  { id: 'data',           label: 'Data & analysis' },
+  { id: 'healthcare',     label: 'Healthcare & care' },
+  { id: 'trades',         label: 'Skilled trades' },
+  { id: 'business_admin', label: 'Business & admin' },
+  { id: 'logistics',      label: 'Logistics & operations' },
+  { id: 'finance',        label: 'Finance & numbers' },
+  { id: 'creative',       label: 'Creative & media' },
+  { id: 'education',      label: 'Education & training' },
+  { id: 'public_service', label: 'Public service & safety' },
+];
+
 export const RATIONALE_LABEL = {
   fast_interview_path:    'Fastest to interview',
   high_overlap:           'Highest skill overlap',
@@ -71,6 +87,7 @@ export const RATIONALE_LABEL = {
 export const TRIGGER_SUGGESTIONS_PRIMARY = [
   'After my first coffee on a closing day',
   'After I clock out, before driving home',
+  'In my car before my shift starts',
   'Right after my shower post-shift',
   'When I sit down with the second coffee',
 ];
@@ -95,8 +112,8 @@ export const RISK_FLAGS = {
 
 export const STEPS = [
   'welcome', 'schedule', 'energy', 'skills',
-  'direction', 'coachReview', 'sprint', 'risk',
-  'trigger', 'proof', 'done',
+  'direction', 'suggestions', 'sprint', 'risk',
+  'trigger', 'done',
 ];
 
 export const INITIAL_STATE = {
@@ -104,10 +121,12 @@ export const INITIAL_STATE = {
   energy: [],
   skills: [],
   skill_custom: '',
-  primary_path: null,         // path_id | '__custom__' | null
-  custom_path: '',
-  coach_review: null,         // populated after career_coach_agent/run
-  resolved_path: null,        // primary_path or coach-redirected path
+  domains: [],                // selected broad domain ids (Direction step)
+  direction_note: '',         // free text — what pulls at them, incl. what to avoid
+  agent_output: null,         // onboarding_agent output (career_options, sprint_rec, risks, ...)
+  agent_input: null,          // the input we sent (so the plan can regenerate on thumbs-down)
+  interaction_id: null,       // for feedback
+  active_track_id: null,      // the track the user picked for their sprint (switchable later)
   daily_min: 20,
   emphasis: 'micro_proof',
   risks_ack: { low_schedule_stability: false, high_fatigue_pattern: false },
