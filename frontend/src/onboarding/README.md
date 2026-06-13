@@ -56,20 +56,11 @@ Mount `<OnboardingFlow />` at `/onboarding`. Gate it behind your existing email-
 - `POST /pilot/agents/onboarding_agent/run` — final submit
 - `POST /pilot/agents/career_coach_agent/run` — custom-track review
 
-**New — needs adding to backend:**
-- `GET  /pilot/onboarding/draft` — returns saved draft for the authed user, or 404
-- `PUT  /pilot/onboarding/draft` — upserts the draft (full state body)
-- `DELETE /pilot/onboarding/draft` — clears after successful submit
-
-Suggested table:
-```sql
-CREATE TABLE onboarding_drafts (
-  user_id        UUID PRIMARY KEY,
-  state_json     JSONB NOT NULL,
-  step_idx       INT NOT NULL DEFAULT 0,
-  updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-```
+**Draft routes — DROPPED for the pilot (2026-06-12).**
+`GET/PUT/DELETE /pilot/onboarding/draft` were never built and have been removed from the frontend.
+Drafts are now **localStorage-only** (see `useOnboardingDraft.js`). Server-side cross-device resume is
+deferred post-pilot; reintroduce the routes + an `onboarding_drafts` table (FK → `pilot_users(user_id)`, TEXT)
+if/when it returns.
 
 ### 4) Persistence semantics (the cross-device part)
 

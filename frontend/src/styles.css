@@ -1,2 +1,9 @@
 @import "tailwindcss";
 @import "./onboarding/tokens.css";
+
+/* Paint the page background globally so no black canvas shows on overscroll or
+   before React mounts (html/body are otherwise transparent). */
+html,
+body {
+  background-color: var(--color-paper-0);
+}

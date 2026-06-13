@@ -13,6 +13,8 @@
   "include": [
     "src/modules/adaptation/phase3/**/*.ts",
     "src/modules/agents/phase2/validation/**/*.ts",
+    "src/modules/agents/phase2/ai/**/*.ts",
+    "tests/agents/ai/**/*.ts",
     "tests/adaptation/**/*.ts",
     "tests/agents/**/*.ts"
   ]
