@@ -1,88 +1,34 @@
 # Current Task
 
-**Pilot Readiness — Tier 1 + Tier 2: Env Vars → AI Wiring → UI Integration**
-Last updated: 2026-05-08
+**Phase C — Deploy to Railway (get the pilot in front of real users)**
+Last updated: 2026-06-13
 
 ## What
+Phase A (real AI) and Phase B (the user-facing onboarding flow) are done and verified locally end-to-end. The last lever to get real testers in is **deployment**.
 
-### Thread A: Environment + Deployment (user action required first)
 Steps:
-1. Fill out `.env` in project root with real values (see key source table below)
-2. Create Railway project + Postgres addon, copy DATABASE_URL into .env
-3. Set all env vars in Railway dashboard (match .env)
-4. Run both DB migrations against Railway Postgres
-5. Smoke test health endpoint on deployed URL
+1. Fill the remaining `.env` values: `FRONTEND_ORIGIN` (exact Railway frontend URL, no wildcard), `RESEND_API_KEY` + `RESEND_FROM_EMAIL` (so login codes actually email — dev code stops showing once set), `VITE_API_BASE_URL` (exact Railway backend URL, in the frontend's env). On Railway set `ADAPTATION_HOST=0.0.0.0`.
+2. Create the Railway project: Postgres plugin + backend service (root `/backend`) + frontend service (root `/frontend`).
+3. Add a Dockerfile or nixpacks config — **none exists yet** for either service.
+4. Run both migrations against Railway Postgres (`db:migrate:pilot:up`, `db:migrate:adaptation:up`).
+5. Smoke the deployed URL: `GET /adaptation/health`, then the full auth → onboarding → agent flow.
 
-### Thread B: AI Wiring (Claude does this once .env is filled)
-Steps:
-1. Read existing agent endpoint code to understand current static response path
-2. Build Gemini → OpenAI → Claude fallback service in backend
-3. Replace static `example_output.json` response in all three agent endpoints (onboarding, professor, career-coach)
-4. Pass existing system_instructions.md content as system prompt for each agent
-
-### Thread C: UI Integration (Claude does this after Thread B)
-Steps:
-1. Wire `OnboardingFlow.jsx` into `App.jsx` — replace the raw JSON textarea for the onboarding step
-2. Build proper form UI for professor_agent step (topic + comfort level — match OnboardingFlow token style)
-3. Build proper form UI for career_coach_agent step (freetext "what feels stuck")
-4. Replace raw JSON output `<pre>` blocks with human-readable result cards
-5. Remove debug "API Base:" line (App.jsx line 132)
+See `docs/railway_pilot_deploy_guide.md`.
 
 ## Why
-App is not usable by non-technical service industry workers (bartenders, servers, cashiers) in its current state. Raw JSON textarea and raw JSON output are developer tools. Real AI responses + proper forms + readable output are all required before any pilot user can use this.
+Everything works locally; real users can't reach it. Deployment is what turns "it works on my machine" into "service-industry testers can try it."
 
-## Scope
-- Backend: AI fallback chain wired into all three agent endpoints
-- Frontend: OnboardingFlow integrated, agent forms replace JSON textarea, output cards, debug line removed
-- Deployment: Railway live with smoke tests passing
+## Optional pre-ship polish (Phase B nits — quick, not blocking)
+- Professor prompt sometimes echoes the raw enum "best_next" in user-facing "next actions" → add a prompt line to use plain task descriptions.
+- Delete dead files: `frontend/src/onboarding/steps/Proof.jsx`, `steps/CoachReview.jsx`.
+- Clear stale `agent_output` if the user changes domains after the AI suggestions ran.
 
-## Out of scope
-- Interaction history UI
-- Rate limiting on login codes
-- Admin feedback view
-- Phases 4–6
+## Out of scope (post-pilot)
+- Scoped behavioral research + operationalization (`.ai/behavioral-science-and-engine-alignment.md`).
+- "Learn a Skill" mode / multi-mode learning (`.ai/product-direction-multi-mode-learning.md`).
+- Phases 4–6.
 
 ## Required reading before starting
 - `.ai/handoff.md`
-- `CLAUDE.md`
-- `frontend/src/onboarding/OnboardingFlow.jsx` and `frontend/src/App.jsx` (understand the gap)
-- `backend/src/modules/agents/phase2/` (understand agent contracts before wiring AI)
-
----
-
-## .env Value Sources (quick reference)
-
-| Variable | Where to get it |
-|---|---|
-| `DATABASE_URL` | Railway dashboard → Postgres plugin → Connect tab |
-| `ADAPTATION_DATABASE_URL` | Same as DATABASE_URL |
-| `ADAPTATION_HOST` | `127.0.0.1` local / `0.0.0.0` on Railway |
-| `FRONTEND_ORIGIN` | Railway frontend service → Settings → public domain |
-| `GEMINI_API_KEY` | aistudio.google.com → Get API key |
-| `OPENAI_API_KEY` | platform.openai.com → API keys |
-| `ANTHROPIC_API_KEY` | console.anthropic.com → API keys |
-| `RESEND_API_KEY` | resend.com → API Keys |
-| `RESEND_FROM_EMAIL` | resend.com → Domains → verified sender address |
-| `VITE_API_BASE_URL` | Railway backend service → Settings → public domain |
-
----
-
-## Railway + Resend Verification Checklist
-
-### Railway
-- [ ] Create new project at railway.app
-- [ ] Add Postgres plugin → copy DATABASE_URL
-- [ ] Create backend service (root: `/backend`)
-- [ ] Create frontend service (root: `/frontend`)
-- [ ] Set all env vars in backend service Variables tab
-- [ ] Set VITE_API_BASE_URL in frontend service Variables tab
-- [ ] Run `npm run db:migrate:pilot:up` against Railway Postgres URL
-- [ ] Run `npm run db:migrate:adaptation:up` against Railway Postgres URL
-- [ ] Hit `GET <backend-url>/adaptation/health` → expect `{"status":"ok"}`
-- [ ] Test auth flow: request code → receive email → verify → get session token
-
-### Resend
-- [ ] Log into resend.com → API Keys → create key → copy it
-- [ ] Domains → verify your domain OR use onboarding@resend.dev for testing
-- [ ] Set RESEND_API_KEY + RESEND_FROM_EMAIL in Railway env vars
-- [ ] Send test email from Resend dashboard to confirm delivery
+- `docs/railway_pilot_deploy_guide.md`
+- CLAUDE.md env-var table + gotchas #4 (`ADAPTATION_HOST`), #5 (`FRONTEND_ORIGIN` exact URL)

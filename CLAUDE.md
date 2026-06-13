@@ -122,7 +122,9 @@ All agent output passes through `agentOutputGuard.ts` (schema validation + prohi
 
 ## AI Provider Chain
 
-Agents use a Gemini → OpenAI → Claude fallback chain. All three API keys are required as env vars. Currently agents return static `example_output.json` — AI wiring is the next backend task.
+`backend/src/modules/agents/phase2/ai/aiProviderService.ts` implements a multi-provider fallback (raw `fetch`, no SDKs): **OpenAI → Gemini → Anthropic** (order balances cost/speed). Providers without a key are skipped; failures (http/timeout/parse/validation) fall through to the next. Three capability/cost tiers — `fast` / `mid` / `deep` (default `mid`) — each mapping to a model per provider, all env-overridable via `<PROVIDER>_MODEL_<TIER>`. Verify keys + model names live with `npm run smoke:ai` (`AI_SMOKE_TIER=fast|mid|deep`).
+
+The service is **wired into the live route** (`/pilot/agents/:agentType/run`) via the `agentInferenceRunner.ts` orchestrator: it assembles each agent's prompt (soul + instructions + the strict schema spec from `agentPromptSpecs.ts` + example), runs the provider chain with `agentOutputGuard` as the `validate` callback, and falls back to `example_output.json` only if every provider fails. Per-agent tiers: Professor=`fast`, Onboarding/Coach=`deep`. Verify live with `npm run smoke:agents` (real AI, no DB). See gotchas 9–13 for provider quirks, the schema-in-prompt requirement, and the guard narrowing.
 
 ## Tech Stack
 
@@ -143,9 +145,9 @@ Agents use a Gemini → OpenAI → Claude fallback chain. All three API keys are
 | `ADAPTATION_HOST` | `127.0.0.1` | `0.0.0.0` | containers must bind all interfaces |
 | `FRONTEND_ORIGIN` | `http://localhost:5173` | exact Railway frontend URL | no trailing slash, no wildcards |
 | `VITE_API_BASE_URL` | `http://localhost:3040` | exact Railway backend URL | no trailing slash; `VITE_` exposes to browser — never put secrets here |
-| `GEMINI_API_KEY` | — | from Google AI Studio | primary AI provider |
-| `OPENAI_API_KEY` | — | from platform.openai.com | first fallback |
-| `ANTHROPIC_API_KEY` | — | from console.anthropic.com | second fallback |
+| `OPENAI_API_KEY` | — | from platform.openai.com | primary AI provider (chain: OpenAI→Gemini→Anthropic) |
+| `GEMINI_API_KEY` | — | from Google AI Studio | first fallback |
+| `ANTHROPIC_API_KEY` | — | from console.anthropic.com | last fallback (most expensive) |
 | `RESEND_API_KEY` | — | from resend.com | required for email auth |
 | `RESEND_FROM_EMAIL` | — | verified sender address | must match Resend domain |
 
@@ -161,33 +163,40 @@ Agents use a Gemini → OpenAI → Claude fallback chain. All three API keys are
 
 _Numbered in discovery order. Never delete — only add._
 
-1. **`OnboardingFlow.jsx` is orphaned.** The full multi-step onboarding UI exists at `frontend/src/onboarding/` but is not imported or used in `App.jsx`. Do not assume it's wired — it isn't yet.
-2. **Design tokens are wired, but `App.jsx` isn't the right shell.** `tokens.css` is correctly imported via `styles.css` → `main.jsx` and token classes work. But `App.jsx` is a developer wizard, not a user-facing app. The tokens being wired doesn't mean the UX is ready.
-3. **Agents return static JSON.** All three agent endpoints (`onboarding_agent`, `professor_agent`, `career_coach_agent`) return `example_output.json` — real AI is not wired. `agentOutputGuard.ts` must stay in the call chain when real AI is wired in.
+1. **`OnboardingFlow.jsx` is now WIRED (RESOLVED 2026-06-13).** `App.jsx` is the real shell: Login → `OnboardingFlow` → `PlanView` → `FirstSessionView` → `ClosingView`. The flow runs the onboarding AI mid-flow (the `Suggestions` step) and is verified live. Dead files from the restructure: `steps/Proof.jsx`, `steps/CoachReview.jsx` (unimported; safe to delete).
+2. **`App.jsx` is now the user-facing shell (RESOLVED 2026-06-13).** No longer a JSON dev wizard. Mobile-first (`max-w-[440px]`). Page bg set globally in `styles.css` (html/body were transparent → black overscroll). Drafts are localStorage-only (`pp_onboarding_draft_v2`).
+3. **Agents return REAL AI output (RESOLVED 2026-06-12).** All three endpoints now call `runAgentInference` (live provider chain + guard). `example_output.json` is now only the last-resort fallback when every provider fails. Was: static example for all agents.
 4. **`ADAPTATION_HOST` differs by environment.** `127.0.0.1` for local dev, `0.0.0.0` on Railway. Easy to forget when copying `.env` to Railway dashboard.
 5. **`FRONTEND_ORIGIN` must be an exact URL, never `*`.** Wildcard CORS is insecure for a deployed app with auth. Set it to the exact Railway frontend domain.
-6. **`onboarding_drafts` table has a broken FK.** It references a `users(id)` table that doesn't exist yet. This will cause a migration error on a clean DB. Needs to be dropped or fixed before Phase 4 adds the `users` table. See `docs/understanding/data-model.md`.
-7. **`agentOutputGuard.ts` is not currently called in the agent route handler.** It exists and is tested, but is not wired into the live route. Must be connected when real AI is wired in — it's the safety net for malformed AI responses.
+6. **`onboarding_drafts` removed from the pilot migration (RESOLVED 2026-06-11).** It referenced a non-existent `users(id)` table and, being inside the single BEGIN/COMMIT, rolled back ALL pilot tables on a clean DB. Removed for the pilot (draft persistence deferred). If reintroduced post-pilot, point the FK at `pilot_users(user_id)` (TEXT, not UUID). The frontend still calls `/pilot/onboarding/draft` (no such route) — that call is being dropped in Phase B.
+7. **`agentOutputGuard.ts` IS now wired into the live route (RESOLVED 2026-06-12).** It runs as the `validate` callback inside `runAgentInference` — a guard failure makes the provider chain fall through to the next provider. It must stay in that chain.
 8. **Rule priority order in policyEngine.ts differs from early docs.** Correct order (highest first): topic resistance → pivot interest → missed sessions → late night → completions. The order above reflects the actual engine.
+9. **AI provider service (`aiProviderService.ts`) — now wired into the route via `agentInferenceRunner.ts` (updated 2026-06-12).** Chain order **OpenAI → Gemini → Anthropic** (cost/speed balance). 3 tiers: `fast`/`mid`/`deep` (default `mid`). All models env-overridable via `<PROVIDER>_MODEL_<TIER>`. Verify providers with `npm run smoke:ai`, end-to-end inference with `npm run smoke:agents`.
+10. **Provider param quirks (encoded in the service — don't "fix" them back).** OpenAI gpt-5.x needs `max_completion_tokens`, NOT `max_tokens`. `temperature` is deprecated/rejected by Opus-4-8 & gpt-5.x → the service omits it unless explicitly set. Anthropic 404s on alias names (`*-latest`) → use exact dated IDs from `GET /v1/models`.
+11. **Gemini 3 are "thinking" models.** Internal reasoning consumes the `maxOutputTokens` budget BEFORE the answer, so small budgets return empty output (default raised to 2048). `thinkingBudget:0` is rejected by pro ("only works in thinking mode"); `thinkingLevel:'low'` is accepted. Gemini pro latency is highly variable (3s–44s) with transient 503s — the reason it's second, not primary; the 60s timeout + fallback absorb it.
+12. **Agent `system_instructions.md` do NOT contain the output schema.** They say "strict JSON matching schema" but the guard (`validateAgentOutput`) is strict (exact field sets, enums, lengths). The prompt MUST carry the shape — handled by `agentPromptSpecs.ts` (per-agent STRICT contract text) + the example, both embedded by `buildSystemPrompt`. `agentSpecConsistency.test.ts` asserts each `example_output.json` still passes the guard (drift guard).
+13. **Output guard's prohibited-content filter was narrowed for the IT domain (2026-06-12).** Bare `/diagnos/` and `/prescribe/` blocked core technical vocabulary ("diagnose a network issue", "run diagnostics", "prescribed checklist") — they now match ONLY in medical/psychological collocation. The collocation noun list deliberately EXCLUDES tech-colliding words like "condition" (cf. "race condition"). If you re-add medical terms, keep them domain-safe. The guard is still the source of truth — keep `agentPromptSpecs.ts` in sync with it.
 
 ## Recent Context
 
-**2026-05-08–10 (sessions 2–3):** Planning + knowledge infrastructure. No logic code changed. Key decisions: real AI (Gemini → OpenAI → Claude fallback), target users are service industry workers, Railway deploy. Created `.env` with all placeholders. Fixed `railway_pilot_deploy_guide.md` (missing AI keys, RESEND marked optional instead of required, missing TTL vars). Updated `project_onboarding_and_phase_guide.md` to reflect Phase 3 complete. Created `docs/INDEX.md` and `docs/understanding/` (4 mental model docs). Deleted `docs/breakdowns/`. Fixed rule priority order in CLAUDE.md — was listed wrong. Flagged `agentOutputGuard.ts` not wired in live route (gotcha #7) and `onboarding_drafts` broken FK (gotcha #6). User is about to fill `.env` — that's the gate for all remaining work.
+**2026-05-08–10 (sessions 2–3):** Planning + knowledge infrastructure. No logic code changed. Decisions: real AI fallback, target users = service industry workers, Railway deploy. Created `.env` placeholders, `docs/INDEX.md`, `docs/understanding/` (4 docs); deleted `docs/breakdowns/`; fixed rule priority order; flagged gotchas 6–8.
+
+**2026-06-13 (session 6): Phase B essentially COMPLETE — onboarding UI wired + restructured.** Wired the Claude-Design flow into `App.jsx` (Login → OnboardingFlow → PlanView → FirstSession → Closing); dropped server drafts (localStorage-only). Two live-walkthrough rounds drove: copy/UX fixes ("Bite-size wins," removed "—P"/"Resumed"/broken links, de-gated Risk step, reading-contradiction fix), then a **flow restructure** — AI now runs mid-flow via a new `Suggestions` track-picker right after the domains step; tracks stay **switchable** on the plan and propagate to the Professor session; first-session tasks are **selectable**; thumbs-down **regenerates**; added a **closing screen**. Backend guard relaxed to **3–6 career_options (rank 1–6)**. Whole flow verified live in the browser preview. Captured post-pilot direction "career-switch is a MODE; general learning engine" (`.ai/product-direction-multi-mode-learning.md` + memory). Resolved gotchas #1–2.
+
+**2026-06-11/12 (sessions 4–5): Phase A COMPLETE — real AI end to end.** #1: built `aiProviderService.ts` (multi-provider fallback, raw fetch, 3 tiers, chain OpenAI→Gemini→Anthropic); live testing caught 5 provider quirks (gotchas 10–11). #2: `agentInferenceRunner.ts` orchestrator + wired into the route (config/contracts loaded once at boot, bounded 20s timeout, per-agent tiers, response `ai:{...}`, health `ai_configured`). #3: `agentPromptSpecs.ts` embeds each agent's strict contract; `agentSpecConsistency.test.ts` (drift guard) CAUGHT the professor example being wrongly rejected → narrowed the guard's `/diagnos/` & `/prescribe/` for the IT domain (gotcha #13, user-approved). Verified: 87/87 offline + `npm run smoke:agents` (all 3 agents produced real guard-valid output via OpenAI). Also fixed `onboarding_drafts` migration (gotcha #6); local Postgres 18 up + both migrations applied.
 
 ## Next Session Priorities
 
-1. **[USER ACTION FIRST]** Fill `.env` — Railway DB URL, Resend keys, Gemini/OpenAI/Anthropic keys
-2. Wire Gemini → OpenAI → Claude fallback into all three agent endpoints; wire `agentOutputGuard.ts` into route handler
-3. Integrate `OnboardingFlow.jsx` into `App.jsx`; build professor + career-coach form UIs to match token style
-4. Replace raw JSON output with human-readable cards; remove debug line (`App.jsx:132`)
-5. Fix `onboarding_drafts` broken FK before running migrations on clean DB
-6. Railway project creation + both migrations + smoke tests
+1. **Phase C (deploy)** — the main remaining lever to get real users in. Fill remaining `.env` (`FRONTEND_ORIGIN`, `RESEND_*`, `VITE_API_BASE_URL`, Railway `ADAPTATION_HOST=0.0.0.0`); create Railway project + run both migrations + smoke; add Dockerfile/nixpacks (none exists yet).
+2. **Phase B polish** (small, optional pre-ship): Professor prompt sometimes echoes the raw enum "best_next" in user-facing copy → add a prompt line; delete dead `steps/Proof.jsx` + `steps/CoachReview.jsx`; clear stale `agent_output` if the user changes domains after the AI ran.
+3. Fast-follow (post-pilot): scoped behavioral research; "Learn a Skill" mode. See `.ai/` strategic docs. Not pilot-blocking.
 
 ## Key Documentation
 
 **Start with `docs/INDEX.md`** — it maps every doc to its use case so you only read what your task requires.
 
 Critical reads (most tasks will need these):
+- `.ai/behavioral-science-and-engine-alignment.md` — **read before Phase 4+ or any behavioral-rule work.** Maps the 11-principle behavioral doc vs. the 5-rule engine slice, flags unsourced thresholds + the "learning styles" myth, and sets the post-pilot research → operationalization → engine-build plan + rich-logging foundation.
 - `docs/system_invariants_v1.md` — hard architectural constraints, non-negotiable
 - `docs/behavioral_design_v1.md` — behavioral rules that drive adaptation logic
 - `docs/project_onboarding_and_phase_guide.md` — phase map + local setup
