@@ -27,17 +27,17 @@ async function call(path, method, body) {
   return payload;
 }
 
-// ── Draft persistence ──────────────────────────────
-export const draftApi = {
-  load:   ()      => call('/pilot/onboarding/draft', 'GET'),
-  save:   (state) => call('/pilot/onboarding/draft', 'PUT', state),
-  clear:  ()      => call('/pilot/onboarding/draft', 'DELETE'),
-};
+// Draft persistence (GET/PUT/DELETE /pilot/onboarding/draft) was removed for the
+// pilot — that route does not exist server-side and drafts are now localStorage-only
+// (see useOnboardingDraft.js). Reintroduce here if server-side drafts return post-pilot.
 
 // ── Agents ─────────────────────────────────────────
 export const agents = {
   onboarding: (input) =>
     call('/pilot/agents/onboarding_agent/run', 'POST', { input }),
+
+  professor: (input) =>
+    call('/pilot/agents/professor_agent/run', 'POST', { input }),
 
   careerCoachReview: ({ custom_path, current_skills, schedule, energy_bands }) =>
     call('/pilot/agents/career_coach_agent/run', 'POST', {
@@ -50,6 +50,11 @@ export const agents = {
       },
     }),
 };
+
+// ── Feedback ───────────────────────────────────────
+export function submitFeedback({ component, interaction_id, helpful, comment }) {
+  return call('/pilot/feedback', 'POST', { component, interaction_id, helpful, comment });
+}
 
 export function isAuthed() {
   return !!getToken();
