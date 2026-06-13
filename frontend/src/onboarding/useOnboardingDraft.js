@@ -1,19 +1,17 @@
 // frontend/src/onboarding/useOnboardingDraft.js
-// State + persistence hook with cross-device resume.
+// State + persistence hook — localStorage-only for the pilot.
 //
-// Behavior:
-//   - Loads from server-side draft (GET /pilot/onboarding/draft) on mount when authed.
-//   - Falls back to localStorage if the server has nothing or user is unauthed.
-//   - Writes through to BOTH localStorage (immediate) and server (debounced 1.5s).
-//   - On auth (post-verify), call adoptLocalDraft() to upload the local-only draft.
-//   - On submit success, clears both stores.
+// Server-side cross-device resume was intentionally dropped for the pilot:
+// there is no /pilot/onboarding/draft route (draft persistence deferred
+// post-pilot). Drafts live in localStorage only, so a user completes
+// onboarding on one device; an unfinished draft resumes on that same device.
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { draftApi, isAuthed } from './api';
 import { INITIAL_STATE, STEPS } from './data';
 
-const LS_KEY = 'pp_onboarding_draft_v1';
-const DEBOUNCE_MS = 1500;
+// v2: onboarding state shape changed (domains/direction_note replaced the
+// path-picker). Bumping the key invalidates incompatible v1 drafts.
+const LS_KEY = 'pp_onboarding_draft_v2';
 
 function readLocal() {
   try {
@@ -34,59 +32,25 @@ export function useOnboardingDraft() {
   const [state, setState]     = useState(INITIAL_STATE);
   const [stepIdx, setStepIdx] = useState(0);
   const [status, setStatus]   = useState({ phase: 'loading', message: '' });
-  const saveTimer = useRef(null);
-  const ready     = useRef(false);
+  const ready = useRef(false);
 
-  // ── Initial hydrate ──────────────────────────────
+  // ── Hydrate from localStorage once ───────────────
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const local = readLocal();
-      if (isAuthed()) {
-        try {
-          const remote = await draftApi.load();
-          if (!cancelled && remote && remote.state_json) {
-            // Server wins on conflict — it represents the latest cross-device state.
-            setState({ ...INITIAL_STATE, ...remote.state_json });
-            setStepIdx(remote.step_idx || 0);
-            setStatus({ phase: 'idle', message: 'Resumed from server' });
-            ready.current = true;
-            return;
-          }
-        } catch (err) {
-          // Fall through to local on network failure — don't block the user.
-          console.warn('[onboarding] server draft load failed:', err.message);
-        }
-      }
-      if (!cancelled && local) {
-        setState({ ...INITIAL_STATE, ...local.state });
-        setStepIdx(local.stepIdx || 0);
-        setStatus({ phase: 'idle', message: 'Resumed locally' });
-      } else if (!cancelled) {
-        setStatus({ phase: 'idle', message: '' });
-      }
-      ready.current = true;
-    })();
-    return () => { cancelled = true; };
+    const local = readLocal();
+    if (local) {
+      setState({ ...INITIAL_STATE, ...local.state });
+      setStepIdx(local.stepIdx || 0);
+      setStatus({ phase: 'idle', message: 'Resumed' });
+    } else {
+      setStatus({ phase: 'idle', message: '' });
+    }
+    ready.current = true;
   }, []);
 
-  // ── Persist on every change (debounced server, immediate local) ──
+  // ── Persist to localStorage on every change ──────
   useEffect(() => {
     if (!ready.current) return;
     writeLocal({ state, stepIdx });
-    if (!isAuthed()) return;
-
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
-      try {
-        await draftApi.save({ state_json: state, step_idx: stepIdx });
-      } catch (err) {
-        // Server save failure is non-fatal — local cache holds.
-        console.warn('[onboarding] server draft save failed:', err.message);
-      }
-    }, DEBOUNCE_MS);
-
-    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [state, stepIdx]);
 
   // ── Field setter ─────────────────────────────────
@@ -107,30 +71,13 @@ export function useOnboardingDraft() {
     if (i >= 0) setStepIdx(i);
   }, []);
 
-  // ── Pre-auth → post-auth migration ───────────────
-  // Call this AFTER verifyCode succeeds, before navigating into the flow.
-  const adoptLocalDraft = useCallback(async () => {
-    const local = readLocal();
-    if (!local || !isAuthed()) return;
-    try {
-      await draftApi.save({ state_json: local.state, step_idx: local.stepIdx });
-    } catch (err) {
-      console.warn('[onboarding] adopt-local failed:', err.message);
-    }
-  }, []);
-
-  // ── Submit + clear ───────────────────────────────
-  const clearDraft = useCallback(async () => {
-    clearLocal();
-    if (isAuthed()) {
-      try { await draftApi.clear(); } catch {}
-    }
-  }, []);
+  // ── Clear on submit success ──────────────────────
+  const clearDraft = useCallback(() => { clearLocal(); }, []);
 
   return {
     state, setField,
     stepIdx, go, goTo,
     status, setStatus,
-    adoptLocalDraft, clearDraft,
+    clearDraft,
   };
 }

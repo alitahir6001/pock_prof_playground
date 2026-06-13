@@ -9,15 +9,27 @@
       "rationale_tag": "fast_interview_path"
     },
     {
+      "path_id": "medical_administrative_assistant",
+      "title": "Medical Administrative Assistant",
+      "rank": 2,
+      "rationale_tag": "entry_level_accessible"
+    },
+    {
       "path_id": "junior_data_analyst",
       "title": "Junior Data Analyst",
-      "rank": 2,
+      "rank": 3,
+      "rationale_tag": "high_overlap"
+    },
+    {
+      "path_id": "logistics_coordinator",
+      "title": "Logistics Coordinator",
+      "rank": 4,
       "rationale_tag": "high_overlap"
     },
     {
       "path_id": "qa_analyst",
       "title": "QA Analyst",
-      "rank": 3,
+      "rank": 5,
       "rationale_tag": "schedule_compatible"
     }
   ],

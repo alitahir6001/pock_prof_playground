@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handleAdaptationHttpRoute } from '../dist/src/modules/adaptation/phase3/adaptationFrameworkBindings.js';
 import { classifyAdaptationError } from '../dist/src/modules/adaptation/phase3/adaptationObservability.js';
+import { aiProviderConfigFromEnv } from '../dist/src/modules/agents/phase2/ai/aiProviderService.js';
+import { runAgentInference } from '../dist/src/modules/agents/phase2/ai/agentInferenceRunner.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -16,6 +18,23 @@ const databaseUrl = process.env.ADAPTATION_DATABASE_URL || process.env.DATABASE_
 const frontendOrigin = process.env.FRONTEND_ORIGIN || '*';
 const sessionTtlHours = Number(process.env.PILOT_SESSION_TTL_HOURS || '720');
 const loginCodeTtlMinutes = Number(process.env.PILOT_LOGIN_CODE_TTL_MINUTES || '15');
+
+// Build the AI provider config once at startup (reads keys + model overrides from env).
+// Bound the per-provider timeout for the live request path so a slow/hung provider
+// can't make a synchronous agent request hang: 3 providers x 20s = ~60s worst case.
+const aiConfig = {
+  ...aiProviderConfigFromEnv(),
+  timeoutMs: Number(process.env.AI_REQUEST_TIMEOUT_MS || 20000),
+};
+const aiConfigured = Boolean(aiConfig.geminiApiKey || aiConfig.openaiApiKey || aiConfig.anthropicApiKey);
+
+// Per-agent default capability/cost tier. Onboarding + Career Coach do heavy
+// personalization (deep); the Professor's day-to-day picks are bounded (fast).
+const agentTierByType = {
+  onboarding_agent: 'deep',
+  professor_agent: 'fast',
+  career_coach_agent: 'deep',
+};
 
 if (databaseUrl.length < 1) {
   throw new Error('ADAPTATION_DATABASE_URL or DATABASE_URL is required for pilot runtime.');
@@ -90,19 +109,32 @@ async function ensurePilotUser(email) {
   return userId;
 }
 
-async function loadAgentTemplate(agentType) {
-  const fileMap = {
-    onboarding_agent: '../src/modules/agents/phase2/onboarding-agent/example_output.json',
-    professor_agent: '../src/modules/agents/phase2/professor-agent/example_output.json',
-    career_coach_agent: '../src/modules/agents/phase2/career-coach-agent/example_output.json',
-  };
+const AGENT_DIRS = {
+  onboarding_agent: 'onboarding-agent',
+  professor_agent: 'professor-agent',
+  career_coach_agent: 'career-coach-agent',
+};
 
-  const rel = fileMap[agentType];
-  if (!rel) throw new Error('Unknown agent type');
-  const filePath = join(__dirname, rel);
-  const raw = await readFile(filePath, 'utf8');
-  return JSON.parse(raw);
+// Load each agent's static contract (soul + instructions + example) once at
+// startup. The example doubles as the prompt's required shape and the
+// last-resort fallback output when every provider fails.
+async function loadAgentContracts() {
+  const base = '../src/modules/agents/phase2';
+  const entries = await Promise.all(
+    Object.entries(AGENT_DIRS).map(async ([agentType, dir]) => {
+      const read = (file) => readFile(join(__dirname, base, dir, file), 'utf8');
+      const [soul, systemInstructions, exampleRaw] = await Promise.all([
+        read('soul.md'),
+        read('system_instructions.md'),
+        read('example_output.json'),
+      ]);
+      return [agentType, { soul, systemInstructions, exampleOutput: JSON.parse(exampleRaw) }];
+    }),
+  );
+  return Object.fromEntries(entries);
 }
+
+const agentContracts = await loadAgentContracts();
 
 async function requireSession(request) {
   const token = parseBearer(request.headers.authorization);
@@ -167,6 +199,7 @@ app.get('/adaptation/health', async () => ({
   audit_file_path: persistenceMode === 'file' ? auditFilePath : undefined,
   database_configured: databaseUrl.length > 0,
   pilot_auth_enabled: true,
+  ai_configured: aiConfigured,
 }));
 
 app.post('/adaptation/evaluate', async (request, reply) => {
@@ -276,9 +309,27 @@ app.post('/pilot/agents/:agentType/run', async (request) => {
   }
 
   const input = request.body?.input && typeof request.body.input === 'object' ? request.body.input : {};
-  const template = await loadAgentTemplate(agentType);
+
+  const inference = await runAgentInference({
+    agentType,
+    input,
+    contract: agentContracts[agentType],
+    config: aiConfig,
+    tier: agentTierByType[agentType],
+  });
+
+  request.log.info(
+    {
+      agentType,
+      source: inference.source,
+      usedFallback: inference.usedFallback,
+      attempts: inference.attempts.map((a) => ({ provider: a.provider, ok: a.ok, reason: a.failureReason, ms: a.durationMs })),
+    },
+    inference.usedFallback ? 'Agent inference fell back to example output' : 'Agent inference completed',
+  );
+
   const output = {
-    ...template,
+    ...inference.output,
     generated_at: new Date().toISOString(),
     generated_for_user: session.user_id,
   };
@@ -290,7 +341,13 @@ app.post('/pilot/agents/:agentType/run', async (request) => {
     [interactionId, session.user_id, agentType, JSON.stringify(input), JSON.stringify(output)],
   );
 
-  return { ok: true, interaction_id: interactionId, agent_type: agentType, output };
+  return {
+    ok: true,
+    interaction_id: interactionId,
+    agent_type: agentType,
+    output,
+    ai: { source: inference.source, tier: agentTierByType[agentType], used_fallback: inference.usedFallback },
+  };
 });
 
 app.post('/pilot/feedback', async (request) => {
