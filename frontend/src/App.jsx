@@ -1,17 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
+import OnboardingFlow from './onboarding/OnboardingFlow';
+import { PrimaryButton } from './onboarding/components/Button';
+import { agents, submitFeedback } from './onboarding/api';
+import { CAREER_OPTIONS, RATIONALE_LABEL, RISK_FLAGS } from './onboarding/data';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-
-const steps = [
-  { id: 'login', label: 'Login' },
-  { id: 'onboarding_agent', label: 'Onboarding Agent' },
-  { id: 'professor_agent', label: 'Professor Agent' },
-  { id: 'career_coach_agent', label: 'Career Coach Agent' },
-  { id: 'review', label: 'Review + Feedback' },
-];
+const TOKEN_KEY = 'pilot_session_token';
 
 async function api(path, method, body, token) {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     method,
     headers: {
       'content-type': 'application/json',
@@ -19,306 +16,505 @@ async function api(path, method, body, token) {
     },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const payload = await response.json();
-  if (!response.ok || payload.ok === false) {
-    throw new Error(payload.detail || payload.error_code || 'Request failed');
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok || payload.ok === false) {
+    throw new Error(payload.detail || payload.error_code || `HTTP ${res.status}`);
   }
   return payload;
 }
 
-function agentInputTemplate(agentType) {
-  const base = {
-    session_note: '',
-    energy_level: 'medium',
-    schedule_constraints: 'shift-work',
-  };
-  return JSON.stringify({ ...base, agent_type: agentType }, null, 2);
+function Shell({ children }) {
+  return (
+    <div className="min-h-screen bg-paper-0 text-ink-0 font-sans">
+      <div className="mx-auto max-w-[440px] px-5 pt-6 pb-10">{children}</div>
+    </div>
+  );
 }
 
-export function App() {
-  const [activeStep, setActiveStep] = useState('login');
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [session, setSession] = useState(() => {
-    const raw = localStorage.getItem('pilot_session_token');
-    return raw || '';
-  });
-  const [lastMessage, setLastMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+// ── Feedback control. With `onRefine`, thumbs-down opens a "what didn't fit?"
+//    prompt that REGENERATES the plan; without it, thumbs-down just records. ──
+function Feedback({ component, interactionId, prompt = 'Was this helpful?', onRefine }) {
+  const [stage, setStage] = useState('ask'); // ask | refine | done
+  const [comment, setComment] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [redoing, setRedoing] = useState(false);
 
-  const [inputs, setInputs] = useState({
-    onboarding_agent: agentInputTemplate('onboarding_agent'),
-    professor_agent: agentInputTemplate('professor_agent'),
-    career_coach_agent: agentInputTemplate('career_coach_agent'),
-  });
-
-  const [outputs, setOutputs] = useState({});
-  const [feedbackHelpful, setFeedbackHelpful] = useState({});
-  const [feedbackComment, setFeedbackComment] = useState({});
-
-  const currentStepIndex = useMemo(() => steps.findIndex((s) => s.id === activeStep), [activeStep]);
-
-  const canAccessFlow = !!session;
-
-  async function requestCode() {
-    setLoading(true);
+  async function save(helpful) {
+    setBusy(true);
     try {
-      const out = await api('/pilot/auth/email/request', 'POST', { email });
-      setLastMessage(out.dev_code ? `Code generated (dev fallback): ${out.dev_code}` : 'Check your email for your login code.');
-    } catch (error) {
-      setLastMessage(error.message);
+      await submitFeedback({ component, interaction_id: interactionId || null, helpful, comment: comment || null });
+    } catch {
+      // feedback is non-blocking; never trap the user on a failed save
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   }
 
-  async function verifyCode() {
-    setLoading(true);
-    try {
-      const out = await api('/pilot/auth/email/verify', 'POST', { email, code });
-      localStorage.setItem('pilot_session_token', out.session_token);
-      setSession(out.session_token);
-      setLastMessage(`Logged in as ${out.user.email}`);
-      setActiveStep('onboarding_agent');
-    } catch (error) {
-      setLastMessage(error.message);
-    } finally {
-      setLoading(false);
-    }
+  async function thumbsUp() {
+    await save(true);
+    setStage('done');
   }
 
-  async function runAgent(agentType) {
-    setLoading(true);
-    try {
-      const parsed = JSON.parse(inputs[agentType]);
-      const out = await api(`/pilot/agents/${agentType}/run`, 'POST', { input: parsed }, session);
-      setOutputs((prev) => ({ ...prev, [agentType]: out }));
-      setLastMessage(`${agentType} completed.`);
-      const next = steps[currentStepIndex + 1];
-      if (next) setActiveStep(next.id);
-    } catch (error) {
-      setLastMessage(error.message);
-    } finally {
-      setLoading(false);
+  async function thumbsDown() {
+    if (onRefine) {
+      setStage('refine');
+      return;
     }
+    await save(false);
+    setStage('done');
   }
 
-  async function submitFeedback(component, interactionId = null) {
-    setLoading(true);
-    try {
-      await api('/pilot/feedback', 'POST', {
-        component,
-        interaction_id: interactionId,
-        helpful: feedbackHelpful[component] ?? null,
-        comment: feedbackComment[component] || '',
-      }, session);
-      setLastMessage(`Feedback saved for ${component}.`);
-    } catch (error) {
-      setLastMessage(error.message);
-    } finally {
-      setLoading(false);
-    }
+  async function redo() {
+    setRedoing(true); // stays true until the refreshed plan remounts this control
+    await save(false);
+    onRefine(comment);
   }
 
-  function logout() {
-    localStorage.removeItem('pilot_session_token');
-    setSession('');
-    setActiveStep('login');
+  if (stage === 'done') {
+    return <div className="rounded-2xl bg-paper-2 border border-paper-edge p-4 text-[13px] text-ink-2">Thanks — that helps us tune it.</div>;
+  }
+
+  if (stage === 'refine') {
+    return (
+      <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4">
+        <div className="text-[14px] text-ink-1 mb-2 leading-[1.5]">No worries — what didn't fit? Tell me and I'll take another pass.</div>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={2}
+          placeholder="e.g. too much desk work, or none of these feel like me"
+          className="w-full rounded-xl bg-paper-0 border border-paper-edge px-3 py-2 text-[13px] text-ink-0 mb-3 focus:outline-none focus:border-accent"
+        />
+        <div className="flex gap-2">
+          <button disabled={busy || redoing} onClick={redo} className="flex-1 rounded-full bg-ink-0 text-paper-0 py-2 text-[14px] hover:bg-accent-deep disabled:opacity-50">
+            {redoing ? 'Reworking your plan…' : 'Redo my plan'}
+          </button>
+          {!redoing && (
+            <button disabled={busy} onClick={() => setStage('done')} className="rounded-full border border-paper-edge px-4 py-2 text-[14px] text-ink-2 hover:text-ink-0">It's fine, actually</button>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-paper-0 min-h-screen text-ink-0 font-sans">
-      <h1 className="text-3xl font-serif font-semibold text-accent-deep mb-2">Pocket Professor Pilot Wizard</h1>
-      <p className="text-sm text-ink-2 mb-6">API Base: {API_BASE || '(set VITE_API_BASE_URL)'}</p>
+    <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4">
+      <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-2">{prompt}</div>
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Optional comment"
+        rows={2}
+        className="w-full rounded-xl bg-paper-0 border border-paper-edge px-3 py-2 text-[13px] text-ink-0 mb-3 focus:outline-none focus:border-accent"
+      />
+      <div className="flex gap-2">
+        <button disabled={busy} onClick={thumbsUp} className="flex-1 rounded-full border border-paper-edge py-2 text-[14px] hover:border-accent hover:text-accent disabled:opacity-50">👍 Helpful</button>
+        <button disabled={busy} onClick={thumbsDown} className="flex-1 rounded-full border border-paper-edge py-2 text-[14px] hover:border-accent hover:text-accent disabled:opacity-50">👎 Not really</button>
+      </div>
+    </div>
+  );
+}
 
-      <div className="flex flex-wrap gap-2 mb-8 border-b border-paper-edge pb-4">
-        {steps.map((step, idx) => (
-          <span 
-            key={step.id} 
-            className={`px-3 py-1 rounded-full text-sm font-medium ${
-              step.id === activeStep 
-                ? 'bg-accent text-paper-0' 
-                : 'bg-paper-2 text-ink-1'
-            }`}
-          >
-            {idx + 1}. {step.label}
-          </span>
-        ))}
+// ── Email login gate (the onboarding flow runs behind this) ──────────────────
+function Login({ onAuthed }) {
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  async function requestCode() {
+    setLoading(true);
+    setMessage('');
+    try {
+      const out = await api('/pilot/auth/email/request', 'POST', { email });
+      setSent(true);
+      setMessage(out.dev_code ? `Dev code: ${out.dev_code}` : 'Check your email for the 6-digit code.');
+    } catch (e) {
+      setMessage(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function verify() {
+    setLoading(true);
+    setMessage('');
+    try {
+      const out = await api('/pilot/auth/email/verify', 'POST', { email, code });
+      localStorage.setItem(TOKEN_KEY, out.session_token);
+      onAuthed();
+    } catch (e) {
+      setMessage(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Shell>
+      <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-3">Pocket Professor</div>
+      <h1 className="font-serif text-[28px] leading-tight text-ink-0 mb-2">Let's get you set up.</h1>
+      <p className="text-[14px] text-ink-2 mb-6 leading-[1.6]">
+        Enter your email and we'll send a one-time code — no password to remember.
+      </p>
+
+      <label className="block font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-1">Email</label>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@example.com"
+        autoComplete="email"
+        className="w-full rounded-2xl bg-paper-1 border border-paper-edge px-4 py-3 text-[15px] text-ink-0 mb-3 focus:outline-none focus:border-accent"
+      />
+
+      {sent && (
+        <>
+          <label className="block font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-1">6-digit code</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="123456"
+            className="w-full rounded-2xl bg-paper-1 border border-paper-edge px-4 py-3 text-[15px] text-ink-0 mb-3 tracking-[0.3em] focus:outline-none focus:border-accent"
+          />
+        </>
+      )}
+
+      <div className="flex justify-end">
+        {!sent ? (
+          <PrimaryButton onClick={requestCode} disabled={loading || !email}>Send code</PrimaryButton>
+        ) : (
+          <PrimaryButton onClick={verify} disabled={loading || !code}>Verify &amp; continue</PrimaryButton>
+        )}
       </div>
 
-      {activeStep === 'login' && (
-        <div className="bg-paper-1 p-6 rounded-lg shadow-sm border border-paper-edge mb-6">
-          <h2 className="text-xl font-serif mb-4 text-ink-0">Email Login</h2>
-          
-          <div className="flex flex-col gap-2 mb-4">
-            <label htmlFor="email" className="text-sm font-medium text-ink-1">Email</label>
-            <input 
-              id="email"
-              name="email"
-              className="p-2 border border-paper-edge rounded bg-paper-0 text-ink-0 focus:outline-none focus:border-accent"
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              placeholder="you@example.com" 
-              type="email"
-            />
-            <button 
-              className="bg-accent text-paper-0 py-2 rounded font-medium hover:bg-accent-deep disabled:opacity-50"
-              onClick={requestCode} 
-              disabled={loading || !email}
-            >
-              Send login code
-            </button>
-          </div>
+      {message && (
+        <div className="mt-4 rounded-2xl bg-paper-2 border border-paper-edge px-4 py-3 text-[13px] text-ink-1">
+          {message}
+        </div>
+      )}
+    </Shell>
+  );
+}
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="code" className="text-sm font-medium text-ink-1">Code</label>
-            <input 
-              id="code"
-              name="code"
-              className="p-2 border border-paper-edge rounded bg-paper-0 text-ink-0 focus:outline-none focus:border-accent"
-              value={code} 
-              onChange={(e) => setCode(e.target.value)} 
-              placeholder="6-digit code" 
-              type="text"
-            />
-            <button 
-              className="bg-accent text-paper-0 py-2 rounded font-medium hover:bg-accent-deep disabled:opacity-50"
-              onClick={verifyCode} 
-              disabled={loading || !email || !code}
-            >
-              Verify + Continue
-            </button>
-          </div>
+const EMPHASIS_LABEL = {
+  micro_proof: 'Bite-size wins — small, finishable proof',
+  foundational_skills: 'Foundational skills',
+  schedule_stability: 'Schedule stability',
+};
+
+const PROF_LABEL = {
+  best_next: 'Best next',
+  easier_fallback: 'Easier fallback',
+  catch_up: 'Catch up',
+};
+
+// ── The plan: switchable tracks + the user's sprint/cues + risks ─────────────
+function PlanView({ plan, onSwitch, onStartSession, starting, error, onRestart, onRefine, refining, refineError }) {
+  const tracks = [...(plan.tracks || [])].sort((a, b) => a.rank - b.rank);
+  const out = plan.agent_output || {};
+  const sprint = plan.sprint || {};
+  const trig = plan.triggers || {};
+  const risks = out.risk_flags || [];
+  const actions = out.next_actions || [];
+
+  return (
+    <Shell>
+      <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-3">Your plan</div>
+      <h1 className="font-serif text-[28px] leading-tight text-ink-0 mb-2">Here's where we'd start.</h1>
+      <p className="text-[13px] text-ink-2 mb-5 leading-[1.6]">Your pick drives the first sprint — tap another any time to switch.</p>
+
+      {refining && (
+        <div className="mb-4 rounded-2xl bg-accent-soft border border-accent px-4 py-3 text-[13px] text-ink-1">
+          ✦ Reworking your options from your note… this takes a few seconds.
         </div>
       )}
 
-      {canAccessFlow && ['onboarding_agent', 'professor_agent', 'career_coach_agent'].includes(activeStep) && (
-        <div className="bg-paper-1 p-6 rounded-lg shadow-sm border border-paper-edge mb-6">
-          <h2 className="text-xl font-serif mb-2">{steps[currentStepIndex]?.label}</h2>
-          <p className="text-sm text-ink-2 mb-4">Edit JSON input if needed, then run this agent.</p>
-          
-          <label htmlFor={`agent-input-${activeStep}`} className="sr-only">Agent Input JSON</label>
-          <textarea 
-            id={`agent-input-${activeStep}`}
-            name={`agent-input-${activeStep}`}
-            className="w-full p-3 font-mono text-sm bg-paper-2 border border-paper-edge rounded text-ink-0 mb-4 focus:outline-none focus:border-accent"
-            rows={10} 
-            value={inputs[activeStep]} 
-            onChange={(e) => setInputs((prev) => ({ ...prev, [activeStep]: e.target.value }))} 
-          />
-          <button 
-            className="w-full bg-accent text-paper-0 py-2 rounded font-medium hover:bg-accent-deep disabled:opacity-50 mb-6"
-            onClick={() => runAgent(activeStep)} 
-            disabled={loading}
-          >
-            Run {activeStep}
-          </button>
-
-          {outputs[activeStep] && (
-            <div className="border-t border-paper-edge pt-4 mt-4">
-              <h3 className="text-lg font-serif mb-2">Output</h3>
-              <pre className="p-3 bg-paper-2 rounded border border-paper-edge text-xs font-mono overflow-auto mb-4">
-                {JSON.stringify(outputs[activeStep], null, 2)}
-              </pre>
-              
-              <div className="flex gap-4 mb-4">
-                <div className="flex flex-col w-1/3">
-                  <label htmlFor={`feedback-helpful-${activeStep}`} className="text-xs text-ink-2 mb-1">Helpful?</label>
-                  <select 
-                    id={`feedback-helpful-${activeStep}`}
-                    name={`feedback-helpful-${activeStep}`}
-                    className="p-2 border border-paper-edge rounded bg-paper-0"
-                    value={feedbackHelpful[activeStep] ?? ''} 
-                    onChange={(e) => setFeedbackHelpful((prev) => ({ ...prev, [activeStep]: e.target.value === '' ? null : e.target.value === 'true' }))}
-                  >
-                    <option value="">Select...</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </div>
-                <div className="flex flex-col flex-grow">
-                  <label htmlFor={`feedback-comment-${activeStep}`} className="text-xs text-ink-2 mb-1">Comments</label>
-                  <input 
-                    id={`feedback-comment-${activeStep}`}
-                    name={`feedback-comment-${activeStep}`}
-                    className="p-2 border border-paper-edge rounded bg-paper-0"
-                    placeholder="Optional comment" 
-                    value={feedbackComment[activeStep] || ''} 
-                    onChange={(e) => setFeedbackComment((prev) => ({ ...prev, [activeStep]: e.target.value }))} 
-                  />
-                </div>
+      <div className="flex flex-col gap-3 mb-6">
+        {tracks.map((t) => {
+          const meta = CAREER_OPTIONS.find((o) => o.path_id === t.path_id);
+          const active = t.path_id === plan.active_track_id;
+          return (
+            <button
+              key={t.path_id || t.rank}
+              onClick={() => !active && onSwitch(t.path_id)}
+              className={[
+                'w-full text-left rounded-2xl border p-4 transition-colors',
+                active ? 'bg-accent-soft border-accent cursor-default' : 'bg-paper-1 border-paper-edge hover:border-ink-2 cursor-pointer',
+              ].join(' ')}
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-serif text-[17px] text-ink-0">{t.title}</div>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-ink-2">{active ? '✓ your pick' : 'switch'}</div>
               </div>
-              <button 
-                className="bg-paper-2 border border-paper-edge text-ink-0 py-2 px-4 rounded font-medium hover:bg-paper-3 disabled:opacity-50"
-                onClick={() => submitFeedback(activeStep, outputs[activeStep].interaction_id)} 
-                disabled={loading}
-              >
-                Save feedback
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+              <div className="font-mono text-[10px] uppercase tracking-wider text-accent mt-1">
+                {RATIONALE_LABEL[t.rationale_tag] || t.rationale_tag}
+              </div>
+              {meta?.blurb && <p className="text-[13px] text-ink-1 mt-2 leading-[1.6]">{meta.blurb}</p>}
+              {meta && (
+                <div className="font-mono text-[10px] text-ink-2 mt-2">
+                  {meta.months_to_interview} to interview · {meta.overlap} overlap · {meta.starting}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-      {canAccessFlow && activeStep === 'review' && (
-        <div className="bg-paper-1 p-6 rounded-lg shadow-sm border border-paper-edge mb-6">
-          <h2 className="text-xl font-serif mb-4 text-ink-0">Review + Global Feedback</h2>
-          <p className="text-sm text-ink-2 mb-2">All agent outputs collected in this session:</p>
-          <pre className="p-3 bg-paper-2 rounded border border-paper-edge text-xs font-mono overflow-auto mb-4">
-            {JSON.stringify(outputs, null, 2)}
-          </pre>
-          
-          <div className="flex gap-4 mb-4">
-            <div className="flex flex-col w-1/3">
-              <label htmlFor="feedback-helpful-review" className="text-xs text-ink-2 mb-1">Overall helpful?</label>
-              <select 
-                id="feedback-helpful-review"
-                name="feedback-helpful-review"
-                className="p-2 border border-paper-edge rounded bg-paper-0"
-                value={feedbackHelpful.review ?? ''} 
-                onChange={(e) => setFeedbackHelpful((prev) => ({ ...prev, review: e.target.value === '' ? null : e.target.value === 'true' }))}
-              >
-                <option value="">Select...</option>
-                <option value="true">Yes</option>
-                <option value="false">No</option>
-              </select>
-            </div>
-            <div className="flex flex-col flex-grow">
-              <label htmlFor="feedback-comment-review" className="text-xs text-ink-2 mb-1">Overall feedback</label>
-              <input 
-                id="feedback-comment-review"
-                name="feedback-comment-review"
-                className="p-2 border border-paper-edge rounded bg-paper-0"
-                placeholder="Overall feedback" 
-                value={feedbackComment.review || ''} 
-                onChange={(e) => setFeedbackComment((prev) => ({ ...prev, review: e.target.value }))} 
-              />
-            </div>
-          </div>
-          
+      <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4 mb-3">
+        <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-1">Your 14-day sprint</div>
+        <div className="text-[14px] text-ink-1 leading-[1.6]">
+          <strong>{sprint.daily_minutes_target} min/day</strong> for {sprint.duration_days} days
+          {sprint.emphasis ? ` · ${EMPHASIS_LABEL[sprint.emphasis] || sprint.emphasis}` : ''}
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4 mb-3">
+        <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-1">Your cues</div>
+        <div className="text-[14px] text-ink-1 leading-[1.6]">
+          <div><strong>Primary:</strong> {trig.primary_trigger}</div>
+          <div><strong>Backup:</strong> {trig.fallback_trigger}</div>
+        </div>
+      </div>
+
+      {risks.length > 0 && (
+        <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4 mb-3">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-2">What we'll watch for</div>
           <div className="flex flex-col gap-2">
-            <button 
-              className="w-full bg-accent text-paper-0 py-2 rounded font-medium hover:bg-accent-deep disabled:opacity-50"
-              onClick={() => submitFeedback('wizard_overall', null)} 
-              disabled={loading}
-            >
-              Submit overall feedback
-            </button>
-            <button 
-              className="w-full bg-paper-2 border border-paper-edge text-ink-0 py-2 rounded font-medium hover:bg-paper-3"
-              onClick={logout}
-            >
-              Log out
-            </button>
+            {risks.map((r) => (
+              <div key={r} className="text-[13px] text-ink-1 leading-[1.5]">
+                <strong>{RISK_FLAGS[r]?.label || r}.</strong> {RISK_FLAGS[r]?.body || ''}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {lastMessage && (
-        <div className="p-4 bg-paper-2 border border-paper-edge rounded-lg mt-4 text-ink-0">
-          <strong className="text-accent">Status:</strong> {lastMessage}
+      {actions.length > 0 && (
+        <div className="rounded-2xl bg-paper-2 border border-paper-edge p-4 mb-4">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-2">Do these first</div>
+          <ul className="flex flex-col gap-1.5">
+            {actions.map((a, i) => (
+              <li key={i} className="text-[14px] text-ink-1 leading-[1.5] flex gap-2">
+                <span className="text-accent">→</span><span>{a}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
-    </div>
+
+      <div className="mb-4">
+        <Feedback
+          key={plan.interaction_id}
+          component="onboarding_plan"
+          interactionId={plan.interaction_id}
+          prompt="Do these feel right for you?"
+          onRefine={onRefine}
+        />
+      </div>
+
+      {refineError && (
+        <div className="mb-3 rounded-2xl bg-paper-2 border border-paper-edge px-4 py-3 text-[13px] text-ink-1">Couldn't rework it: {refineError}</div>
+      )}
+      {error && (
+        <div className="mb-3 rounded-2xl bg-paper-2 border border-paper-edge px-4 py-3 text-[13px] text-ink-1">{error}</div>
+      )}
+
+      <div className="flex items-center justify-between">
+        <button onClick={onRestart} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Adjust my answers</button>
+        <PrimaryButton onClick={onStartSession} disabled={starting || refining}>
+          {starting ? 'Setting up…' : "Start today's first session"}
+        </PrimaryButton>
+      </div>
+    </Shell>
+  );
+}
+
+// ── Professor "first session": pick one bounded task for today ───────────────
+function FirstSessionView({ output, interactionId, onDone, onRestart }) {
+  const options = [...(output.options || [])].sort((a, b) => {
+    const order = { best_next: 0, easier_fallback: 1, catch_up: 2 };
+    return (order[a.label] ?? 9) - (order[b.label] ?? 9);
+  });
+  const actions = output.next_actions || [];
+  const [picked, setPicked] = useState(null);
+
+  return (
+    <Shell>
+      <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-3">Today's first session</div>
+      <h1 className="font-serif text-[24px] leading-tight text-ink-0 mb-3">{output.session_objective}</h1>
+      <p className="text-[14px] text-ink-2 mb-5 leading-[1.6]">Pick the one you'll do right now — that's the whole session. Then mark it done.</p>
+
+      <div className="flex flex-col gap-3 mb-6">
+        {options.map((o, i) => {
+          const sel = picked === i;
+          return (
+            <button
+              key={i}
+              onClick={() => setPicked(i)}
+              className={[
+                'w-full text-left rounded-2xl border p-4 transition-colors',
+                sel ? 'bg-accent-soft border-accent' : 'bg-paper-1 border-paper-edge hover:border-ink-2',
+              ].join(' ')}
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-mono text-[10px] uppercase tracking-wider text-accent">{PROF_LABEL[o.label] || o.label}</div>
+                {sel && <div className="font-mono text-[10px] uppercase tracking-wider text-ink-2">✓ chosen</div>}
+              </div>
+              <div className="text-[14px] text-ink-1 leading-[1.6] mt-1">{o.task_summary}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {actions.length > 0 && (
+        <div className="rounded-2xl bg-paper-2 border border-paper-edge p-4 mb-4">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-2">Right now</div>
+          <ul className="flex flex-col gap-1.5">
+            {actions.map((a, i) => (
+              <li key={i} className="text-[14px] text-ink-1 leading-[1.5] flex gap-2">
+                <span className="text-accent">→</span><span>{a}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mb-4">
+        <Feedback component="first_session" interactionId={interactionId} prompt="Was this a useful first session?" />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <button onClick={onRestart} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Start over</button>
+        <PrimaryButton onClick={onDone} disabled={picked === null}>Mark today done</PrimaryButton>
+      </div>
+    </Shell>
+  );
+}
+
+// ── Closing screen after the first session (reinforces the trigger habit) ────
+function ClosingView({ onRestart }) {
+  return (
+    <Shell>
+      <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-3">That's day one</div>
+      <h1 className="font-serif text-[26px] leading-tight text-ink-0 mb-4">Nice. You did the smallest real thing.</h1>
+      <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4 text-[15px] text-ink-1 leading-[1.6] mb-6 font-serif">
+        That's the whole game — one bite-size win, then the next. Come back when your trigger fires; I'll have the next small thing ready.
+      </div>
+      <div className="flex justify-start">
+        <button onClick={onRestart} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Start over</button>
+      </div>
+    </Shell>
+  );
+}
+
+export function App() {
+  const [session, setSession] = useState(() => localStorage.getItem(TOKEN_KEY) || '');
+  const [plan, setPlan] = useState(null);                 // assembled plan from OnboardingFlow
+  const [firstSession, setFirstSession] = useState(null); // full professor run response
+  const [starting, setStarting] = useState(false);
+  const [sessionError, setSessionError] = useState('');
+  const [refining, setRefining] = useState(false);
+  const [refineError, setRefineError] = useState('');
+  const [closed, setClosed] = useState(false);
+
+  if (!session) {
+    return <Login onAuthed={() => setSession(localStorage.getItem(TOKEN_KEY) || '')} />;
+  }
+  if (!plan) {
+    return <OnboardingFlow onComplete={(p) => setPlan(p)} />;
+  }
+
+  const activeTrack =
+    (plan.tracks || []).find((t) => t.path_id === plan.active_track_id) || (plan.tracks || [])[0];
+
+  async function startSession() {
+    setStarting(true);
+    setSessionError('');
+    try {
+      const res = await agents.professor({
+        topic: activeTrack?.title || 'your first skill',
+        comfort_level: 'beginner',
+        minutes_available_today: plan.sprint?.daily_minutes_target || 20,
+        context: 'first session immediately after onboarding',
+      });
+      setFirstSession(res);
+    } catch (e) {
+      setSessionError(e.message);
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  async function refinePlan(critique) {
+    setRefining(true);
+    setRefineError('');
+    try {
+      const res = await agents.onboarding({
+        ...(plan.agent_input || {}),
+        refinement: {
+          previous_options: (plan.tracks || []).map((t) => t.title),
+          what_didnt_fit: critique || 'no specifics given',
+        },
+      });
+      const out = res.output || res;
+      const tracks = out.career_options || [];
+      const top = [...tracks].sort((a, b) => a.rank - b.rank)[0];
+      setPlan({
+        ...plan,
+        agent_output: out,
+        tracks,
+        interaction_id: res.interaction_id || plan.interaction_id,
+        active_track_id: top?.path_id || plan.active_track_id,
+      });
+    } catch (e) {
+      setRefineError(e.message);
+    } finally {
+      setRefining(false);
+    }
+  }
+
+  function switchTrack(id) {
+    setPlan({ ...plan, active_track_id: id });
+  }
+
+  function restart() {
+    setFirstSession(null);
+    setPlan(null);
+    setClosed(false);
+    setRefineError('');
+    setSessionError('');
+  }
+
+  if (closed) {
+    return <ClosingView onRestart={restart} />;
+  }
+
+  if (firstSession) {
+    return (
+      <FirstSessionView
+        output={firstSession.output || firstSession}
+        interactionId={firstSession.interaction_id}
+        onDone={() => setClosed(true)}
+        onRestart={restart}
+      />
+    );
+  }
+
+  return (
+    <PlanView
+      plan={plan}
+      onSwitch={switchTrack}
+      onStartSession={startSession}
+      starting={starting}
+      error={sessionError}
+      onRestart={restart}
+      onRefine={refinePlan}
+      refining={refining}
+      refineError={refineError}
+    />
   );
 }
