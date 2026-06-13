@@ -83,6 +83,35 @@ test('rejects prohibited content patterns', () => {
   if (!result.ok) assert.equal(result.reason, 'PROHIBITED_CONTENT');
 });
 
+test('allows technical diagnose/prescribe vocabulary (IT support domain)', () => {
+  const technicalPhrases = [
+    'Diagnose a basic network issue and submit your fix notes.',
+    'Run diagnostics on the failing service and note the error.',
+    'Follow the prescribed troubleshooting checklist for the outage.',
+  ];
+
+  for (const phrase of technicalPhrases) {
+    const payload = { ...validOnboarding, next_actions: [phrase, 'Do one micro-proof.'] };
+    const result = validateAgentOutput('onboarding_agent', payload);
+    assert.equal(result.ok, true);
+  }
+});
+
+test('still rejects medical diagnosis framing (diagnose + condition term)', () => {
+  const medicalPhrases = [
+    'This may be diagnosed as anxiety, so rest first.', // "anxiety" alone is not blocked; the collocation is
+    'A coach might diagnose you with a mental illness.',
+    'You should self-diagnose before the next session.',
+  ];
+
+  for (const phrase of medicalPhrases) {
+    const payload = { ...validOnboarding, next_actions: [phrase, 'Do one micro-proof.'] };
+    const result = validateAgentOutput('onboarding_agent', payload);
+    assert.equal(result.ok, false);
+    if (!result.ok) assert.equal(result.reason, 'PROHIBITED_CONTENT');
+  }
+});
+
 test('rejects non-obvious clinical framing language variants', () => {
   const variants = [
     'This sounds like a clinical condition that may need medical intervention.',
