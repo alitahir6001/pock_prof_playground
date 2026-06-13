@@ -10,7 +10,13 @@ export type GuardResult =
   | { ok: false; reason: RejectReason; detail: string };
 
 const PROHIBITED_LANGUAGE = [
-  /diagnos/i,
+  // Medical/psychological diagnosis framing ONLY. The bare /diagnos/ pattern was
+  // too broad: this app teaches careers like IT support where "diagnose a network
+  // issue" / "run diagnostics" / "diagnose the error" are core vocabulary. We flag
+  // "diagnose" only when paired with a clearly medical/psychological term (and the
+  // noun list excludes tech-colliding words like "condition" — cf. race condition).
+  /\bself[-\s]?diagnos(e|ed|es|ing|is)\b/i,
+  /\bdiagnos(e|ed|es|ing|is)\b[^.\n]{0,30}\b(disorder|depress(ed|ion)|anxiety|adhd|bipolar|ptsd|mental|illness|psychiatric|psychological)\b/i,
   /disorder/i,
   /therapy/i,
   /mental health/i,
@@ -23,7 +29,8 @@ const PROHIBITED_LANGUAGE = [
   /(clinical|medical) (condition|issue)/i,
   /trauma response/i,
   /medication/i,
-  /prescribe/i
+  // Prescribing medication ONLY — not "follow the prescribed checklist/steps".
+  /\bprescrib(e|ed|es|ing)\b[^.\n]{0,30}\b(medication|medicine|drug|antidepressant|dosage|pill)\b/i,
 ];
 
 const onboardingRationale = new Set([
@@ -96,10 +103,10 @@ function validateOnboarding(payload: Record<string, unknown>): GuardResult {
   if (payload.agent !== 'onboarding_agent') return fail('agent literal mismatch');
   if (payload.schema_version !== '1.0.0') return fail('schema_version mismatch');
 
-  if (!Array.isArray(payload.career_options) || payload.career_options.length !== 3) return fail('career_options length must be 3');
+  if (!Array.isArray(payload.career_options) || payload.career_options.length < 3 || payload.career_options.length > 6) return fail('career_options length must be 3..6');
   for (const option of payload.career_options) {
     if (!isRecord(option)) return fail('career option must be object');
-    if (![1, 2, 3].includes(Number(option.rank))) return fail('career option rank must be 1..3');
+    if (!Number.isInteger(Number(option.rank)) || Number(option.rank) < 1 || Number(option.rank) > 6) return fail('career option rank must be 1..6');
     if (typeof option.title !== 'string' || option.title.length < 1) return fail('career option title invalid');
     if (!onboardingRationale.has(String(option.rationale_tag))) return fail('invalid onboarding rationale_tag');
   }
