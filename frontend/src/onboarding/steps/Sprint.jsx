@@ -5,15 +5,15 @@ import YouLabel from '../components/YouLabel';
 import { PrimaryButton } from '../components/Button';
 
 const EMPHASIS = [
-  { id: 'micro_proof',   label: 'Micro-proofs',   hint: 'small wins, fast' },
-  { id: 'depth',         label: 'Depth study',    hint: 'fewer, longer' },
-  { id: 'mixed',         label: 'Mixed',          hint: 'both, balanced' },
+  { id: 'micro_proof',   label: 'Bite-size wins', hint: 'small, finishable proof' },
+  { id: 'depth',         label: 'Depth study',  hint: 'fewer, longer' },
+  { id: 'mixed',         label: 'Mixed',        hint: 'both, balanced' },
 ];
 
 export default function Sprint({ minutes, emphasis, onMinutes, onEmphasis, onNext }) {
   return (
     <div className="flex flex-col gap-6 py-4">
-      <CoachNote>Two weeks. How much per day?</CoachNote>
+      <CoachNote>Your first two-week sprint. How much per day?</CoachNote>
 
       <div>
         <YouLabel>Daily minutes</YouLabel>

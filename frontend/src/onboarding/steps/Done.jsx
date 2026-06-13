@@ -11,7 +11,6 @@ export default function Done({ summary, onContinue }) {
         We've got it. Go rest. Tomorrow your trigger fires; I'll be here with the smallest possible thing.
       </CoachNote>
       <div className="rounded-2xl bg-paper-2 border border-paper-edge p-4 text-[14px] text-ink-1 font-sans leading-[1.6]">
-        <div><strong>Heading:</strong> {summary.path_label}</div>
         <div><strong>Cadence:</strong> {summary.daily_min} min/day · 14 days</div>
         <div><strong>Cue:</strong> {summary.primary_trig}</div>
         <div><strong>Backup cue:</strong> {summary.fallback_trig}</div>

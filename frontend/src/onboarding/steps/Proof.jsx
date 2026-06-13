@@ -12,9 +12,10 @@ export default function Proof({ onSubmit, submitting }) {
         send it when your trigger fires.
       </CoachNote>
       <div className="rounded-2xl bg-paper-2 border border-paper-edge p-4">
-        <div className="font-mono text-[10px] uppercase tracking-wider text-ink-2 mb-1">First micro-proof · day 1</div>
+        <div className="font-mono text-[10px] uppercase tracking-wider text-ink-2 mb-1">Your first bite-size win · day 1</div>
         <div className="font-serif text-[18px] text-ink-0 leading-[1.4]">
-          Open one tab. Read one paragraph. Close the tab. That's the whole thing.
+          Find one beginner resource and bookmark it. Don't start it — just locate it.
+          That's the whole thing.
         </div>
       </div>
       <div className="flex justify-end pt-2">

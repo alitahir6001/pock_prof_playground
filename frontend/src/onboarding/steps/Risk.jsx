@@ -26,29 +26,21 @@ export default function Risk({ state, ack, onToggle, onNext }) {
     );
   }
 
-  const allAcked = flags.every(f => ack[f]);
-
   return (
     <div className="flex flex-col gap-5 py-4">
-      <CoachNote>Two things you should know before we start.</CoachNote>
+      <CoachNote>
+        {flags.length === 1 ? 'One thing' : `${flags.length} things`} I'll keep in mind for you.
+      </CoachNote>
       <div className="flex flex-col gap-3">
         {flags.map((f) => (
-          <label key={f} className="flex gap-3 p-4 rounded-2xl bg-paper-1 border border-paper-edge cursor-pointer">
-            <input
-              type="checkbox"
-              checked={!!ack[f]}
-              onChange={() => onToggle(f)}
-              className="mt-1 accent-[oklch(0.55_0.12_40)]"
-            />
-            <div>
-              <div className="font-serif text-[16px] text-ink-0">{RISK_FLAGS[f].label}</div>
-              <div className="text-[13px] text-ink-1 font-sans mt-0.5 leading-[1.5]">{RISK_FLAGS[f].body}</div>
-            </div>
-          </label>
+          <div key={f} className="p-4 rounded-2xl bg-paper-1 border border-paper-edge">
+            <div className="font-serif text-[16px] text-ink-0">{RISK_FLAGS[f].label}</div>
+            <div className="text-[13px] text-ink-1 font-sans mt-0.5 leading-[1.5]">{RISK_FLAGS[f].body}</div>
+          </div>
         ))}
       </div>
       <div className="flex justify-end pt-2">
-        <PrimaryButton onClick={onNext} disabled={!allAcked}>I understand</PrimaryButton>
+        <PrimaryButton onClick={onNext}>Got it</PrimaryButton>
       </div>
     </div>
   );
