@@ -16,7 +16,7 @@ export default function Done({ summary, onContinue }) {
         <div><strong>Backup cue:</strong> {summary.fallback_trig}</div>
       </div>
       <div className="flex justify-end pt-2">
-        <PrimaryButton onClick={onContinue}>Open dashboard</PrimaryButton>
+        <PrimaryButton onClick={onContinue}>See my plan</PrimaryButton>
       </div>
     </div>
   );

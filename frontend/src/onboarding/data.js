@@ -21,6 +21,11 @@ export const SKILLS = [
   { id: 'logistics',     label: 'Scheduling logistics' },
   { id: 'spanish',       label: 'Bilingual' },
   { id: 'sales',         label: 'Upselling' },
+  { id: 'procedures',    label: 'Memorizing procedures' },
+  { id: 'leading',       label: 'Leading small groups' },
+  { id: 'events',        label: 'Organizing events' },
+  { id: 'kids',          label: 'Working with kids' },
+  { id: 'animals',       label: 'Working with animals' },
 ];
 
 export const BANDS = [

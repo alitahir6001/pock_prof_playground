@@ -54,6 +54,7 @@ export const SCHEMA_SPEC: Record<AgentType, string> = {
     '- resistance_signal: one of ["none","topic_resistance","fatigue_friction","choice_overload"].',
     '- escalation_recommendation: one of ["none","career_coach_review","resilience_coach_review"].',
     '- next_actions: an array of EXACTLY 2 short instruction strings.',
+    '  Write these as plain user-facing copy (e.g. "Try the easier fallback first if you feel stuck"). Do NOT use the raw enum names ("best_next","easier_fallback","catch_up") in the action text — those are internal labels, not words the learner should read.',
   ].join('\n'),
 
   career_coach_agent: [

@@ -115,11 +115,28 @@ export default function OnboardingFlow({ onComplete }) {
             <Direction
               domains={state.domains}
               note={state.direction_note}
-              onToggleDomain={(id) =>
+              onToggleDomain={(id) => {
                 setField('domains', state.domains.includes(id)
                   ? state.domains.filter((x) => x !== id)
-                  : [...state.domains, id])}
-              onNote={(v) => setField('direction_note', v)}
+                  : [...state.domains, id]);
+                if (state.agent_output) {
+                  setField('agent_output', null);
+                  setField('agent_input', null);
+                  setField('interaction_id', null);
+                  setField('active_track_id', null);
+                  setSugPhase('thinking');
+                }
+              }}
+              onNote={(v) => {
+                setField('direction_note', v);
+                if (state.agent_output) {
+                  setField('agent_output', null);
+                  setField('agent_input', null);
+                  setField('interaction_id', null);
+                  setField('active_track_id', null);
+                  setSugPhase('thinking');
+                }
+              }}
               onNext={advance}
             />
           )}

@@ -5,27 +5,36 @@
 // tracks stay available to switch to later (on the plan). The agent's sprint
 // suggestion pre-fills the Sprint step.
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import CoachNote from '../components/CoachNote';
 import { PrimaryButton } from '../components/Button';
 import { RATIONALE_LABEL, CAREER_OPTIONS } from '../data';
 import { agents } from '../api';
 
+function buildInput(state) {
+  return {
+    schedule_constraints: state.schedule,
+    energy_windows: state.energy,
+    current_skills: [...state.skills, state.skill_custom].filter(Boolean),
+    goal_statement: {
+      interested_domains: state.domains,
+      direction_note: state.direction_note || null,
+    },
+  };
+}
+
 export default function Suggestions({ state, phase, error, onResult, onError, onPick, onRetry, onNext, onBack }) {
+  // Escape hatch: "none of these — here's what I'm drawn to" → re-run with a steer.
+  const [showEscape, setShowEscape] = useState(false);
+  const [escapeNote, setEscapeNote] = useState('');
+  const [rerunning, setRerunning] = useState(false);
+
   useEffect(() => {
     if (state.agent_output) return; // already have suggestions (e.g. navigated back)
     let cancelled = false;
     (async () => {
       try {
-        const input = {
-          schedule_constraints: state.schedule,
-          energy_windows: state.energy,
-          current_skills: [...state.skills, state.skill_custom].filter(Boolean),
-          goal_statement: {
-            interested_domains: state.domains,
-            direction_note: state.direction_note || null,
-          },
-        };
+        const input = buildInput(state);
         const res = await agents.onboarding(input);
         if (!cancelled) onResult(res, input);
       } catch (e) {
@@ -34,6 +43,26 @@ export default function Suggestions({ state, phase, error, onResult, onError, on
     })();
     return () => { cancelled = true; };
   }, []);
+
+  async function rerunWithSteer() {
+    if (!escapeNote.trim()) return;
+    setRerunning(true);
+    try {
+      const tracks = (state.agent_output?.career_options || []).map((o) => o.title);
+      const input = {
+        ...buildInput(state),
+        refinement: { previous_options: tracks, what_didnt_fit: escapeNote.trim() },
+      };
+      const res = await agents.onboarding(input);
+      onResult(res, input);
+      setShowEscape(false);
+      setEscapeNote('');
+    } catch (e) {
+      onError(e.message || 'Could not reach the coach');
+    } finally {
+      setRerunning(false);
+    }
+  }
 
   if (phase === 'thinking') {
     return (
@@ -91,6 +120,44 @@ export default function Suggestions({ state, phase, error, onResult, onError, on
           );
         })}
       </div>
+
+      {/* Escape hatch — one place to say "none of these fit" */}
+      {!showEscape ? (
+        <button
+          onClick={() => setShowEscape(true)}
+          className="font-sans text-[13px] text-ink-3 hover:text-ink-1 text-left"
+        >
+          None of these feel right?
+        </button>
+      ) : (
+        <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4">
+          <div className="text-[14px] text-ink-1 mb-2 leading-[1.5]">Tell me what you're actually drawn to and I'll take another pass.</div>
+          <textarea
+            value={escapeNote}
+            onChange={(e) => setEscapeNote(e.target.value)}
+            rows={2}
+            placeholder="e.g. something hands-on, not a desk job — maybe working with animals"
+            className="w-full rounded-xl bg-paper-0 border border-paper-edge px-3 py-2 text-[13px] text-ink-0 mb-3 focus:outline-none focus:border-accent"
+          />
+          <div className="flex gap-2">
+            <button
+              disabled={rerunning || !escapeNote.trim()}
+              onClick={rerunWithSteer}
+              className="flex-1 rounded-full bg-ink-0 text-paper-0 py-2 text-[14px] hover:bg-accent-deep disabled:opacity-50"
+            >
+              {rerunning ? 'Taking another pass…' : 'Try again with this'}
+            </button>
+            {!rerunning && (
+              <button
+                onClick={() => { setShowEscape(false); setEscapeNote(''); }}
+                className="rounded-full border border-paper-edge px-4 py-2 text-[14px] text-ink-2 hover:text-ink-0"
+              >
+                Never mind
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-end pt-2">
         <PrimaryButton onClick={onNext} disabled={!state.active_track_id}>Continue</PrimaryButton>
