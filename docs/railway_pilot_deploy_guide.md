@@ -17,19 +17,22 @@ Get Pocket Professor into a pilot-ready state for 1-12 users with:
 2. Add a **Postgres** service.
 3. Add a **Backend API** service (connect your repo, root dir `backend`).
 4. Add these env vars on backend service:
+   - `NODE_ENV=production` (**required** — turns on the security guards: refuses wildcard CORS, fail-closes the internal endpoint)
    - `DATABASE_URL` (from Railway Postgres `DATABASE_URL`)
    - `ADAPTATION_DATABASE_URL` (same value as `DATABASE_URL`)
    - `ADAPTATION_PERSISTENCE_MODE=postgres`
    - `ADAPTATION_HOST=0.0.0.0`
    - `ADAPTATION_PORT=${{PORT}}`
-   - `FRONTEND_ORIGIN=https://<your-frontend-domain>` (exact URL, no trailing slash, no wildcard)
+   - `FRONTEND_ORIGIN=https://<your-frontend-domain>` (exact URL, no trailing slash, no wildcard — boot fails in prod if this is `*`)
+   - `ADMIN_EMAIL=<your email>` (founder-only admin portal at `<frontend>/#admin`; unset = admin disabled)
    - `PILOT_SESSION_TTL_HOURS=720`
    - `PILOT_LOGIN_CODE_TTL_MINUTES=15`
-   - `RESEND_API_KEY=<required — email login will not work without this>`
+   - `RESEND_API_KEY=<required — login is broken without it; there is NO dev_code fallback in prod>`
    - `RESEND_FROM_EMAIL=<required — must match a verified Resend sender>`
-   - `GEMINI_API_KEY=<required — primary AI provider>`
-   - `OPENAI_API_KEY=<required — first AI fallback>`
-   - `ANTHROPIC_API_KEY=<required — second AI fallback>`
+   - `OPENAI_API_KEY=<required — primary AI provider; chain is OpenAI → Gemini → Anthropic>`
+   - `GEMINI_API_KEY=<required — first fallback>`
+   - `ANTHROPIC_API_KEY=<required — last fallback (most expensive)>`
+   - Do **NOT** set `PILOT_EXPOSE_DEV_CODE` in production (it leaks login codes). `ADAPTATION_INTERNAL_TOKEN` is optional (only needed if you call `/adaptation/evaluate` directly).
 
 ## 2) Backend deploy settings
 - Build Command: `npm install && npm run build:phase3`
@@ -38,11 +41,15 @@ Get Pocket Professor into a pilot-ready state for 1-12 users with:
 ## 3) Run migrations
 From your machine (or Railway shell):
 
+Run ALL FOUR migrations, in order:
+
 ```bash
 cd backend
 export ADAPTATION_DATABASE_URL='<railway postgres url>'
 npm run db:migrate:adaptation:up
 npm run db:migrate:pilot:up
+npm run db:migrate:sprint:up        # pilot_plans + pilot_sprint_days
+npm run db:migrate:logincodes:up    # login brute-force lockout (attempts col)
 ```
 
 ## 4) Frontend deployment

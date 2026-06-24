@@ -1,12 +1,30 @@
-## Last Updated - 2026-06-13
+## Last Updated - 2026-06-14 (session 7)
 
 ## Current State
-Pilot-readiness work, plan A→B→C. Backend is real-AI end-to-end; frontend onboarding flow is wired, restructured, and verified end-to-end in the browser preview. Decisions locked: real AI now; drop onboarding drafts for pilot; integrate the Claude-Design onboarding; AI chain OpenAI→Gemini→Anthropic; ship the pilot first (research is a fast-follow).
+Pilot-readiness work. **Phase A + B + B-polish + B2 Sprint Loop + Admin portal + pre-deploy Security pass all BUILT & verified (backend curl + builds); frontend pending user walkthrough.** Remaining before users: user walkthrough, then **Phase C (deploy)** — Dockerfiles + Railway + run the 4 migrations + smoke. See `.ai/current-task.md`.
 
-**Phase A COMPLETE.** **Phase B essentially COMPLETE** — full flow (login → onboarding → AI track picker → sprint/risk/trigger → plan w/ switchable tracks → Professor first session → closing) built and verified live. Remaining before "done": a couple of polish nits + a real run against the user's browser, then Phase C (deploy).
+Session-7 decisions: each sprint day = professor LLM call w/ day context (NOT curriculum graph); keep schedule+energy screens (felt-personalization; mechanics post-pilot — they only feed one LLM ranking + get stored, nothing downstream reads them); AI progression-ladder deferred post-pilot; admin auth = founder email gate (no static token); brute-force protection = hand-rolled attempt cap.
+
+### Admin portal + Security (session 7, 2026-06-14)
+- **Admin portal (founder-only):** frontend `#admin` route → `AdminPortal` in `App.jsx` (reuses email login). Backend `GET /pilot/admin/cohort` gated by `requireAdmin` (session email === `ADMIN_EMAIL`, **fail-closed** if unset). Cohort table: per-user onboarded?/days_done/last_session/segment + mailto nudge. Verified: admin 200, non-admin 403, no-token 401, unset-ADMIN_EMAIL 403.
+- **Security fixes (all verified):** C1 `dev_code` now ONLY returned when `PILOT_EXPOSE_DEV_CODE=true` (was leaked whenever email undelivered → auth bypass); C2 login brute-force lockout — `attempts` col on `pilot_login_codes` (migration 004), 429 after 8 fails/TTL summed across codes; C3 refuses to boot if `NODE_ENV=production` & `FRONTEND_ORIGIN='*'`; M1 `/adaptation/evaluate` requires `ADAPTATION_INTERNAL_TOKEN` in prod (fail-closed), open locally so its smoke still passes; M2 codes now `crypto.randomInt` not `Math.random`.
+- **Clean (no action):** all SQL parameterized; no XSS sinks (no dangerouslySetInnerHTML/eval); error handler no stack leak; session tokens 122-bit hashed. Prompt injection = LOW/contained (schema-guarded, escaped, single-tenant) — deferred.
+- **NEW env vars** (added to local `.env`): `PILOT_EXPOSE_DEV_CODE=true` (LOCAL ONLY — without it the on-screen login code won't show), `ADMIN_EMAIL`, `ADAPTATION_INTERNAL_TOKEN`. Prod also needs `NODE_ENV=production`.
+- **4 migrations now:** adaptation, pilot, sprint(003), logincodes(004 = attempts col).
+
+### Phase B2 — what was built (session 7)
+- **Migration** `20260413_003_create_sprint_tables` (+down, + `db:migrate:sprint:up/down` scripts). `pilot_plans` (one row/user, UNIQUE user_id; plan_json + active_track_id + sprint_day_count) + `pilot_sprint_days` (one row/completed day; UNIQUE(plan_id,day_index); completed_at = the return signal). FK→`pilot_users(user_id)`, own BEGIN/COMMIT (gotcha #6). Applied to local DB.
+- **Backend routes** in `run_adaptation_fastify.mjs` (session-authed): `GET /pilot/plan` (null when none), `POST /pilot/plan` (upsert = **full replace, WIPES days** → onboarding/refine), `POST /pilot/plan/track` (**metadata-only, KEEPS days** → track switch), `POST /pilot/plan/day` (mark done, idempotent via ON CONFLICT). `loadPlanForUser` helper.
+  - **Key invariant (don't break):** track-switch must NOT wipe sprint progress; that's why `/track` is separate from `/plan`. Verified via curl: switch kept D1, re-onboard wiped. User-delete cascades clean.
+- **Frontend** (`App.jsx` rewrite + `api.js` `planApi` + `Suggestions.jsx` escape hatch):
+  - On login: `planApi.get()` → returning user lands on new **DashboardView** (progress dots, Day N of 14, today's CTA, completed-days history, "View & adjust plan"); else OnboardingFlow.
+  - `FirstSessionView`→**SessionView** (per-day, dynamic copy, day param in professor `context`). `ClosingView` removed; PlanView CTA now "Continue to my sprint"→dashboard.
+  - One-session-per-local-day soft gate (`doneToday` via `completed_at` date compare) → CTA shows "done ✓ come back tomorrow".
+  - Suggestions **escape hatch**: "None of these feel right?" → textarea → re-runs onboarding agent with `refinement` steer.
+  - `npm run build` clean. NOT yet browser-verified (user runs + walks it themselves).
 
 ### To run locally
-Backend: `cd backend && npm run start:adaptation-runtime` (:3040). Frontend: `cd frontend && npm run dev` (:5173) or the preview tool. Local Postgres must be running; `frontend/.env.local` sets `VITE_API_BASE_URL`. Log in with any email; dev code prints on screen (RESEND not configured).
+Backend: `cd backend && npm run build:phase3 && npm run start:adaptation-runtime` (:3040). Frontend: `cd frontend && npm run dev` (:5173). Local Postgres must be running; `frontend/.env.local` sets `VITE_API_BASE_URL=http://localhost:3040`. Log in with any email; **on-screen dev code now requires `PILOT_EXPOSE_DEV_CODE=true` in `.env`** (already set). Admin portal: visit `http://localhost:5173/#admin`, log in with the `ADMIN_EMAIL` address. NOTE: user prefers to run servers + browse manually — do NOT use the preview tool unless explicitly asked.
 
 ### Phase B progress (2026-06-12, session 5)
 - **Decision: SHIP FIRST.** Founder chose YC "get real signal" over research-first. Research (agents + engine) is a fast-follow informed by pilot data, NOT a blocker. Captured in `.ai/behavioral-science-and-engine-alignment.md`.
@@ -82,20 +100,28 @@ Filled: AI keys, TTLs, persistence mode, **`DATABASE_URL`/`ADAPTATION_DATABASE_U
 ### Local DB (2026-06-11)
 Local Postgres 18 (EDB install at `/Library/PostgreSQL/18`) is RUNNING. Both migrations applied to a clean `postgres` DB — pilot migration committed cleanly, confirming the `onboarding_drafts` fix. 6 tables present (no `onboarding_drafts`). Server can now boot locally (full route smoke unblocked for #3).
 
-## Changed Files (this session)
-Phase A #1: `aiProviderService.ts` (+test), `smoke_ai_provider.mjs`, `tsconfig.json`, migration fix.
-Phase A #2: `agentInferenceRunner.ts` (+test), wired `run_adaptation_fastify.mjs` (config/contracts/route/health).
-Phase A #3: `agentPromptSpecs.ts`, hardened `buildSystemPrompt`, narrowed `agentOutputGuard.ts` (+2 tests), `agentSpecConsistency.test.ts`, `node-shims.d.ts` (+fs/url), `smoke_agent_inference.mjs`, `package.json` (`smoke:ai`/`smoke:agents` + AI tests in `test:phase3`).
-DB: `.env` DATABASE_URL filled; both migrations applied locally.
+## Changed Files (session 7)
+Polish: `agentPromptSpecs.ts` (enum-echo rule); `OnboardingFlow.jsx` (clear AI state on domain/note edits); DELETED `steps/Proof.jsx`, `steps/CoachReview.jsx`.
+B2: NEW migration `db/migrations/20260413_003_create_sprint_tables.{up,down}.sql`; `backend/package.json` (sprint migrate scripts); `backend/scripts/run_adaptation_fastify.mjs` (4 plan routes + loadPlanForUser); `frontend/src/onboarding/api.js` (`planApi`); `frontend/src/App.jsx` (DashboardView, SessionView, persistence state machine); `frontend/src/onboarding/steps/Suggestions.jsx` (escape hatch).
+Local DB now has `pilot_plans` + `pilot_sprint_days` (3rd migration applied).
+B2 onboarding polish (session 7, 2026-06-14): `StripedCircle.jsx` (logo was blank — `currentColor` in an SVG `<pattern>` doesn't inherit from the referencing circle; set color on `<svg>` root + opacity 0.6); `data.js` SKILLS 10→15; `ChipRow.jsx` (+`grid` 3-col mode) used by `Skills.jsx`; `Done.jsx` CTA "Open dashboard"→"See my plan" (it leads to plan review, not the real dashboard). Builds clean.
+Admin + Security (2026-06-14): `run_adaptation_fastify.mjs` (admin route + requireAdmin + 5 security fixes + config flags); `App.jsx` (AdminPortal + `#admin` router, MainApp split); migration `20260614_004_login_code_attempts.{up,down}.sql` + package.json scripts; `.env` (+PILOT_EXPOSE_DEV_CODE, ADMIN_EMAIL, ADAPTATION_INTERNAL_TOKEN).
+Deploy prep (2026-06-14, all-Railway, NO Dockerfiles): `backend/package.json` (+`build`, +`start:prod` no-env-file, +engines); `frontend/package.json` (+`serve` dep, +`start` script, +engines); `backend/railway.json` + `frontend/railway.json` (Nixpacks, `npm install --include=dev && npm run build`). Verified: both build under NODE_ENV=production, backend start:prod boots w/ injected env (health 200), frontend `serve` serves dist (200). frontend `package-lock.json` updated (serve).
 
 ## Strategic note (read before Phase 4+ / any behavioral-rule work)
 `.ai/behavioral-science-and-engine-alignment.md` — durable analysis: the engine is a 5-rule SLICE of the 11-principle behavioral doc (full principle→code map + priority-order divergence inside); the doc's thresholds are unsourced; "learning styles" is debunked (research must exclude it); product is "sliced not incomplete" (fine for a concept pilot); plan for post-pilot research → operationalization → engine build; and the rich-logging foundation for the future "app learns the user" vision. NOT pilot-blocking.
 
+### Phase B polish (session 7, 2026-06-13) — DONE, pending user walkthrough
+- **Professor prompt enum-echo fix:** `agentPromptSpecs.ts:57` — added explicit rule: write `next_actions` as plain user-facing copy, do NOT use the raw enum names (`best_next`/`easier_fallback`/`catch_up`). Backend rebuilt clean. NOT yet verified live (would require billable `smoke:agents`; deferred to user walkthrough).
+- **Dead files deleted:** `frontend/src/onboarding/steps/Proof.jsx` + `steps/CoachReview.jsx`. Remaining references are an unrelated `careerCoachReview` API method + the onboarding README (docs only). Frontend builds clean.
+- **agent_output cleared on domain change:** `OnboardingFlow.jsx:114` — both `onToggleDomain` and `onNote` now null out `agent_output`/`agent_input`/`interaction_id`/`active_track_id` and reset sugPhase to 'thinking' if AI output already exists. Stale suggestions won't show after intake edits.
+- Verification status: build/import-safe ✅, behavioral verification pending user walkthrough.
+
 ## Open Threads
-1. **Phase B polish** (small, optional before ship): (a) Professor prompt sometimes echoes raw enum "best_next" in user-facing "next actions" — add a prompt line to use plain task descriptions; (b) delete dead `steps/Proof.jsx` + `steps/CoachReview.jsx`; (c) edge case — changing domains after the AI ran shows stale suggestions (agent_output not cleared on domain change).
-2. **Phase C (deploy)** — fill remaining `.env` (`FRONTEND_ORIGIN`, `RESEND_*`, `VITE_API_BASE_URL`, Railway `ADAPTATION_HOST=0.0.0.0`); Railway project + 2 migrations + smoke; Dockerfile/nixpacks (none exists). This is the main remaining work to get real users in.
-3. Fast-follow (post-pilot, non-blocking): scoped research brief + cited scan — `.ai/behavioral-science-and-engine-alignment.md`.
-   - Post-pilot product direction: "career-switch is a MODE, engine is general" → a "Learn a Skill" mode for any goal (founder wants to use it himself). `.ai/product-direction-multi-mode-learning.md`. Do NOT build into the pilot.
+1. **User walkthrough pending — B2 + admin.** Backend curl-verified; frontend builds but not browser-tested. B2 walk: fresh login → onboarding (check logo renders, 15 skills in 3 cols, escape hatch) → plan review → dashboard → start day 1 → mark done → dashboard shows D1 + "come back tomorrow" gate → reload (lands on dashboard, NOT onboarding) → view & adjust plan → switch track (progress survives). Watch: does day-2 professor task differ from day-1? Admin walk: `localhost:5173/#admin` → log in as `ADMIN_EMAIL` → cohort table; non-admin email → "not authorized".
+2. **Phase C (deploy)** — after walkthrough. Dockerfiles (none exist) + Railway + run **4 migrations** (adaptation, pilot, sprint, logincodes) + smoke. Prod env beyond CLAUDE table: `NODE_ENV=production`, `ADMIN_EMAIL`, `RESEND_*` (required — no dev_code in prod), exact `FRONTEND_ORIGIN` (boot refuses `*` in prod), leave `PILOT_EXPOSE_DEV_CODE` UNSET, `ADAPTATION_INTERNAL_TOKEN` optional. Deploy guide updated this session (env list + 4 migrations + chain fix).
+3. Decisions needed during deploy: frontend on Railway static vs Vercel/Netlify? Custom domain or default `*.up.railway.app`?
+4. **Post-pilot pile:** (a) AI progression ladder on track cards; (b) make schedule/energy drive real workload adaptation + wire adaptation engine (`/adaptation/evaluate` is internal-token-gated, not called by frontend); (c) prompt-injection hardening (low/contained today); (d) behavioral research — `.ai/behavioral-science-and-engine-alignment.md`; (e) multi-mode — `.ai/product-direction-multi-mode-learning.md`.
 
 ## Next Recommended Step
-User does a fresh full walkthrough in their own browser for any final feedback. Then either knock out the Phase B polish nits (Open Thread 1) or move to **Phase C (deploy)** — the last big lever to get real users in. Servers: `cd backend && npm run start:adaptation-runtime` + `cd frontend && npm run dev`.
+**Deploy prep DONE (Nixpacks, no Dockerfiles).** Remaining for Phase C, in the Railway dashboard (user-driven, needs the code pushed to GitHub first): create project → Postgres plugin → backend service (root `/backend`) → frontend service (root `/frontend`) → set env per the deploy guide (incl. `NODE_ENV=production`, exact `FRONTEND_ORIGIN`/`VITE_API_BASE_URL`, `ADMIN_EMAIL`, `RESEND_*`; do NOT set `PILOT_EXPOSE_DEV_CODE`) → run the **4 migrations** against Railway Postgres → smoke `/adaptation/health` + full flow. Recommend a user walkthrough of B2 + admin locally first. Servers per "To run locally".

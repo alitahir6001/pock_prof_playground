@@ -4,6 +4,14 @@ Rolling window of recent sessions. Complete overview lives in CLAUDE.md in root.
 
 ---
 
+## Session: 2026-06-13–14 (session 7)
+
+**Goal:** Polish onboarding, close the pilot's biggest gaps, and get deploy-ready.
+
+Polished onboarding (Professor enum-echo fix, deleted dead Proof/CoachReview, clear stale AI suggestions on domain edits, fixed blank hero logo — `currentColor` in an SVG pattern doesn't inherit from the referencing circle, expanded skills 10→15 in a 3-col grid, relabeled the misleading "Open dashboard" button). A walkthrough surfaced the **real gap: the flow dead-ended at onboarding + one in-memory task, so "do users return" was unmeasurable** — so built **Phase B2 Sprint Loop**: persistence (`pilot_plans` + `pilot_sprint_days`, migration 003), `GET/POST /pilot/plan` + `/plan/track` (switch keeps progress) + `/plan/day`, a real **DashboardView** with returning-user load + per-day sessions + one-per-day gate + escape hatch. Built a **founder-only admin cohort portal** (`#admin`, `ADMIN_EMAIL`-gated, fail-closed) to know who to nudge. Ran a **pre-deploy security pass**: fixed dev_code leak (C1), login brute-force lockout (C2, migration 004), wildcard-CORS prod-boot refusal (C3), gated `/adaptation/evaluate` (M1), CSPRNG codes (M2); SQL/XSS clean. **Deploy prep** (all-Railway, Nixpacks, NO Dockerfiles): `railway.json` ×2, `start:prod` (drops the `--env-file` that'd crash on Railway), static `serve` for frontend; caught that `NODE_ENV=production` skips devDeps → `--include=dev`. All backend + builds verified; frontend NOT browser-walked yet. **Closing the session the user is executing the Railway deploy (push → project → env → 4 migrations → smoke), the local B2/admin walkthrough, and Resend setup** — next session should CONFIRM the live deploy is healthy (Claude did not verify it), not redo prep.
+
+---
+
 ## Session: 2026-06-13 (session 6)
 
 **Goal:** Build Phase B (frontend) and iterate via live walkthroughs.
@@ -28,29 +36,6 @@ Shipped Phase A #1: built `aiProviderService.ts` — multi-provider fallback (Op
 
 ---
 
-## Session: 2026-05-08
-
-**Goal:** Orient, plan, and set up for pilot readiness.
-
-**Decisions made:**
-- Tier 0 resolved: real AI — Gemini primary, OpenAI fallback, Claude fallback (all via env vars)
-- Target users: service industry workers (bartenders, servers, cashiers) — app-literate, non-technical
-- Deploy target: Railway (account exists, no project yet) + Resend (account exists, not configured)
-- Frontend discovery: design tokens wired ✓, OnboardingFlow.jsx exists but orphaned (not in App.jsx) ✗
-
-**Work completed:**
-- Initialized all `.ai/` files
-- Created `.env` with safe placeholders (no unsafe defaults)
-- Updated project memory with all decisions
-- Mapped full next-session work: env vars → AI wiring → UI integration → deploy
-
-**Not started:**
-- AI wiring (waiting for .env to be filled)
-- OnboardingFlow.jsx integration into App.jsx
-- Professor + career coach form UIs
-- Output cards / debug line removal
-- Railway deployment
-
 ---
 
-_Sessions 2026-05-07 (initial orientation) and earlier archived to CLAUDE.md "Recent Context."_
+_Sessions 2026-05-08 (planning/setup) and earlier archived to CLAUDE.md "Recent Context."_

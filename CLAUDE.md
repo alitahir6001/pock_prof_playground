@@ -148,8 +148,12 @@ The service is **wired into the live route** (`/pilot/agents/:agentType/run`) vi
 | `OPENAI_API_KEY` | — | from platform.openai.com | primary AI provider (chain: OpenAI→Gemini→Anthropic) |
 | `GEMINI_API_KEY` | — | from Google AI Studio | first fallback |
 | `ANTHROPIC_API_KEY` | — | from console.anthropic.com | last fallback (most expensive) |
-| `RESEND_API_KEY` | — | from resend.com | required for email auth |
+| `RESEND_API_KEY` | — | from resend.com | required for email auth (prod has no dev_code fallback) |
 | `RESEND_FROM_EMAIL` | — | verified sender address | must match Resend domain |
+| `PILOT_EXPOSE_DEV_CODE` | `true` | **unset** | LOCAL ONLY — returns login code in API/logs. Setting in prod = auth bypass |
+| `ADMIN_EMAIL` | your email | your email | founder-only admin portal (`#admin`); unset = admin disabled (fail-closed) |
+| `ADAPTATION_INTERNAL_TOKEN` | — (open) | optional | gates `/adaptation/evaluate`; required in prod to use it (else disabled) |
+| `NODE_ENV` | — | `production` | enables prod guards: refuse wildcard CORS, fail-closed evaluate |
 
 ## Key Constraints
 
@@ -163,7 +167,7 @@ The service is **wired into the live route** (`/pilot/agents/:agentType/run`) vi
 
 _Numbered in discovery order. Never delete — only add._
 
-1. **`OnboardingFlow.jsx` is now WIRED (RESOLVED 2026-06-13).** `App.jsx` is the real shell: Login → `OnboardingFlow` → `PlanView` → `FirstSessionView` → `ClosingView`. The flow runs the onboarding AI mid-flow (the `Suggestions` step) and is verified live. Dead files from the restructure: `steps/Proof.jsx`, `steps/CoachReview.jsx` (unimported; safe to delete).
+1. **`OnboardingFlow.jsx` is now WIRED (RESOLVED 2026-06-13).** `App.jsx` is the real shell: Login → `OnboardingFlow` → `PlanView` → `FirstSessionView` → `ClosingView`. The flow runs the onboarding AI mid-flow (the `Suggestions` step) and is verified live. Dead files from the restructure (`steps/Proof.jsx`, `steps/CoachReview.jsx`) DELETED 2026-06-13 (session 7). Editing domains or the free-text note on the Direction step now clears `agent_output` so stale AI suggestions don't show on re-entry.
 2. **`App.jsx` is now the user-facing shell (RESOLVED 2026-06-13).** No longer a JSON dev wizard. Mobile-first (`max-w-[440px]`). Page bg set globally in `styles.css` (html/body were transparent → black overscroll). Drafts are localStorage-only (`pp_onboarding_draft_v2`).
 3. **Agents return REAL AI output (RESOLVED 2026-06-12).** All three endpoints now call `runAgentInference` (live provider chain + guard). `example_output.json` is now only the last-resort fallback when every provider fails. Was: static example for all agents.
 4. **`ADAPTATION_HOST` differs by environment.** `127.0.0.1` for local dev, `0.0.0.0` on Railway. Easy to forget when copying `.env` to Railway dashboard.
@@ -176,8 +180,14 @@ _Numbered in discovery order. Never delete — only add._
 11. **Gemini 3 are "thinking" models.** Internal reasoning consumes the `maxOutputTokens` budget BEFORE the answer, so small budgets return empty output (default raised to 2048). `thinkingBudget:0` is rejected by pro ("only works in thinking mode"); `thinkingLevel:'low'` is accepted. Gemini pro latency is highly variable (3s–44s) with transient 503s — the reason it's second, not primary; the 60s timeout + fallback absorb it.
 12. **Agent `system_instructions.md` do NOT contain the output schema.** They say "strict JSON matching schema" but the guard (`validateAgentOutput`) is strict (exact field sets, enums, lengths). The prompt MUST carry the shape — handled by `agentPromptSpecs.ts` (per-agent STRICT contract text) + the example, both embedded by `buildSystemPrompt`. `agentSpecConsistency.test.ts` asserts each `example_output.json` still passes the guard (drift guard).
 13. **Output guard's prohibited-content filter was narrowed for the IT domain (2026-06-12).** Bare `/diagnos/` and `/prescribe/` blocked core technical vocabulary ("diagnose a network issue", "run diagnostics", "prescribed checklist") — they now match ONLY in medical/psychological collocation. The collocation noun list deliberately EXCLUDES tech-colliding words like "condition" (cf. "race condition"). If you re-add medical terms, keep them domain-safe. The guard is still the source of truth — keep `agentPromptSpecs.ts` in sync with it.
+14. **Login `dev_code` is gated by `PILOT_EXPOSE_DEV_CODE` (security fix C1, 2026-06-14).** It used to be returned whenever email wasn't delivered → any prod email misconfig leaked the login code (auth bypass, incl. admin). Now ONLY returned when `PILOT_EXPOSE_DEV_CODE=true` (local dev). Without it, the on-screen code won't show — RESEND must be configured. NEVER set it in prod. Brute-force lockout: 8 failed verifies per TTL window (summed across codes so a fresh code can't reset) → 429; counter is the `attempts` column added by migration 004.
+15. **Prod security guards key on `NODE_ENV=production` (2026-06-14).** Boot REFUSES to start if `FRONTEND_ORIGIN` is `*`/unset; `/adaptation/evaluate` becomes fail-closed (requires `ADAPTATION_INTERNAL_TOKEN`, else disabled). Must set `NODE_ENV=production` on Railway or these guards stay off. Locally evaluate is open so its smoke (`smoke_adaptation_runtime.sh`) still passes unchanged.
+16. **Admin portal is server-enforced, not UI-hidden (2026-06-14).** Frontend `#admin` route → `AdminPortal`; backend `GET /pilot/admin/cohort` via `requireAdmin` = valid session whose email === `ADMIN_EMAIL` (fail-closed if unset). It's a normal pilot login gated by email, so the founder logs in like any user. Login codes use `crypto.randomInt` (not `Math.random`).
+17. **Railway deploy: `NODE_ENV=production` + `npm install` SKIPS devDependencies (2026-06-14).** We require `NODE_ENV=production` for the security guards (gotcha #15), but that makes a plain `npm install` omit devDeps → `typescript` (backend) and `vite` (frontend) vanish → build fails. Both `railway.json` buildCommands use `npm install --include=dev && npm run build` to force them. Both services deploy via **Nixpacks, no Dockerfile** (one Railway project, frontend served static via `serve -s dist -l $PORT`). Backend prod start is `start:prod` (`node scripts/run_adaptation_fastify.mjs`) — NOT `start:adaptation-runtime`, whose `--env-file=../.env` crashes on Railway (no such file; env is injected). The `#admin` hash route means the static host needs NO SPA-fallback config.
 
 ## Recent Context
+
+**2026-06-13–14 (session 7): onboarding polish + Sprint Loop + admin portal + security pass + deploy prep.** Polished onboarding (enum-echo fix, deleted dead Proof/CoachReview, clear stale AI on domain edits, fixed blank hero logo, skills 10→15 in 3-col grid, relabeled "Open dashboard"). A walkthrough exposed the flow dead-ending at onboarding + one in-memory task → built **Phase B2 Sprint Loop**: `pilot_plans`+`pilot_sprint_days` (migration 003), plan/track/day routes (track-switch keeps progress, re-onboard wipes), real DashboardView with returning-user load + per-day Professor sessions + one-per-day gate + Suggestions escape hatch — so "do users return" is finally measurable. Built a founder-only **admin cohort portal** (`#admin`, `ADMIN_EMAIL`-gated, fail-closed). **Pre-deploy security pass** (gotchas #14–16): fixed dev_code leak, login brute-force lockout (migration 004), wildcard-CORS prod refusal, gated `/adaptation/evaluate`, CSPRNG codes; SQL/XSS verified clean. **Deploy prep** (all-Railway, Nixpacks, no Dockerfiles; gotcha #17): `railway.json`×2, `start:prod`, static `serve`, `--include=dev` for the NODE_ENV devDep skip. Backend + builds verified; frontend not browser-walked. Deploy + walkthrough + Resend are the user's closing actions (next session: confirm live health, don't redo prep).
 
 **2026-05-08–10 (sessions 2–3):** Planning + knowledge infrastructure. No logic code changed. Decisions: real AI fallback, target users = service industry workers, Railway deploy. Created `.env` placeholders, `docs/INDEX.md`, `docs/understanding/` (4 docs); deleted `docs/breakdowns/`; fixed rule priority order; flagged gotchas 6–8.
 
@@ -187,9 +197,9 @@ _Numbered in discovery order. Never delete — only add._
 
 ## Next Session Priorities
 
-1. **Phase C (deploy)** — the main remaining lever to get real users in. Fill remaining `.env` (`FRONTEND_ORIGIN`, `RESEND_*`, `VITE_API_BASE_URL`, Railway `ADAPTATION_HOST=0.0.0.0`); create Railway project + run both migrations + smoke; add Dockerfile/nixpacks (none exists yet).
-2. **Phase B polish** (small, optional pre-ship): Professor prompt sometimes echoes the raw enum "best_next" in user-facing copy → add a prompt line; delete dead `steps/Proof.jsx` + `steps/CoachReview.jsx`; clear stale `agent_output` if the user changes domains after the AI ran.
-3. Fast-follow (post-pilot): scoped behavioral research; "Learn a Skill" mode. See `.ai/` strategic docs. Not pilot-blocking.
+1. **Local walkthrough (user) of B2 sprint loop + admin portal** — not browser-verified yet. B2: onboarding → AI picker/escape-hatch → plan → dashboard → mark day → reload persists → switch track keeps progress. Admin: `#admin` login as `ADMIN_EMAIL`.
+2. **Phase C (deploy) — prep DONE, Railway dashboard remains.** No Dockerfiles (Nixpacks; `railway.json` in each service). Steps: push to GitHub → Railway project (Postgres + backend `/backend` + frontend `/frontend`) → env per `docs/railway_pilot_deploy_guide.md` (incl. `NODE_ENV=production`, exact `FRONTEND_ORIGIN`/`VITE_API_BASE_URL`, `ADMIN_EMAIL`, `RESEND_*`; NOT `PILOT_EXPOSE_DEV_CODE`) → run the **4 migrations** → smoke. Blocker: a real Resend account (no dev_code fallback in prod).
+3. Fast-follow (post-pilot): progression ladder; schedule/energy→real adaptation + wire engine; prompt-injection hardening; behavioral research; multi-mode. Not pilot-blocking.
 
 ## Key Documentation
 
