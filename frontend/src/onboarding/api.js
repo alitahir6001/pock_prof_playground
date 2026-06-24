@@ -51,6 +51,18 @@ export const agents = {
     }),
 };
 
+// ── Sprint plan persistence (one active plan per user) ──
+export const planApi = {
+  // returns { ok, plan } where plan is null when none saved yet
+  get: () => call('/pilot/plan', 'GET'),
+  save: ({ plan, active_track_id, sprint_day_count }) =>
+    call('/pilot/plan', 'POST', { plan, active_track_id, sprint_day_count }),
+  switchTrack: (active_track_id) =>
+    call('/pilot/plan/track', 'POST', { active_track_id }),
+  markDay: ({ day_index, track_id, interaction_id, task_summary }) =>
+    call('/pilot/plan/day', 'POST', { day_index, track_id, interaction_id, task_summary }),
+};
+
 // ── Feedback ───────────────────────────────────────
 export function submitFeedback({ component, interaction_id, helpful, comment }) {
   return call('/pilot/feedback', 'POST', { component, interaction_id, helpful, comment });
