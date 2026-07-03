@@ -4,6 +4,14 @@ Rolling window of recent sessions. Complete overview lives in CLAUDE.md in root.
 
 ---
 
+## Session: 2026-07-03 (session 8)
+
+**Goal:** Whole-project analysis + pilot strategy. NO code changes (one code-level mobile audit, read-only).
+
+Verdict on the project: engineering discipline is strong and the codebase is lean (~2k backend / ~2k frontend / 3.4k docs), but the headline adaptation engine is unwired speculative inventory and the pilot's real test is the **retention loop** (plan generation is not the moat — ChatGPT is free). Decisions: **don't wire the engine for the pilot — Wizard-of-Oz it** (founder manually intervenes via admin portal when a rule would fire; interventions calibrate the unsourced thresholds); judge pilot on retention with **pre-written numeric thresholds**; sequence = **deploy → founder self-pilots 2–3 days adversarially → recruit**; domain = **subdomain on pakfro.dev** (CNAME, not /pilot path); add **AI spend caps** pre-launch. Recruiting plan: warm bar network + referral chain primary; QR cards as conversation props with a commitment-toll landing (not passive stacks); Reddit = DM hand-raisers on ITCareerQuestions/findapath (not broadcast posts, not dev subs); pitch leads with the founder's 15-year service-industry story; cohort mix ~6–7 toll-payers + 2–3 ambivalents. Mobile: code-verified mobile-first (viewport OK, 440px shells, no hover-only), never thumb-tested — real-phone test folded into the self-pilot. Next session: **confirm the deploy is live/healthy**, then support the self-pilot.
+
+---
+
 ## Session: 2026-06-13–14 (session 7)
 
 **Goal:** Polish onboarding, close the pilot's biggest gaps, and get deploy-ready.
