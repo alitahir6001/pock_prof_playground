@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pocket Professor is a structured learning platform for career-switchers. The core is a **deterministic multi-agent adaptation engine** — no randomness, reproducible with the same inputs. Currently at Phase 3 (adaptation engine implementation), with Phases 4–6 planned.
 
-**Current priority (as of 2026-07-12): DEPLOY, then launch the PAID pilot.** Deploy has been the sole remaining step since mid-June; validation latency is the project's #1 risk. Read "Honest Assessment & Path to Revenue" below before proposing new build work. See `.ai/current-task.md` for the launch plan and `.ai/handoff.md` for session state (incl. the founder's Wizard-of-Oz ops playbook).
+**Current priority (as of 2026-08-13): DEPLOY, then run an n=3 unpaid, founder-SILENT efficacy test.** Deploy has been the sole remaining step since 2026-06-14 and still has not happened; validation latency is the project's #1 risk. Read "Honest Assessment & Path to Revenue" below before proposing new build work, and note the session-10 correction at the end of it — **the paid Wizard-of-Oz pilot is dead.** See `.ai/pilot-test-design.md` for the frozen test protocol, `.ai/current-task.md` for the step list, `.ai/handoff.md` for session state.
 
 ## Honest Assessment & Path to Revenue (session 9, 2026-07-12)
 
@@ -29,6 +29,18 @@ Durable strategic verdict from a full project evaluation. Read before proposing 
 **Kill criteria (write down pre-launch, next to success thresholds):** e.g. <5 paying users after ~3 weeks of honest recruiting, or <2/10 returning past day 7 despite personal texts → stop or pivot hard. Honest founder check: if the daily texting is dreaded, this model dies regardless of data — near-term, founder-led coaching IS the product.
 
 **Rejected pivots (don't re-litigate without new data):** top-to-bottom B2B worker-training rebuild (6–18mo sales cycles kill solo founders; B2G arrives later by pull, via outcome data); generic "AI upskilling app" (the most crowded framing; discards both real advantages — story and demographic access); trashing the idea pre-data (same error class as building for 8 months pre-data).
+
+### Session-10 correction (2026-08-13) — the pilot mechanics above are superseded
+
+The strategy above stands. Its **pilot mechanics do not.** The paid 10-user founder-run Wizard-of-Oz pilot is dead on two counts: (1) its own written kill criterion fired — the founder would dread the daily-SMS SOP, so a *successful* result would commit him to work he doesn't want; (2) Wizard-of-Oz puts the founder in the loop **by design**, so it could never test the belief that actually broke his conviction.
+
+That belief, surfaced by grilling in session 10, is the real cause of the two-month stall — not market, money, or time: **efficacy doubt** ("I don't know if I can build something that actually helps someone leave a job they hate"), never tested against a single sit-down user conversation in eight months, compounded by the founder being unable to explain his own codebase (see gotcha #18 — that story is measurably wrong in his disfavor).
+
+**Replacement test:** 3 unpaid people, deployed app, 14 days, **founder silent** between day 0 and day 14. Day 0 pre-registers a specific thing each has been stalled on for months; day 14 asks what they actually did. Bar: ≥1 of 3. Branch criteria frozen before day 0 in `.ai/pilot-test-design.md`. Willingness-to-pay is deferred, not abandoned — it's downstream of efficacy and moot if the answer is no.
+
+**Thesis now under test:** the product is **the constraint** — one task, chosen for you, sized for a post-shift brain, no bingeing, no spiraling — not the plan text. ChatGPT's infinite optionality is precisely what paralyzes the target user; a gate is the one thing a chat box structurally cannot be.
+
+Dead until the test produces a result: paid cohort, recruiting funnel, founder-as-engine SOP, intervention log, day-14 Exit Report.
 
 ## Commands
 
@@ -203,7 +215,11 @@ _Numbered in discovery order. Never delete — only add._
 16. **Admin portal is server-enforced, not UI-hidden (2026-06-14).** Frontend `#admin` route → `AdminPortal`; backend `GET /pilot/admin/cohort` via `requireAdmin` = valid session whose email === `ADMIN_EMAIL` (fail-closed if unset). It's a normal pilot login gated by email, so the founder logs in like any user. Login codes use `crypto.randomInt` (not `Math.random`).
 17. **Railway deploy: `NODE_ENV=production` + `npm install` SKIPS devDependencies (2026-06-14).** We require `NODE_ENV=production` for the security guards (gotcha #15), but that makes a plain `npm install` omit devDeps → `typescript` (backend) and `vite` (frontend) vanish → build fails. Both `railway.json` buildCommands use `npm install --include=dev && npm run build` to force them. Both services deploy via **Nixpacks, no Dockerfile** (one Railway project, frontend served static via `serve -s dist -l $PORT`). Backend prod start is `start:prod` (`node scripts/run_adaptation_fastify.mjs`) — NOT `start:adaptation-runtime`, whose `--env-file=../.env` crashes on Railway (no such file; env is injected). The `#admin` hash route means the static host needs NO SPA-fallback config.
 
+18. **Half the backend TS is NOT in the live path (measured 2026-08-13).** The adaptation engine is **1,114 lines — over half of `backend/src` — and `frontend/src` never calls `/adaptation/` once.** It is reachable only via `POST /adaptation/evaluate`, which no client hits. The live product is 13 routes, 9 of them called by the frontend (one of those, `/pilot/onboarding/draft`, has no server route at all — gotcha #6). Whole repo ≈ 4,800 lines (2,145 backend TS + 613 server shell + 2,080 frontend). The "multi-agent system" is 3 folders × 4 files (`soul.md`, `system_instructions.md`, `output_schema.ts`, `example_output.json`) + one runner that builds a single prompt and falls back across providers — no orchestration, no autonomy. **Say this plainly when the founder describes the repo as an unknowable over-engineered LLM artifact; the claim is measurably wrong in his disfavor and the dread attaches mostly to the part that doesn't run.**
+
 ## Recent Context
+
+**2026-08-13 (session 10): grilling — the paid pilot killed, replaced by an n=3 silent test. NO code.** Adversarial interview on the whole idea, prompted by two months of zero shipping. Found the stall's real cause: **efficacy doubt** ("I don't know if I can build something that actually helps someone leave a job they hate" — never tested; zero sit-down user conversations in eight months) plus **the founder being unable to explain his own codebase**. The session-9 paid Wizard-of-Oz pilot died on its own written kill criterion (he'd dread the daily SMS SOP) and because putting him in the loop by design made it unable to test the broken belief. Replaced with: **3 unpaid users, deployed app, 14 days, founder silent**, day-0 pre-registration of a months-stalled action, day-14 conversation, bar ≥1 of 3, branch criteria frozen pre-launch in `.ai/pilot-test-design.md`; WTP deferred as downstream of efficacy. Thesis reframed to **the constraint** (one task, chosen for you, post-shift-sized) rather than the plan text. Measured the repo against the founder's "unknowable over-engineered LLM thing" story and it was wrong in his disfavor → gotcha #18. Working agreement: on the code-ownership ladder **he types, Claude explains and reviews**. Deploy reframed as the guided end-to-end tour, explicitly not gated on a walkthrough. Session ended pointed at opening Railway.
 
 **2026-07-03 + 2026-07-12 (sessions 8–9): strategy — pilot design + honest evaluation. NO code.** Session 8: do NOT wire the engine — **Wizard-of-Oz** it (founder manually intervenes via the admin portal when a rule would fire; interventions calibrate the unsourced thresholds); pilot judged on the **retention loop** with pre-written numeric thresholds; sequence = deploy → founder self-pilots 2–3 days adversarially → recruit (warm bar network + Reddit DMs to hand-raisers, founder-story pitch); subdomain on `pakfro.dev` (Porkbun CNAME); AI spend caps pre-launch. Session 9: full evaluation → the "Honest Assessment & Path to Revenue" section above. Pilot became **PAID** ($20–25 out-of-band via payment link in the DM, which also captures phone numbers); day-14 artifact = manual founder-written **Exit Report**; founder ops SOP = the 5 engine rules humanized + an **intervention log** (spreadsheet) that later calibrates the engine; **kill criteria** to be written before the first user; rejected: B2B rebuild, generic AI-upskilling pivot, and trashing the idea pre-data.
 
@@ -217,10 +233,14 @@ _Numbered in discovery order. Never delete — only add._
 
 ## Next Session Priorities
 
-1. **Confirm the deploy is live** (user drives Railway; sessions 7–8 work must be committed + pushed first — see `.ai/current-task.md` for the full step list). Then support the founder self-pilot: fix what it surfaces (bugs/copy only, no features).
-2. **Pre-launch checklist (user):** AI spend caps on all 3 provider dashboards; success thresholds + kill criteria written in one doc before the first user; payment link ready; subdomain + Resend domain verification.
-3. **During the pilot:** founder runs the Wizard-of-Oz ops playbook (SOP in `.ai/handoff.md`); Claude's job is analysis of the intervention log + small fixes — nothing new gets built until pilot data exists.
-4. Post-pilot pile (gated on data): wire the engine with log-calibrated thresholds (candidate design: append-only event journal + deterministic tick + replay/backtesting — evaluated session 9, deliberately deferred; never pre-pilot); progression ladder; prompt-injection hardening; behavioral research; multi-mode.
+**Start here: open Railway and deploy.** Session 10's work is committed and pushed; there are no blockers left. The founder drives the dashboard, Claude narrates each seam as he hits it — env vars, migrations, boot, CORS, auth, admin gate — because the deploy doubles as the end-to-end code tour he asked for. Do not re-do deploy prep (done + verified in session 7) and do not let a walkthrough become a new gate in front of it.
+
+1. **Deploy → smoke** (`/adaptation/health` with `ai_configured:true` → real email login → onboarding → plan → dashboard → mark a day → reload persists → `#admin`). Steps in `.ai/current-task.md`, guide in `docs/railway_pilot_deploy_guide.md`, quirks in gotchas #14–17.
+2. **Pre-launch (user):** AI spend caps on all 3 provider dashboards, subdomain CNAME on `pakfro.dev`, Resend domain verification. No payment link — the test is unpaid.
+3. **Founder self-pilot 2–3 days adversarially**, then Claude fixes what it surfaces — bugs and copy only.
+4. **Code-ownership ladder — the founder types, Claude explains and reviews.** Order: onboarding copy → professor `soul.md` → delete the dead `/pilot/onboarding/draft` call (#6) → add an admin-cohort column → change sprint length off 14 → then read the adaptation engine as a unit. Do not write these for him; that reproduces the problem.
+5. **Run the n=3 test** per `.ai/pilot-test-design.md` (frozen once user 1 starts): 3 names, day-0 pre-registration, 14 days of silence, day-14 conversation, score against the written branches the same week.
+6. Post-test pile (gated on a result): WTP test; wire the engine with real data (candidate design: append-only event journal + deterministic tick + replay/backtesting — deferred session 9, still deferred); progression ladder; prompt-injection hardening; behavioral research; multi-mode.
 
 ## Key Documentation
 

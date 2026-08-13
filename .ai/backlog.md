@@ -4,6 +4,14 @@ Rolling window of recent sessions. Complete overview lives in CLAUDE.md in root.
 
 ---
 
+## Session: 2026-08-13 (session 10)
+
+**Goal:** Grill the entire project idea. NO code changes.
+
+Found the real cause of the two-month stall, and it was neither market nor time: **efficacy doubt** ("I don't know if I can build something that actually helps someone leave a job they hate" — untested against *zero* sit-down user conversations in eight months) and **the founder not being able to explain his own codebase**. Session 9's paid Wizard-of-Oz pilot was **killed** — its own written kill criterion fired (founder would dread the daily SMS SOP) and, by putting him in the loop by design, it could never have tested the belief that broke. Replaced with an **n=3 unpaid, 14-day, founder-SILENT** efficacy test: day-0 pre-registration of a specific months-stalled action, total silence, day-14 conversation, bar ≥1 of 3, branch criteria frozen before day 0 (`.ai/pilot-test-design.md`). WTP deferred as downstream of efficacy. Thesis reframed: the product is **the constraint** (one task, chosen for you, post-shift-sized, no bingeing), not the plan text. Checked the "unknowable over-engineered LLM thing" story against the code and it was wrong in the founder's disfavor — ~4,800 lines total, the "multi-agent system" is 3 prompt bundles + a fallback loop, and the 1,114-line adaptation engine (over half the backend TS) **is never called by the frontend** → new gotcha #18. Working agreement changed: on the code-ownership ladder the **founder types**, Claude only explains and reviews. Deploy reframed as the guided end-to-end tour rather than something a walkthrough gates. Open: deploy still unconfirmed; session ends pointed at opening Railway.
+
+---
+
 ## Session: 2026-07-12 (session 9)
 
 **Goal:** Honest whole-project evaluation + monetization strategy. NO code changes.
@@ -28,14 +36,6 @@ Polished onboarding (Professor enum-echo fix, deleted dead Proof/CoachReview, cl
 
 ---
 
-## Session: 2026-06-13 (session 6)
-
-**Goal:** Build Phase B (frontend) and iterate via live walkthroughs.
-
-Built Phase B end-to-end: wired the Claude-Design onboarding into `App.jsx` (Login → OnboardingFlow → PlanView → FirstSession → Closing), dropped server drafts (localStorage-only), added a plan view + Professor "first session" + reusable feedback. Then two live-walkthrough feedback rounds drove: removed "—P"/"Resumed"/broken links, "Bite-size wins" rename, de-gated the Risk step, fixed a reading contradiction; **restructured the flow so the AI runs mid-flow** (new `Suggestions` picker right after the domains step) with **switchable tracks** carried to the plan + Professor session, **selectable first-session tasks**, a **regenerate-on-thumbs-down** loop, and a **closing screen**. Backend guard relaxed to 3–6 career options. Verified the entire flow live in the browser preview. Also captured a post-pilot product direction (career-switch is a MODE; general learning engine) in `.ai/` + memory. Open: minor polish (enum leak in Professor copy, dead Proof/CoachReview files), then Phase C (deploy).
-
 ---
 
----
-
-_Sessions 4–5 (2026-06-11/12, Phase A real-AI build) rolled out; they and the 2026-05-08 planning sessions live in CLAUDE.md "Recent Context."_
+_Session 6 archived to CLAUDE.md. Sessions 4–5 (2026-06-11/12, Phase A real-AI build) rolled out earlier; they and the 2026-05-08 planning sessions live in CLAUDE.md "Recent Context."_

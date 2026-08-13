@@ -34,10 +34,10 @@ Backend: `cd backend && npm run build:phase3 && npm run start:adaptation-runtime
 - Verified model IDs (env-overridable): openai fast `gpt-5.4-mini-2026-03-17` / mid `gpt-5.4-2026-03-05` / deep `gpt-5.5-2026-04-23`; gemini fast+mid `gemini-3.5-flash`, deep `gemini-3.1-pro-preview`; anthropic fast `claude-haiku-4-5-20251001`, mid `claude-sonnet-4-6`, deep `claude-opus-4-8`.
 
 ## Changed Files (session 10)
-No code. New: `.ai/pilot-test-design.md`. Rewritten: `.ai/current-task.md`, `.ai/handoff.md`. Pending at session end: `.ai/backlog.md`, CLAUDE.md (Recent Context + Next Session Priorities + correct the pilot-mechanics parts of the Honest Assessment).
+No code. New: `.ai/pilot-test-design.md`. Rewritten: `.ai/current-task.md`, `.ai/handoff.md`. Updated: `.ai/backlog.md` (session-10 entry; session 6 rolled out), `CLAUDE.md` (priority line, session-10 correction appended to Honest Assessment, gotcha #18, Recent Context, Next Session Priorities). Session-9 backlog was committed + pushed by the user before wrap.
 
 ## Open Threads
-1. **Commit + push** — still undone, blocks everything. Then deploy this week.
+1. **Deploy — the next action, nothing blocks it.** Session 10 is committed and pushed. Open Railway; founder drives, Claude narrates each seam.
 2. **Two more names.** One person identified; the test needs 3.
 3. **Pre-launch:** AI spend caps on all 3 provider dashboards, subdomain CNAME, Resend verification.
 4. **Ownership ladder not started** — founder types, Claude reviews.
@@ -45,4 +45,4 @@ No code. New: `.ai/pilot-test-design.md`. Rewritten: `.ai/current-task.md`, `.ai
 6. **Post-test pile (gated on a result):** WTP test, engine wiring with real data, progression ladder, prompt-injection hardening, behavioral research, multi-mode.
 
 ## Next Recommended Step
-`git add -A && git commit && git push`, then deploy this week with Claude narrating each seam. Everything else — the three names, the ladder, the test — is downstream of a live URL.
+**Open Railway and deploy.** That is where session 10 ended and where session 11 starts — no analysis, no walkthrough first, no re-doing the deploy prep (done and verified in session 7). Founder drives the dashboard; Claude narrates each seam as he hits it, since the deploy is also the end-to-end code tour. Everything else — the three names, the ownership ladder, the n=3 test — is downstream of a live URL.
