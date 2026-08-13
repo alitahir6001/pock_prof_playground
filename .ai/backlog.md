@@ -4,6 +4,14 @@ Rolling window of recent sessions. Complete overview lives in CLAUDE.md in root.
 
 ---
 
+## Session: 2026-07-12 (session 9)
+
+**Goal:** Honest whole-project evaluation + monetization strategy. NO code changes.
+
+Verdict: strong engineering, backwards sequencing — Phases 0–3 predate all user contact, the engine is unwired speculative inventory, and deploy has been "the next step" for three sessions. Thesis revised: the moat is accountability + the founder ("a path with a person attached, where software gradually replaces the person"), never curriculum. Decisions: pilot becomes **PAID** ($20–25 out-of-band via payment link in the DM, which also captures phone numbers); day-14 artifact = manual founder-written **Exit Report** (app deliberately dead-ends at day 14); founder ops SOP = the 5 engine rules humanized + an **intervention log** that later calibrates the engine; **kill criteria** written before the first user; rejected pivots: B2B rebuild, generic AI-upskilling app, trashing the idea pre-data (B2G workforce funding = year-2 branch IF retention is strong but willingness-to-pay is weak). New durable CLAUDE.md section: "Honest Assessment & Path to Revenue". Late-session: evaluated pausing the pilot for an event-journal/tick/replay re-architecture — rejected pre-pilot (invisible at zero users; the redesign needs pilot data more than the pilot needs the redesign); deferred to Phase 4, with an optional ~1-day minimal event journal sanctioned if it doesn't delay deploy. Open: deploy still unconfirmed.
+
+---
+
 ## Session: 2026-07-03 (session 8)
 
 **Goal:** Whole-project analysis + pilot strategy. NO code changes (one code-level mobile audit, read-only).
@@ -28,22 +36,6 @@ Built Phase B end-to-end: wired the Claude-Design onboarding into `App.jsx` (Log
 
 ---
 
-## Session: 2026-06-12 (session 5)
-
-**Goal:** Finish Phase A (real AI), then start Phase B (UI).
-
-Shipped Phase A #2 (wired `agentInferenceRunner` into the live route) and #3 (per-agent schema specs in prompts; narrowed the guard's `/diagnos//prescribe/` for the IT domain after the drift-guard test caught the professor example being wrongly rejected). Verified live: all 3 agents produce real, personalized, guard-valid output (`npm run smoke:agents`). 87/87 tests. Set up local Postgres + applied both migrations (proved the migration fix). **Phase A complete.** Then a deep strategic discussion on behavioral science: documented the 11-principle-doc vs 5-rule-engine gap, the unsourced thresholds, and the "learning styles is debunked" caution in `.ai/behavioral-science-and-engine-alignment.md`. **Decision: ship the pilot first** (YC logic), research as a fast-follow. Started Phase B: reviewed the (excellent, persona-perfect) onboarding design, locked scope (add Professor first-session, keep Coach review, drop drafts), `npm install` + build pass. Next: simplify draft hook → wire `OnboardingFlow` into `App.jsx`.
-
 ---
 
-## Session: 2026-06-11 (session 4)
-
-**Goal:** Start Phase A (real AI wiring); get pre-pilot-ready.
-
-Shipped Phase A #1: built `aiProviderService.ts` — multi-provider fallback (OpenAI→Gemini→Anthropic, raw fetch, no SDKs), 3 tiers (fast/mid/deep), env-overridable models, `validate`-callback seam for the guard. 17 unit tests + live smoke (`npm run smoke:ai`). Also fixed the `onboarding_drafts` migration blocker. Learned: the `.mjs` server is already far more complete than the docs claimed (auth/sessions/feedback all live); live testing caught 5 provider quirks (gpt-5.x `max_completion_tokens`, temperature deprecation, Gemini thinking-token budget, Anthropic dated-IDs, Gemini pro latency) — all fixed. Open: route still serves static output; Phase A #2/#3 (wire service in + per-agent prompts + guard) is next.
-
----
-
----
-
-_Sessions 2026-05-08 (planning/setup) and earlier archived to CLAUDE.md "Recent Context."_
+_Sessions 4–5 (2026-06-11/12, Phase A real-AI build) rolled out; they and the 2026-05-08 planning sessions live in CLAUDE.md "Recent Context."_

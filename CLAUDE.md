@@ -6,7 +6,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pocket Professor is a structured learning platform for career-switchers. The core is a **deterministic multi-agent adaptation engine** — no randomness, reproducible with the same inputs. Currently at Phase 3 (adaptation engine implementation), with Phases 4–6 planned.
 
-**Current priority (as of 2026-05-08): Pilot readiness.** Get the app deployable and usable by real non-technical users (service industry workers). See `.ai/current-task.md` for the active work plan and `.ai/handoff.md` for session state.
+**Current priority (as of 2026-07-12): DEPLOY, then launch the PAID pilot.** Deploy has been the sole remaining step since mid-June; validation latency is the project's #1 risk. Read "Honest Assessment & Path to Revenue" below before proposing new build work. See `.ai/current-task.md` for the launch plan and `.ai/handoff.md` for session state (incl. the founder's Wizard-of-Oz ops playbook).
+
+## Honest Assessment & Path to Revenue (session 9, 2026-07-12)
+
+Durable strategic verdict from a full project evaluation. Read before proposing ANY new build work: the default answer to "should we build X" is **no** until the paid pilot produces data.
+
+**What works:** founder–market fit (15yr service industry, made the switch himself, warm bartender network = distribution nobody can copy); engineering quality (security pass, fail-closed patterns, drift-guard tests); persona-calibrated onboarding; the sprint loop + admin portal (the actual product core); honest self-documentation.
+
+**What doesn't:** sequencing — Phases 0–3 predate all user contact; the deterministic engine is unwired speculative inventory with invented thresholds (the pilot deliberately runs Wizard-of-Oz instead); "based on real science" positioning is unearned (unsourced thresholds, no safety layer); no willingness-to-pay test existed anywhere until session 9; deploy has been "the next step" since mid-June — validation latency accrues daily. Also: retention for this demographic likely depends on the founder's personal touch, so a successful pilot may prove the founder retains users, not the app — design for and watch that distinction.
+
+**Revised product thesis:** the moat is NOT plan generation (ChatGPT plans are free). It's **accountability + a believable path + someone in your corner**. The product is "a path with a person attached, where software gradually replaces the person." Never build curriculum: one track (IT support, CompTIA A+ as the spine, free existing content like Professor Messer) — sell the scaffolding: triage, daily sizing, the comeback loop, proof artifacts.
+
+**Path to money, in order:**
+1. Deploy. Founder self-pilots 2–3 days adversarially.
+2. **PAID pilot:** ~10 users, $20–25 for the guided 2-week sprint, payment out-of-band (Stripe link/Venmo in the DM *before* they get the URL — also captures phone numbers; build no payments code). Charging is the commitment filter and the only retention signal that predicts revenue.
+3. Founder IS the engine (the 5 rules as a manual SOP — see `.ai/handoff.md`) and hand-writes each finisher's **Exit Report** (day-14 artifact; the app deliberately dead-ends at "Sprint complete").
+4. **One outcome story** (a user lands an interview/cert/job) is worth more than any feature.
+5. Pilot data picks the branch: retention survives without the founder → consumer accountability product ($20–30/mo membership, later multi-mode); retention only WITH the founder → coaching/cohort business ($99–499 cohorts); strong retention but weak willingness-to-pay → **B2B/B2G workforce funding** ($2–5k/seat, WIOA-type; the admin portal becomes the buyer-facing product; year-2 play — requires outcome data first, never cold B2B sales as a solo founder).
+6. Parallel, always: founder-story content on r/ITCareerQuestions, r/findapath, TikTok. The audience IS the marketing; funded competitors can't fake lived experience.
+
+**Kill criteria (write down pre-launch, next to success thresholds):** e.g. <5 paying users after ~3 weeks of honest recruiting, or <2/10 returning past day 7 despite personal texts → stop or pivot hard. Honest founder check: if the daily texting is dreaded, this model dies regardless of data — near-term, founder-led coaching IS the product.
+
+**Rejected pivots (don't re-litigate without new data):** top-to-bottom B2B worker-training rebuild (6–18mo sales cycles kill solo founders; B2G arrives later by pull, via outcome data); generic "AI upskilling app" (the most crowded framing; discards both real advantages — story and demographic access); trashing the idea pre-data (same error class as building for 8 months pre-data).
 
 ## Commands
 
@@ -109,16 +131,12 @@ All agent output passes through `agentOutputGuard.ts` (schema validation + prohi
 
 ## Frontend Structure
 
-- `frontend/src/App.jsx` — current entry point. A developer wizard (raw JSON textarea inputs, raw JSON output). **Needs to be replaced with proper UX before pilot.**
-- `frontend/src/onboarding/` — full Claude-designed multi-step onboarding flow (11 steps). Design tokens wired. **Not yet integrated into App.jsx.**
-- `frontend/src/onboarding/tokens.css` — Tailwind v4 CSS-first design tokens (paper/ink/accent color scales, serif/sans/mono fonts). Imported via `styles.css` → `main.jsx`.
-- `frontend/src/styles.css` — global stylesheet; imports Tailwind then tokens.
+_(Refreshed 2026-07-12 — the old "JSON dev wizard" description was obsolete; see gotchas #1–2.)_
 
-### UI Integration needed
-1. Wire `OnboardingFlow.jsx` into `App.jsx` (replace JSON textarea for onboarding step)
-2. Build form UIs for professor and career-coach steps (match token style)
-3. Replace raw JSON `<pre>` output with human-readable cards
-4. Remove debug "API Base:" line at `App.jsx:132`
+- `frontend/src/App.jsx` — the real user shell: Login → `OnboardingFlow` → `PlanView` (switchable tracks) → `DashboardView` (persisted sprint loop, one-session-per-day gate) → `SessionView` (per-day Professor). `#admin` hash → `AdminPortal` (founder cohort view). Mobile-first `max-w-[440px]`.
+- `frontend/src/onboarding/` — wired flow: welcome→schedule→energy→skills→direction→suggestions (mid-flow AI track picker)→sprint→risk→trigger→done. Drafts are localStorage-only (`pp_onboarding_draft_v2`).
+- `frontend/src/onboarding/tokens.css` — Tailwind v4 design tokens; imported via `styles.css` → `main.jsx`.
+- **Known dead-end (deliberate):** day 14 shows "Sprint complete" with no artifact or next step (`App.jsx` ~:420). The pilot's day-14 Exit Report is founder-written, not built — see Honest Assessment.
 
 ## AI Provider Chain
 
@@ -187,19 +205,22 @@ _Numbered in discovery order. Never delete — only add._
 
 ## Recent Context
 
+**2026-07-03 + 2026-07-12 (sessions 8–9): strategy — pilot design + honest evaluation. NO code.** Session 8: do NOT wire the engine — **Wizard-of-Oz** it (founder manually intervenes via the admin portal when a rule would fire; interventions calibrate the unsourced thresholds); pilot judged on the **retention loop** with pre-written numeric thresholds; sequence = deploy → founder self-pilots 2–3 days adversarially → recruit (warm bar network + Reddit DMs to hand-raisers, founder-story pitch); subdomain on `pakfro.dev` (Porkbun CNAME); AI spend caps pre-launch. Session 9: full evaluation → the "Honest Assessment & Path to Revenue" section above. Pilot became **PAID** ($20–25 out-of-band via payment link in the DM, which also captures phone numbers); day-14 artifact = manual founder-written **Exit Report**; founder ops SOP = the 5 engine rules humanized + an **intervention log** (spreadsheet) that later calibrates the engine; **kill criteria** to be written before the first user; rejected: B2B rebuild, generic AI-upskilling pivot, and trashing the idea pre-data.
+
 **2026-06-13–14 (session 7): onboarding polish + Sprint Loop + admin portal + security pass + deploy prep.** Polished onboarding (enum-echo fix, deleted dead Proof/CoachReview, clear stale AI on domain edits, fixed blank hero logo, skills 10→15 in 3-col grid, relabeled "Open dashboard"). A walkthrough exposed the flow dead-ending at onboarding + one in-memory task → built **Phase B2 Sprint Loop**: `pilot_plans`+`pilot_sprint_days` (migration 003), plan/track/day routes (track-switch keeps progress, re-onboard wipes), real DashboardView with returning-user load + per-day Professor sessions + one-per-day gate + Suggestions escape hatch — so "do users return" is finally measurable. Built a founder-only **admin cohort portal** (`#admin`, `ADMIN_EMAIL`-gated, fail-closed). **Pre-deploy security pass** (gotchas #14–16): fixed dev_code leak, login brute-force lockout (migration 004), wildcard-CORS prod refusal, gated `/adaptation/evaluate`, CSPRNG codes; SQL/XSS verified clean. **Deploy prep** (all-Railway, Nixpacks, no Dockerfiles; gotcha #17): `railway.json`×2, `start:prod`, static `serve`, `--include=dev` for the NODE_ENV devDep skip. Backend + builds verified; frontend not browser-walked. Deploy + walkthrough + Resend are the user's closing actions (next session: confirm live health, don't redo prep).
 
-**2026-05-08–10 (sessions 2–3):** Planning + knowledge infrastructure. No logic code changed. Decisions: real AI fallback, target users = service industry workers, Railway deploy. Created `.env` placeholders, `docs/INDEX.md`, `docs/understanding/` (4 docs); deleted `docs/breakdowns/`; fixed rule priority order; flagged gotchas 6–8.
+**2026-06-13 (session 6): Phase B complete.** Claude-designed onboarding wired into `App.jsx`; AI moved mid-flow (`Suggestions` track picker); switchable tracks propagate to Professor; thumbs-down regenerates; closing screen; guard relaxed to 3–6 career_options. Verified live in preview. Multi-mode direction captured in `.ai/product-direction-multi-mode-learning.md`. Resolved gotchas #1–2.
 
-**2026-06-13 (session 6): Phase B essentially COMPLETE — onboarding UI wired + restructured.** Wired the Claude-Design flow into `App.jsx` (Login → OnboardingFlow → PlanView → FirstSession → Closing); dropped server drafts (localStorage-only). Two live-walkthrough rounds drove: copy/UX fixes ("Bite-size wins," removed "—P"/"Resumed"/broken links, de-gated Risk step, reading-contradiction fix), then a **flow restructure** — AI now runs mid-flow via a new `Suggestions` track-picker right after the domains step; tracks stay **switchable** on the plan and propagate to the Professor session; first-session tasks are **selectable**; thumbs-down **regenerates**; added a **closing screen**. Backend guard relaxed to **3–6 career_options (rank 1–6)**. Whole flow verified live in the browser preview. Captured post-pilot direction "career-switch is a MODE; general learning engine" (`.ai/product-direction-multi-mode-learning.md` + memory). Resolved gotchas #1–2.
+**2026-06-11/12 (sessions 4–5): Phase A complete — real AI end to end.** `aiProviderService.ts` (OpenAI→Gemini→Anthropic fallback, 3 tiers) + `agentInferenceRunner.ts` wired into the live route with the guard as `validate` callback; drift-guard test caught the professor example being wrongly rejected → guard narrowed for IT domain (gotchas #10–13). 87/87 offline + live `smoke:agents`. Fixed `onboarding_drafts` migration; local Postgres 18 up. Ship-first decision captured in `.ai/behavioral-science-and-engine-alignment.md`.
 
-**2026-06-11/12 (sessions 4–5): Phase A COMPLETE — real AI end to end.** #1: built `aiProviderService.ts` (multi-provider fallback, raw fetch, 3 tiers, chain OpenAI→Gemini→Anthropic); live testing caught 5 provider quirks (gotchas 10–11). #2: `agentInferenceRunner.ts` orchestrator + wired into the route (config/contracts loaded once at boot, bounded 20s timeout, per-agent tiers, response `ai:{...}`, health `ai_configured`). #3: `agentPromptSpecs.ts` embeds each agent's strict contract; `agentSpecConsistency.test.ts` (drift guard) CAUGHT the professor example being wrongly rejected → narrowed the guard's `/diagnos/` & `/prescribe/` for the IT domain (gotcha #13, user-approved). Verified: 87/87 offline + `npm run smoke:agents` (all 3 agents produced real guard-valid output via OpenAI). Also fixed `onboarding_drafts` migration (gotcha #6); local Postgres 18 up + both migrations applied.
+**2026-05-08–10 (sessions 2–3):** Planning + knowledge infra. Decisions: real AI fallback, target = service industry workers, Railway. Created `docs/INDEX.md`, `docs/understanding/`; flagged gotchas 6–8.
 
 ## Next Session Priorities
 
-1. **Local walkthrough (user) of B2 sprint loop + admin portal** — not browser-verified yet. B2: onboarding → AI picker/escape-hatch → plan → dashboard → mark day → reload persists → switch track keeps progress. Admin: `#admin` login as `ADMIN_EMAIL`.
-2. **Phase C (deploy) — prep DONE, Railway dashboard remains.** No Dockerfiles (Nixpacks; `railway.json` in each service). Steps: push to GitHub → Railway project (Postgres + backend `/backend` + frontend `/frontend`) → env per `docs/railway_pilot_deploy_guide.md` (incl. `NODE_ENV=production`, exact `FRONTEND_ORIGIN`/`VITE_API_BASE_URL`, `ADMIN_EMAIL`, `RESEND_*`; NOT `PILOT_EXPOSE_DEV_CODE`) → run the **4 migrations** → smoke. Blocker: a real Resend account (no dev_code fallback in prod).
-3. Fast-follow (post-pilot): progression ladder; schedule/energy→real adaptation + wire engine; prompt-injection hardening; behavioral research; multi-mode. Not pilot-blocking.
+1. **Confirm the deploy is live** (user drives Railway; sessions 7–8 work must be committed + pushed first — see `.ai/current-task.md` for the full step list). Then support the founder self-pilot: fix what it surfaces (bugs/copy only, no features).
+2. **Pre-launch checklist (user):** AI spend caps on all 3 provider dashboards; success thresholds + kill criteria written in one doc before the first user; payment link ready; subdomain + Resend domain verification.
+3. **During the pilot:** founder runs the Wizard-of-Oz ops playbook (SOP in `.ai/handoff.md`); Claude's job is analysis of the intervention log + small fixes — nothing new gets built until pilot data exists.
+4. Post-pilot pile (gated on data): wire the engine with log-calibrated thresholds (candidate design: append-only event journal + deterministic tick + replay/backtesting — evaluated session 9, deliberately deferred; never pre-pilot); progression ladder; prompt-injection hardening; behavioral research; multi-mode.
 
 ## Key Documentation
 

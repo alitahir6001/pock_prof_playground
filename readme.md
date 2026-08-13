@@ -1,9 +1,30 @@
 # Pocket Professor
 
-Pocket Professor is a structured learning platform for career-switchers.  
+Pocket Professor is an adaptive learning platform for motivated autodidacts who want to change careers.  
 The system is designed around deterministic adaptation, strict agent contracts, and auditable decision-making so learning plans can evolve safely over time.
 
+## What it does
+
+Three agents build and maintain a learning plan:
+
+- an **onboarding agent** that establishes the starting point and the goal,
+- a **professor** that teaches and assesses,
+- a **career coach** that keeps the plan pointed at an actual job outcome.
+
+The plan then changes as the learner does. The hard part isn't generating a plan — it's
+changing one safely. Every adaptation runs through a deterministic policy engine rather
+than a model's judgement, is capped in how much structure it may mutate at once, and is
+written to an audit record. If the audit write fails, the mutation fails with it. A plan
+that quietly reshapes itself is worse than one that refuses to move.
+
+> **This is the active development repository for v2.** Despite the name, this is where the
+> current engine is being built — the older `pocket_professor` repo is the v1 Python
+> implementation and is not where work happens.
+
 ## What this repository currently contains
+
+Work is organized in phases — numbered build stages, each landing a slice of the engine
+with tests before the next one starts.
 
 - **Phase 2 agent contracts** (schema + instructions + examples) for:
   - onboarding agent
@@ -22,7 +43,7 @@ The system is designed around deterministic adaptation, strict agent contracts, 
 ## Repository layout
 
 ```text
-pocket_professor/
+pock_prof_playground/
 ├── backend/
 │   ├── src/modules/adaptation/phase3/
 │   ├── src/modules/agents/phase2/
@@ -213,5 +234,5 @@ This confirms deterministic success and deterministic failure behavior at the tr
 
 ## License
 
-No license file is currently included in this repository.
-If you plan to open-source publicly, add a `LICENSE` file and update this section.
+This repository is public but **not yet licensed** — no `LICENSE` file is included, so default
+copyright applies and no reuse rights are granted. Adding a license is a pending decision.

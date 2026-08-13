@@ -1,37 +1,42 @@
 # Current Task
 
-**Phase C — Deploy to Railway (one platform: backend + frontend + Postgres)**
-Last updated: 2026-07-03 (session 8)
+**Phase C — Deploy (as the guided tour), then the n=3 silent efficacy test**
+Last updated: 2026-08-13 (session 10)
 
 ## What
-Everything works locally and is verified: onboarding → AI picker → plan → persisted sprint loop → dashboard → return path; founder admin portal (`#admin`); pre-deploy security pass (5 fixes). Deploy PREP is done (Nixpacks config, no Dockerfiles). Remaining = the Railway dashboard steps + migrations + smoke.
+Two goals, one activity. Deploy the app this week with the founder driving and Claude narrating every seam he touches — this is simultaneously the ship and the end-to-end code walkthrough. Then run a **3-person, unpaid, 14-day, founder-silent** test of whether the software alone moves someone to do something they wouldn't have done alone. Full protocol: `.ai/pilot-test-design.md` (frozen once user 1 starts).
 
-Decisions locked: all on Railway (one project/bill); Nixpacks (no Dockerfiles); frontend served static via `serve`.
+Running alongside: a **code-ownership ladder** — five real changes in this repo, founder typing, Claude explaining and reviewing. Not Claude writing.
 
-## Steps remaining
-1. **Push the branch to GitHub** (Railway deploys from the repo). Lots of uncommitted session-7 work — commit + push first (ask user before committing).
-2. **Railway project:** Postgres plugin + backend service (root `/backend`) + frontend service (root `/frontend`). `railway.json` in each pins build/start.
-3. **Env vars** (see `docs/railway_pilot_deploy_guide.md`): backend needs `NODE_ENV=production`, `DATABASE_URL`/`ADAPTATION_DATABASE_URL`, `ADAPTATION_PERSISTENCE_MODE=postgres`, `ADAPTATION_HOST=0.0.0.0`, `ADAPTATION_PORT=${{PORT}}`, exact `FRONTEND_ORIGIN`, `ADMIN_EMAIL`, `RESEND_*`, AI keys. Frontend needs `VITE_API_BASE_URL` (exact backend URL). Do NOT set `PILOT_EXPOSE_DEV_CODE` in prod.
-4. **Run the 4 migrations** against Railway Postgres: adaptation, pilot, sprint, logincodes.
-5. **Smoke:** `GET /adaptation/health` (expect `ai_configured:true`), then real email login → onboarding → plan → dashboard → mark a day → reload persists. Check `#admin` works for the founder email.
-6. **Session-8 additions:** custom domain = subdomain on `pakfro.dev` (Porkbun CNAME → Railway; NOT a /pilot path); set **spend caps** on all 3 AI provider dashboards (no per-user rate limit in the app); write **pilot success thresholds** down before the first user (e.g. X/10 return day-2, Y finish 7+ days).
+## Why
+Session 10 grilling found the real root cause of the two-month stall, and it wasn't market, money, or time:
 
-## After deploy (order locked, session 8)
-1. **Founder self-pilot 2–3 days, adversarially** — on the phone, on cellular, tired, skip days and check the comeback experience. Founder is pilot user #1. Real-phone mobile check happens here (code-verified mobile-first, never thumb-tested; watch 3-col chip grids + tap targets at 375px).
-2. **Recruit** (plan in handoff §Session 8): warm bar network first, QR cards as conversation props, Reddit DMs to hand-raisers. Founder-story pitch.
-3. **Wizard-of-Oz adaptation during pilot** — do NOT wire the engine; founder manually intervenes via admin portal when a rule would fire.
+1. **Efficacy doubt** — "I don't know if I can build something that actually helps someone leave a job they hate." Untested after eight months; the repo records zero sit-down user conversations.
+2. **Not understanding the codebase** — "I couldn't tell you how this works end to end." Partly false in the founder's disfavor: ~4,800 lines total, three prompt bundles and a provider fallback loop, and the 1,114-line adaptation engine that causes most of the "over-engineered" feeling **is not in the live path at all** (nothing in `frontend/src` calls `/adaptation/`).
 
-## Watch out for (verified gotchas)
-- Prod start = `start:prod` (no `--env-file`); build = `npm install --include=dev && npm run build` (NODE_ENV=production skips devDeps otherwise — gotcha #17).
-- Boot REFUSES wildcard `FRONTEND_ORIGIN` in prod (gotcha #15). RESEND required (no dev_code in prod — gotcha #14).
+The session-8/9 paid Wizard-of-Oz pilot is **dead**. Its own written kill criterion fired (founder would dread the daily texting, so a good result commits him to work he doesn't want), and it structurally could not answer #1 — putting the founder in the loop makes any success unattributable.
 
-## Recommended before deploy
-User walkthrough of B2 + admin locally for final UX feedback (not strictly blocking).
+**Thesis now under test:** the product is *the constraint* — one task, chosen for you, sized for a post-shift brain, no bingeing, no spiraling — not the plan text. ChatGPT gives infinite optionality, which is what paralyzes the target user. A gate is the one thing a chat box structurally cannot be.
 
-## Out of scope (post-pilot)
-Progression ladder; schedule/energy→real adaptation + wiring the engine; prompt-injection hardening; behavioral research; multi-mode learning. Phases 4–6.
+## Order of operations
+- [ ] (user) **Commit + push** — outstanding since 2026-07-12, incl. untracked `.claude/skills/`. Railway deploys from GitHub.
+- [ ] (user + agent) **Deploy this week**, founder driving, Claude narrating each seam as it's hit: Railway project → Postgres → backend (root `/backend`) → frontend (root `/frontend`); env per `docs/railway_pilot_deploy_guide.md` (`NODE_ENV=production`, `ADAPTATION_PERSISTENCE_MODE=postgres`, `ADAPTATION_HOST=0.0.0.0`, exact `FRONTEND_ORIGIN`/`VITE_API_BASE_URL`, `ADMIN_EMAIL`, `RESEND_*`, AI keys; **never** `PILOT_EXPOSE_DEV_CODE`) → 4 migrations → smoke health/login/onboarding/plan/day/reload/`#admin`.
+- [ ] (user) Subdomain on `pakfro.dev` (Porkbun CNAME) + Resend domain verification; AI spend caps on all 3 provider dashboards **before** anyone else gets the URL.
+- [ ] (user) **Self-pilot 2–3 days adversarially** — real phone, cellular, post-shift tired, skip a day, check the comeback path.
+- [ ] (user, typing) **Ownership ladder**, in order: (1) onboarding copy → (2) professor `soul.md` tone → (3) delete the dead `/pilot/onboarding/draft` call (gotcha #6) → (4) add a column to the admin cohort view → (5) change sprint length off 14. Then read the adaptation engine as a unit (5 rules, one pure function).
+- [ ] (user) **Name 3 people.** One is already identified.
+- [ ] (user) **Run the test:** day-0 script + pre-registration → 14 days of total silence → day-14 conversation. Log in `.ai/pilot-log.md`.
+- [ ] (user + agent) **Score against `.ai/pilot-test-design.md` branch criteria the same week it ends.** No editing the bar after the fact.
+
+## Out of scope
+Payments code · exit-report feature · wiring the adaptation engine · event-journal/tick/replay re-architecture · progression ladder · prompt-injection hardening · behavioral research · multi-mode · Phases 4–6 · any recruiting funnel or B2B motion. **Nothing new gets built until the n=3 test produces a result.** Fixes surfaced by the self-pilot are bugs and copy only.
+
+## Watch out for
+- Build = `npm install --include=dev && npm run build`; prod start = `start:prod`, NOT `start:adaptation-runtime` (gotcha #17).
+- Prod boot REFUSES wildcard/unset `FRONTEND_ORIGIN` (#15). No dev_code in prod — Resend required (#14).
+- **The trap:** "I should understand it first" is the same shape as "I should build the engine first" — a legitimate-sounding prerequisite in front of the falsifiable step. Deploy is the tour; it does not wait on reading.
 
 ## Required reading
-- `docs/railway_pilot_deploy_guide.md` (updated this session)
-- CLAUDE.md env table + gotchas #14–17
-- `.ai/handoff.md`
+- `.ai/pilot-test-design.md` — the protocol and the frozen branch criteria
+- CLAUDE.md "Honest Assessment & Path to Revenue" (still valid on the moat; its *pilot mechanics* are superseded by this file) + gotchas #14–17
+- `docs/railway_pilot_deploy_guide.md`
