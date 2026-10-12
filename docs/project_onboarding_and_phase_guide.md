@@ -100,7 +100,7 @@ Phase 6 enforces entitlement boundaries so free vs paid capabilities are reliabl
 
 ## 2) Local setup + run/test instructions (step-by-step)
 
-> Current repository state: Phases 0–3 complete. Active priority is **pilot readiness** — deploying to Railway, wiring real AI into agent endpoints (Gemini → OpenAI → Claude fallback), and replacing the developer-facing JSON wizard with a proper user-facing UI. See `.ai/current-task.md` for active work plan.
+> Current repository state: Phases 0–3 complete. Active priority is **pilot readiness** — deploying to Railway, wiring real AI into agent endpoints (Gemini → OpenAI → Claude fallback), and replacing the developer-facing JSON wizard with a proper user-facing UI. See `.ai/handoff.md` (§Active Task) for active work plan.
 
 ### Step 1 — Prerequisites
 Install:
