@@ -76,5 +76,5 @@ PostgreSQL (only DB; no SQLite/in-memory) — 4 raw-SQL migrations
 Written 2026-07-06 at commit `9d16f26`. Re-verify:
 - Server size/routes: `wc -l backend/scripts/run_adaptation_fastify.mjs && grep -n "app\.\(get\|post\)" backend/scripts/run_adaptation_fastify.mjs`
 - Adapter pair: `ls backend/src/modules/adaptation/phase3/ | grep Adapter`
-- Deploy status: check `.ai/current-task.md` and `.ai/handoff.md` (they lead; this file lags).
+- Deploy status: check `.ai/handoff.md` (it leads; this file lags).
 - Invariant doc: `docs/system_invariants_v1.md`
