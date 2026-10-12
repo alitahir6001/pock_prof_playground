@@ -13,7 +13,7 @@ Solo-founder repo, no CI, no PR review. Discipline is enforced by convention + t
 
 | Class | Examples | Gate |
 |---|---|---|
-| **Docs / .ai/ upkeep** | handoff.md, backlog.md, CLAUDE.md | Follow `.ai/RULES.md` exactly (see below) |
+| **Docs / .ai/ upkeep** | handoff.md, backlog.md, CLAUDE.md | See Session bookkeeping below |
 | **Frontend UX** | copy, steps, layout | Build clean (`npm run build` in `/frontend`) + user walkthrough for behavior. User runs servers/browser HIMSELF — do not auto-launch preview tools |
 | **Backend logic** | routes, services, engine | `npm run test:phase3` green (baseline: 86/87, see runbook) + relevant smoke |
 | **Guard / prompts** | agentOutputGuard.ts, agentPromptSpecs.ts | Must keep spec↔guard in sync; `agentSpecConsistency.test.ts` is the drift guard. Billable verification (`smoke:agents`) only with user approval |
@@ -41,14 +41,12 @@ Solo-founder repo, no CI, no PR review. Discipline is enforced by convention + t
 
 9. **Prod guards key on `NODE_ENV=production`** (refuse wildcard CORS, fail-closed `/adaptation/evaluate`). And `NODE_ENV=production` makes `npm install` skip devDeps — which broke builds until `--include=dev` was pinned in both `railway.json`s (gotchas #15, #17). If you touch build commands, keep `--include=dev`.
 
-10. **Gotchas in CLAUDE.md are append-only, numbered.** Never delete or renumber. Next free number: check CLAUDE.md (currently 17 as of 2026-07-06).
+10. **Gotchas in CLAUDE.md are append-only, numbered.** Never delete or renumber. Next free number: check CLAUDE.md (last is #18, next is #19, as of 2026-09-24).
 
-## Session bookkeeping (binding — from `.ai/RULES.md`)
+## Session bookkeeping
 
-- `.ai/handoff.md` — rewrite sections in place CONTINUOUSLY as state changes (not a log). Cap 150 lines.
-- `.ai/current-task.md` — edit only on task transitions.
-- `.ai/backlog.md` — prepend one entry at session END only.
-- `CLAUDE.md` — gotchas when discovered; Recent Context + Next Session Priorities at session end. Cap ~200–250 lines; compress old sessions, never delete gotchas.
+- `.ai/handoff.md` is the only session-state file; the global update-session-context skill owns its format (8 KB cap).
+- `CLAUDE.md` holds durable knowledge only (gotchas, architecture, conventions) — no session history; that goes to `.ai/backlog.md`.
 - Don't duplicate handoff content into CLAUDE.md; don't write tutorials into CLAUDE.md.
 
 ## Spending & user-preference gates
@@ -64,7 +62,6 @@ Stated fully in `pocket-professor-runbook` §Validation bar (single home). Short
 ## Provenance and maintenance
 
 Written 2026-07-06 at commit `9d16f26` (not yet deployed to Railway). Re-verify:
-- Gotcha count / next number: read CLAUDE.md §Active Gotchas (last entry's number + 1; 17 as of 2026-07-06).
+- Gotcha count / next number: read CLAUDE.md §Active Gotchas (last entry's number + 1; 19 as of 2026-09-24).
 - Test baseline: `cd backend && npm run test:phase3 2>&1 | tail -8` (86/87 pass as of 2026-07-06; see runbook for the known failure).
 - Route split still intact: `grep -n "app.post('/pilot/plan" backend/scripts/run_adaptation_fastify.mjs` (expect 3 distinct routes: `/plan`, `/plan/track`, `/plan/day`).
-- `.ai/RULES.md` still the bookkeeping source: `ls .ai/`.
