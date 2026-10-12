@@ -75,7 +75,7 @@ app.addHook('onRequest', async (request, reply) => {
 app.addHook('onSend', async (request, reply) => {
   reply.header('access-control-allow-origin', frontendOrigin);
   reply.header('access-control-allow-methods', 'GET,POST,OPTIONS');
-  reply.header('access-control-allow-headers', 'content-type,authorization,x-request-id');
+  reply.header('access-control-allow-headers', 'content-type,authorization,x-request-id,traceparent,tracestate');
 });
 
 app.options('/*', async (_request, reply) => reply.code(204).send());
