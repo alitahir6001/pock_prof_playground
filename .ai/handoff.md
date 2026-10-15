@@ -42,6 +42,7 @@ Running alongside: a **code-ownership ladder** — five real changes in this rep
 - **The trap:** "I should understand it first" is the same shape as "I should build the engine first" — a legitimate-sounding prerequisite in front of the falsifiable step. Deploy is the tour; it does not wait on reading.
 
 ### Required reading
+- `.ai/vision.md` — end-state vision (professor/advisor/coach over one student file), build order, and the open A/B decision on what the n=3 test tests
 - `.ai/pilot-test-design.md` — the protocol and the frozen branch criteria
 - CLAUDE.md "Honest Assessment & Path to Revenue" (still valid on the moat; its *pilot mechanics* are superseded by this file) + gotchas #14–17
 - `docs/railway_pilot_deploy_guide.md`
