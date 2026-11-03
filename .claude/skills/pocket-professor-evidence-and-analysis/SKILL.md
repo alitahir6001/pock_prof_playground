@@ -68,6 +68,6 @@ Discipline: if your fix works but you can't state the mechanism, you haven't roo
 ## Provenance and maintenance
 
 Written 2026-07-06 at commit `9d16f26`, from `.ai/backlog.md` sessions 4–8, `.ai/handoff.md`, and CLAUDE.md gotchas — all worked examples are recorded incidents, none invented. Re-verify:
-- History still matches: `cat .ai/backlog.md` and CLAUDE.md §Active Gotchas.
+- History still matches: `cat .ai/history.md` and CLAUDE.md §Active Gotchas.
 - Drift tripwire still present: `ls backend/tests/agents/ai/agentSpecConsistency.test.ts` (verified 2026-07-06).
 - Pilot thresholds written yet? Check `.ai/` for a thresholds doc; if absent and users exist, flag it.
