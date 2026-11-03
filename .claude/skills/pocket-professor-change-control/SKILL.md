@@ -46,7 +46,7 @@ Solo-founder repo, no CI, no PR review. Discipline is enforced by convention + t
 ## Session bookkeeping
 
 - `.ai/handoff.md` is the only session-state file; the global update-session-context skill owns its format (8 KB cap).
-- `CLAUDE.md` holds durable knowledge only (gotchas, architecture, conventions) — no session history; that goes to `.ai/backlog.md`.
+- `CLAUDE.md` holds durable knowledge only (gotchas, architecture, conventions) — no session history; that goes to `.ai/history.md`.
 - Don't duplicate handoff content into CLAUDE.md; don't write tutorials into CLAUDE.md.
 
 ## Spending & user-preference gates
