@@ -60,7 +60,8 @@ The adaptation evaluation schema (migration 1) and the pilot user schema (migrat
 
 ## Gotchas
 
-- **`onboarding_drafts` table has a broken foreign key.** It references a `users(id)` table that doesn't exist yet (planned for a future phase). This migration will fail if run against a clean DB that has this table. Watch for this when running migrations — it may need to be dropped or commented out until Phase 4 adds the `users` table.
+- **`onboarding_drafts` table was removed (2026-06-13).** Its foreign key to a nonexistent `users(id)` broke the pilot migration; drafts are now localStorage-only. See `docs/adr/0012-onboarding-drafts-in-localstorage-only.md`.
+- **Sprint tables (`pilot_plans`, `pilot_sprint_days`, migration 003) are not described here.** See `docs/adr/0016-persisted-14-day-sprint-loop.md`.
 - **`pilot_agent_interactions` has `helpful` and `feedback_comment` columns directly on it.** There's also a separate `pilot_feedback_events` table. Feedback can be captured in both places — don't assume one is authoritative. Currently `pilot_feedback_events` is the primary feedback table; the columns on interactions are a secondary signal.
 - **No soft deletes anywhere.** If you need to remove a user from the pilot, you'd need to manually delete their rows. There's no `deleted_at` column or deactivation flag.
 - **Migration run order matters.** Run adaptation migration first (`db:migrate:adaptation:up`), then pilot (`db:migrate:pilot:up`). They're independent but the convention in the runbook is this order.
