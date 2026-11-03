@@ -1,7 +1,7 @@
 /**
  * AI provider fallback service.
  *
- * Calls a chain of LLM providers in priority order (Gemini -> OpenAI -> Anthropic)
+ * Calls a chain of LLM providers in priority order (OpenAI -> Gemini -> Anthropic)
  * and returns the first response that both parses as JSON and passes an optional
  * caller-supplied validator. If a provider has no API key it is skipped. If a
  * provider errors, times out, returns unparseable JSON, or fails validation, the
