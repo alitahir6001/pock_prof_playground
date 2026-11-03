@@ -8,6 +8,8 @@ Pocket Professor is a structured learning platform for career-switchers. The cor
 
 Read "Honest Assessment & Path to Revenue" below before proposing new build work. Session state and the active task: `.ai/handoff.md`. Frozen test protocol: `.ai/pilot-test-design.md`.
 
+Design decisions: docs/adr/ (index: docs/adr/README.md). Write new ones with the write-adr skill.
+
 ## Honest Assessment & Path to Revenue (session 9, 2026-07-12)
 
 Durable strategic verdict from a full project evaluation. Read before proposing ANY new build work: the default answer to "should we build X" is **no** until the n=3 test produces a result.
@@ -200,7 +202,7 @@ _Numbered in discovery order. Never delete — only add._
 16. **Admin portal is server-enforced, not UI-hidden (2026-06-14).** Frontend `#admin` route → `AdminPortal`; backend `GET /pilot/admin/cohort` via `requireAdmin` = valid session whose email === `ADMIN_EMAIL` (fail-closed if unset). It's a normal pilot login gated by email, so the founder logs in like any user. Login codes use `crypto.randomInt` (not `Math.random`).
 17. **Railway deploy: `NODE_ENV=production` + `npm install` SKIPS devDependencies (2026-06-14).** We require `NODE_ENV=production` for the security guards (gotcha #15), but that makes a plain `npm install` omit devDeps → `typescript` (backend) and `vite` (frontend) vanish → build fails. Both `railway.json` buildCommands use `npm install --include=dev && npm run build` to force them. Both services deploy via **Nixpacks, no Dockerfile** (one Railway project, frontend served static via `serve -s dist -l $PORT`). Backend prod start is `start:prod` (`node scripts/run_adaptation_fastify.mjs`) — NOT `start:adaptation-runtime`, whose `--env-file=../.env` crashes on Railway (no such file; env is injected). The `#admin` hash route means the static host needs NO SPA-fallback config.
 
-18. **Half the backend TS is NOT in the live path (measured 2026-08-13).** The adaptation engine is **1,114 lines — over half of `backend/src` — and `frontend/src` never calls `/adaptation/` once.** It is reachable only via `POST /adaptation/evaluate`, which no client hits. The live product is 13 routes, 9 of them called by the frontend (one of those, `/pilot/onboarding/draft`, has no server route at all — gotcha #6). Whole repo ≈ 4,800 lines (2,145 backend TS + 613 server shell + 2,080 frontend). The "multi-agent system" is 3 folders × 4 files (`soul.md`, `system_instructions.md`, `output_schema.ts`, `example_output.json`) + one runner that builds a single prompt and falls back across providers — no orchestration, no autonomy. **Say this plainly when the founder describes the repo as an unknowable over-engineered LLM artifact; the claim is measurably wrong in his disfavor and the dread attaches mostly to the part that doesn't run.**
+18. **Half the backend TS is NOT in the live path (measured 2026-08-13).** The adaptation engine is **1,114 lines — over half of `backend/src` — and `frontend/src` never calls `/adaptation/` once.** It is reachable only via `POST /adaptation/evaluate`, which no client hits. The live product is 13 routes, 9 of them called by the frontend (one of those, `/pilot/onboarding/draft`, has no server route at all — gotcha #6). Whole repo ≈ 4,800 lines (2,145 backend TS + 613 server shell + 2,080 frontend). The "multi-agent system" is 3 folders × 4 files (`soul.md`, `system_instructions.md`, `output_schema.ts`, `example_output.json`) + one runner that builds a single prompt and falls back across providers — no orchestration, no autonomy.
 
 ## Key Documentation
 
