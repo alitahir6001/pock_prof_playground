@@ -1,0 +1,26 @@
+# Architecture Decision Records
+
+One file per design, architecture, or product decision that shapes Pocket Professor, with its context and consequences (MADR 4.0); read this index first.
+
+- [0001 - Prototype: local LLM (Ollama + Gemma3) behind a Python FastAPI backend - superseded by ADR-0002 - 2025-06-23](0001-prototype-local-llm-ollama-behind-fastapi.md)
+- [0002 - Use the hosted Gemini API instead of a local Ollama model - superseded by ADR-0009 - 2025-07-14](0002-hosted-gemini-api-over-local-ollama.md)
+- [0003 - A deterministic rule engine decides adaptation; LLMs only advise - accepted - 2026-02-25](0003-deterministic-rule-engine-for-adaptation.md)
+- [0004 - Structural mutations fail closed and are capped; evaluations are append-only - accepted - 2026-03-03](0004-fail-closed-structural-mutations-and-append-only-evaluations.md)
+- [0005 - Three advisory-only agents with strict JSON contracts enforced by an output guard - accepted - 2026-03-03](0005-three-advisory-agents-with-guarded-json-contracts.md)
+- [0006 - Adaptation persistence behind one adapter interface, file or Postgres chosen by env var - accepted - 2026-03-19](0006-adaptation-persistence-adapter-selected-by-env.md)
+- [0007 - Email one-time-code login with hashed codes and tokens and 30-day sessions - accepted - 2026-04-11](0007-email-one-time-code-login.md)
+- [0008 - Persist onboarding drafts server-side in `onboarding_drafts` - superseded by ADR-0012 - 2026-05-06](0008-server-side-onboarding-drafts.md)
+- [0009 - Multi-provider AI fallback (OpenAI, then Gemini, then Anthropic) via raw fetch - accepted - 2026-06-12](0009-multi-provider-ai-fallback-via-raw-fetch.md)
+- [0010 - Narrow wedge: service-industry workers 35+, one IT-support track, no in-house curriculum - accepted - 2026-05-08](0010-narrow-wedge-service-workers-it-support-track.md)
+- [0011 - Host on Railway: one project, Nixpacks, no Dockerfiles, static frontend via `serve` - accepted - 2026-06-24](0011-host-on-railway-with-nixpacks.md)
+- [0012 - Keep onboarding drafts in localStorage only; drop the database table - accepted - 2026-06-13](0012-onboarding-drafts-in-localstorage-only.md)
+- [0013 - Ship the pilot first; behavioral research is a fast-follow; minimal pilot logging - accepted - 2026-06-12](0013-ship-pilot-first-research-as-fast-follow.md)
+- [0014 - Treat the engine's rule order as provisional; realign to safety-first only after research - accepted - 2026-06-12](0014-provisional-engine-rule-order-pending-research.md)
+- [0015 - Career-switch is a mode on a general learning engine; no new modes during the pilot - accepted - 2026-06-12](0015-career-switch-as-mode-on-general-engine.md)
+- [0016 - Persisted 14-day sprint loop with one Professor session per day - accepted - 2026-06-14](0016-persisted-14-day-sprint-loop.md)
+- [0017 - Serve the pilot on a subdomain of the public site via CNAME, not a `/pilot` path - accepted - 2026-07-03](0017-pilot-on-subdomain-via-cname.md)
+- [0018 - Do not wire the adaptation engine for the pilot; leave it in place - accepted - 2026-07-03](0018-do-not-wire-adaptation-engine-for-pilot.md)
+- [0019 - Paid pilot: ~10 users, founder runs the rules by hand, Exit Report, kill criteria - superseded by ADR-0021 - 2026-07-12](0019-paid-founder-run-pilot.md)
+- [0020 - Defer the event-journal / deterministic-tick / replay re-architecture to Phase 4 - accepted - 2026-07-12](0020-defer-event-journal-rearchitecture-to-phase-4.md)
+- [0021 - Validate with an n=3 unpaid, founder-silent, 14-day efficacy test - accepted - 2026-08-13](0021-n3-unpaid-founder-silent-efficacy-test.md)
+- [0022 - Code-ownership ladder: the founder types; Claude explains and reviews - accepted - 2026-08-13](0022-founder-types-claude-reviews-ownership-ladder.md)
