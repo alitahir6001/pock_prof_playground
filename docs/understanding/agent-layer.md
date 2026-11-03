@@ -56,8 +56,8 @@ Each agent has a different emotional register and role. The Professor is patient
 
 ## Gotchas
 
-- **AI is not wired yet.** All three agent endpoints currently return the static `example_output.json` for that agent. Real AI (Gemini → OpenAI → Claude fallback) is the next backend task.
-- **`agentOutputGuard.ts` exists but is not currently called in the route handler.** It must be wired in when real AI is connected. Don't skip it — it's the safety net that prevents malformed AI responses from reaching the frontend or the adaptation engine.
+- **AI is wired.** `POST /pilot/agents/:agentType/run` (`backend/scripts/run_adaptation_fastify.mjs`) calls `runAgentInference`, which runs the OpenAI → Gemini → Anthropic chain. `example_output.json` is only the last-resort fallback when every provider fails.
+- **`agentOutputGuard.ts` runs as the `validate` callback inside `runAgentInference`**, so a guard failure falls through to the next provider. Keep it in that chain — it's the safety net that prevents malformed AI responses from reaching the frontend or the adaptation engine.
 - **Input is not validated before storage.** The current route handler stores whatever arrives in the `input` field without checking it against the agent's expected schema. Fine for now, worth noting for later.
 - **No deduplication.** Calling the same agent twice creates two interaction records. That's by design — the audit trail captures every run.
 - **Onboarding runs once but isn't enforced.** There's no code that prevents running it multiple times. The intent is once-per-user, but that's not enforced at the API level.
