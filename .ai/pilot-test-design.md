@@ -15,7 +15,7 @@ This test asks one question: **does the software, with the founder silent, move 
 
 The session-8/9 plan (10 paid users, founder manually running the 5 engine rules over SMS) is dead:
 
-1. Its own written kill criterion fired — the founder would dread the daily texting, and a *successful* result would commit him to work he doesn't want.
+1. Its own written kill criterion fired.
 2. It could not answer the question above. Wizard-of-Oz puts the founder in the loop **by design**, so a good result would be unattributable between the app and the person.
 
 Willingness-to-pay is deferred, not abandoned. It is downstream of efficacy and moot if the answer here is no.
