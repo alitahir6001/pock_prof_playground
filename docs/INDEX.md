@@ -17,6 +17,7 @@ Come here when you need to go deeper on a specific topic. Read only what your ta
 | File | What it covers | Read when |
 |---|---|---|
 | `project_onboarding_and_phase_guide.md` | All 6 phases, local setup, validation checklists, active conflicts | Starting fresh or setting up local dev |
+| `adr/README.md` | Index of Architecture Decision Records: why each design, architecture, and product decision was made | Before reversing or revisiting a decision |
 | `system_invariants_v1.md` | Hard architectural constraints: determinism, mutation caps, event immutability, audit requirements | Before touching persistence, adaptation, or agent layers |
 | `behavioral_design_v1.md` | 11 behavioral principles that drive adaptation rules and UI defaults (implementation intentions, micro-proof momentum, recovery over perfection, etc.) | Before touching any adaptation rule or agent behavior |
 
