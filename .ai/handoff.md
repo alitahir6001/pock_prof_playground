@@ -3,7 +3,7 @@
 ## Current State
 Nothing has shipped. Last code commit **2026-06-24**; last commit of any kind **2026-07-03**; session 9's docs work is still uncommitted. Deploy has been the single next step since 2026-06-14 — **two months of a one-item to-do list not getting done.**
 
-Session 10 was a grilling session (no code) that found the actual cause of the stall, which is not what sessions 8–9 assumed. It is two things: **efficacy doubt** ("I don't know if I can build something that actually helps someone leave a job they hate") and **not understanding the codebase** ("I couldn't tell you how this works end to end"). The paid founder-run Wizard-of-Oz pilot is **dead** — its own kill criterion fired (founder would dread the daily texting), and it could never have answered the efficacy question anyway.
+Session 10 was a grilling session (no code) that changed what gets tested first: **efficacy** (does the product help someone act on a months-stalled goal), untested with real users. The paid founder-run Wizard-of-Oz pilot is **dead** — its own kill criterion fired, and it could never have answered the efficacy question anyway.
 
 Test protocol and frozen branch criteria: `.ai/pilot-test-design.md`.
 
