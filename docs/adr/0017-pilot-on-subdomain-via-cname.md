@@ -19,4 +19,4 @@ Chosen option: "Subdomain via CNAME", because a path would need a reverse proxy,
 * Bad, because DNS setup is an extra manual pre-launch step.
 
 ## More Information
-Evidence: 9d16f26, `.ai/handoff.md:32`, `.ai/history.md` (session 8).
+Evidence: 9d16f26, `.ai/handoff.md:32`, `.ai/history.md` (session 8). Carried out by [ADR-0023](0023-pilot-address-learn-pakfro-dev.md).
