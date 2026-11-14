@@ -24,3 +24,5 @@ One file per design, architecture, or product decision that shapes Pocket Profes
 - [0020 - Defer the event-journal / deterministic-tick / replay re-architecture to Phase 4 - accepted - 2026-07-12](0020-defer-event-journal-rearchitecture-to-phase-4.md)
 - [0021 - Validate with an n=3 unpaid, founder-silent, 14-day efficacy test - accepted - 2026-08-13](0021-n3-unpaid-founder-silent-efficacy-test.md)
 - [0022 - Code-ownership ladder: the founder types; Claude explains and reviews - accepted - 2026-08-13](0022-founder-types-claude-reviews-ownership-ladder.md)
+- [0023 - Serve the pilot at `learn.pakfro.dev`, the only origin the backend accepts - accepted - 2026-11-14](0023-pilot-address-learn-pakfro-dev.md)
+- [0024 - Reach the Railway database through an SSH tunnel, never a public TCP proxy - accepted - 2026-11-14](0024-db-access-via-railway-ssh-tunnel.md)
