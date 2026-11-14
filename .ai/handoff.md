@@ -4,7 +4,7 @@
 2026-11-14 (deploy session; follows the 2026-11-03 ADR backfill)
 
 ## Current state
-The app is **live at `https://learn.pakfro.dev`** on a new Railway project `pocket-professor` (Postgres + backend + frontend, auto-deploy from GitHub `main`). Server-side smoke checks pass (health with DB + AI configured, CORS locked to `learn.pakfro.dev`, `/adaptation/evaluate` 403, admin 401 without a session), but a real browser login, onboarding and `#admin` are not yet tested. Vision lives in `.ai/vision.md`; decisions in `docs/adr/` (ADR-0001 to 0024; 0023 = the domain, 0024 = DB access only via SSH tunnel).
+The app is **live at `https://learn.pakfro.dev`** on a new Railway project `pocket-professor` (Postgres + backend + frontend, repo-linked, manual deploys only). Server-side smoke checks pass (health with DB + AI configured, CORS locked to `learn.pakfro.dev`, `/adaptation/evaluate` 403, admin 401 without a session), but a real browser login, onboarding and `#admin` are not yet tested. Vision lives in `.ai/vision.md`; decisions in `docs/adr/` (ADR-0001 to 0024; 0023 = the domain, 0024 = DB access only via SSH tunnel).
 
 ## Active task
 **Shake down the live app, then run the n=3 founder-silent test.** Ali drives; Claude explains and reviews (ADR-0022). Personal side project, no deadline.
@@ -17,6 +17,7 @@ The app is **live at `https://learn.pakfro.dev`** on a new Railway project `pock
 6. [ ] (user) Run the test per `.ai/pilot-test-design.md` (frozen once user 1 starts); score against its branch criteria the week it ends.
 
 **Live deploy reference**
+- **Deploys are manual** (2026-11-14): GitHub push triggers deleted on both services, repo still linked, so pushes never touch the live app. To ship a commit: `railway api 'mutation($s:String!,$e:String!,$c:String!){serviceInstanceDeployV2(serviceId:$s,environmentId:$e,commitSha:$c)}' --raw-var s=<serviceId> --raw-var e=<envId> --raw-var c=$(git rev-parse origin/main)` (IDs via `railway status --json`). Tested on frontend.
 - Railway project `pocket-professor`, env `production`. Services: `Postgres`, `backend` (root `/backend`, port 3040, domain `backend-production-f74fcea6.up.railway.app`), `frontend` (root `/frontend`, `PORT=8080`, custom domain `learn.pakfro.dev` + generated `frontend-production-9f4b149b.up.railway.app`, which loads but can't log in). The old `pocket-professor-backend` project was deleted; Railway finalizes 2026-11-16.
 - Build: Nixpacks via `<service>/railway.json` (build log confirms; ADR-0011 holds). Root dir and build/start commands are also set on each service with the same values.
 - Backend env: `NODE_ENV=production`, `ADAPTATION_PERSISTENCE_MODE=postgres`, `ADAPTATION_HOST=0.0.0.0`, `ADAPTATION_PORT=3040`, `DATABASE_URL` + `ADAPTATION_DATABASE_URL` = `${{Postgres.DATABASE_URL}}`, `FRONTEND_ORIGIN=https://learn.pakfro.dev` (single origin), `ADMIN_EMAIL`, `RESEND_API_KEY` (send-only, `pakfro.dev` only), `RESEND_FROM_EMAIL`, 3 AI keys. `ADAPTATION_INTERNAL_TOKEN` unset, so evaluate stays disabled. **Never** `PILOT_EXPOSE_DEV_CODE` (#14). Frontend env: `VITE_API_BASE_URL` = backend URL (build-time), `NODE_ENV`, `PORT`.
