@@ -130,3 +130,28 @@ test('rejects non-obvious clinical framing language variants', () => {
     if (!result.ok) assert.equal(result.reason, 'PROHIBITED_CONTENT');
   }
 });
+
+const validProfessor = {
+  agent: 'professor_agent',
+  schema_version: '1.0.0',
+  session_objective: 'Trace one failed connection from cable to gateway.',
+  options: [
+    { label: 'best_next', task_summary: 'Run ping and tracert to the gateway and note where it stops.' },
+    { label: 'easier_fallback', task_summary: 'Label the four steps of a connection check on a diagram.' }
+  ],
+  resistance_signal: 'none',
+  escalation_recommendation: 'none',
+  next_actions: ['Pick one option.', 'Write down what you saw.']
+};
+
+test('professor: recall_note is optional, and may be null or a short string', () => {
+  assert.equal(validateAgentOutput('professor_agent', validProfessor).ok, true);
+  assert.equal(validateAgentOutput('professor_agent', { ...validProfessor, recall_note: null }).ok, true);
+  const withNote = { ...validProfessor, recall_note: 'Four days ago you found the default gateway; today builds on that.' };
+  assert.equal(validateAgentOutput('professor_agent', withNote).ok, true);
+});
+
+test('professor: rejects a recall_note that is too long or not a string', () => {
+  assert.equal(validateAgentOutput('professor_agent', { ...validProfessor, recall_note: 'x'.repeat(181) }).ok, false);
+  assert.equal(validateAgentOutput('professor_agent', { ...validProfessor, recall_note: 42 }).ok, false);
+});

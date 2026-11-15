@@ -41,9 +41,17 @@ export const SCHEMA_SPEC: Record<AgentType, string> = {
 
   professor_agent: [
     'Return a JSON object with EXACTLY these top-level keys (no more, no fewer):',
-    '  agent, schema_version, session_objective, options, resistance_signal, escalation_recommendation, next_actions',
+    '  agent, schema_version, session_objective, options, resistance_signal, escalation_recommendation, next_actions, recall_note',
     '',
     'Rules:',
+    '- recall_note: a string of max 180 chars, or null. The input may include student_history: this learner\'s real',
+    '  past sessions and missed days. If it holds a "completed" entry with days_ago of 3 or more, write ONE plain',
+    '  sentence to the learner that names that earlier task and ties today\'s session to it, in the shape',
+    '  "<N> days ago you <what they did, from that entry\'s task_summary>; today <how today goes one step further>."',
+    '  Use ONLY tasks that appear in student_history: never invent or guess at past work.',
+    '  If there is no such entry, recall_note is null. Do not mention missed days in it.',
+    '- Every option must be a NEW task that goes one step beyond what student_history shows as completed.',
+    '  Do not hand back a task the learner already did, even reworded.',
     '- agent: the string "professor_agent".',
     '- schema_version: the string "1.0.0".',
     '- session_objective: string, max 180 chars.',

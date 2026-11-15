@@ -33,5 +33,6 @@
   "next_actions": [
     "Pick one option in under 2 minutes.",
     "Submit one concrete output before ending session."
-  ]
+  ],
+  "recall_note": null
 }

@@ -140,13 +140,18 @@ function validateProfessor(payload: Record<string, unknown>): GuardResult {
     'options',
     'resistance_signal',
     'escalation_recommendation',
-    'next_actions'
+    'next_actions',
+    'recall_note'
   ];
 
   if (!hasOnlyKeys(payload, allowed)) return fail('professor payload contains unknown fields', 'UNMAPPED_ACTION');
   if (payload.agent !== 'professor_agent') return fail('agent literal mismatch');
   if (payload.schema_version !== '1.0.0') return fail('schema_version mismatch');
   if (typeof payload.session_objective !== 'string' || payload.session_objective.length > 180) return fail('session_objective invalid');
+  // Optional: absent or null means "nothing earlier to tie this session to".
+  if (payload.recall_note !== undefined && payload.recall_note !== null) {
+    if (typeof payload.recall_note !== 'string' || payload.recall_note.length > 180) return fail('recall_note invalid');
+  }
 
   if (!Array.isArray(payload.options) || payload.options.length < 2 || payload.options.length > 3) return fail('options count invalid');
   for (const op of payload.options) {
