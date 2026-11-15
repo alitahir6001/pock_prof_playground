@@ -12,7 +12,7 @@ Design decisions: docs/adr/ (index: docs/adr/README.md). Write new ones with the
 
 ## Honest Assessment & Path to Revenue (session 9, 2026-07-12)
 
-Durable strategic verdict from a full project evaluation. Read before proposing ANY new build work: the default answer to "should we build X" is **no** until the n=3 test produces a result.
+Durable strategic verdict from a full project evaluation. Read before proposing ANY new build work: the default answer to "should we build X" is **no**, except vision build steps 1–4 (ADR-0025), until the n=3 test produces a result.
 
 **Revised product thesis:** the moat is NOT plan generation (ChatGPT plans are free). It's **accountability + a believable path + someone in your corner**. The product is "a path with a person attached, where software gradually replaces the person." Never build curriculum: one track (IT support, CompTIA A+ as the spine, free existing content like Professor Messer) — sell the scaffolding: triage, daily sizing, the comeback loop, proof artifacts.
 
@@ -23,9 +23,9 @@ Durable strategic verdict from a full project evaluation. Read before proposing 
 
 **Rejected pivots (don't re-litigate without new data):** top-to-bottom B2B worker-training rebuild (6–18mo sales cycles kill solo founders; B2G arrives later by pull, via outcome data); generic "AI upskilling app" (the most crowded framing; discards both real advantages — story and demographic access); trashing the idea pre-data (same error class as building for 8 months pre-data).
 
-**Replacement test:** 3 unpaid people, deployed app, 14 days, **founder silent** between day 0 and day 14. Day 0 pre-registers a specific thing each has been stalled on for months; day 14 asks what they actually did. Bar: ≥1 of 3. Branch criteria frozen before day 0 in `.ai/pilot-test-design.md`. Willingness-to-pay is deferred, not abandoned — it's downstream of efficacy and moot if the answer is no.
+**Replacement test:** 3 unpaid people, deployed app, 14 days, **founder silent** between day 0 and day 14. Day 0 pre-registers a specific thing each has been stalled on for months; day 14 asks what they actually did. Bar: ≥1 of 3. Branch criteria frozen before day 0 in `.ai/pilot-test-design.md`. Willingness-to-pay is deferred, not abandoned — it's downstream of efficacy and moot if the answer is no. Runs on vision steps 1–4 (ADR-0025). Automated app email is allowed; founder contact is not.
 
-**Thesis now under test:** the product is **the constraint** — one task, chosen for you, sized for a post-shift brain, no bingeing, no spiraling — not the plan text. ChatGPT's infinite optionality is precisely what paralyzes the target user; a gate is the one thing a chat box structurally cannot be.
+**Thesis now under test:** free content is everywhere; what's missing is structure and accountability fitted to the person. The app supplies them with memory, initiative and one task a day sized for a post-shift brain (ADR-0025).
 
 Dead until the test produces a result: paid cohort, recruiting funnel, founder-as-engine SOP, intervention log, day-14 Exit Report.
 
@@ -48,6 +48,8 @@ npm run db:migrate:adaptation:up   # Apply adaptation_evaluations schema
 npm run db:migrate:adaptation:down
 npm run db:migrate:pilot:up        # Apply pilot_users/pilot_sessions schema
 npm run db:migrate:pilot:down
+npm run db:migrate:student:up      # Apply pilot_student_events (student file) + pilot_users.time_zone
+npm run db:migrate:student:down
 ```
 
 ### Frontend (run from `/frontend`)
@@ -126,6 +128,7 @@ All agent output passes through `agentOutputGuard.ts` (schema validation + prohi
 - `adaptation_evaluations` — Audit records per evaluation
 - `pilot_users` — User records (user_id, email)
 - `pilot_sessions` — Session tokens
+- `pilot_student_events` — the student file: append-only per-user event log (sessions, misses, check-ins, nudges). Read it with `GET /pilot/admin/student-file?email=`
 - Raw SQL migrations in `backend/db/migrations/`
 
 ## Frontend Structure
@@ -203,6 +206,10 @@ _Numbered in discovery order. Never delete — only add._
 17. **Railway deploy: `NODE_ENV=production` + `npm install` SKIPS devDependencies (2026-06-14).** We require `NODE_ENV=production` for the security guards (gotcha #15), but that makes a plain `npm install` omit devDeps → `typescript` (backend) and `vite` (frontend) vanish → build fails. Both `railway.json` buildCommands use `npm install --include=dev && npm run build` to force them. Both services deploy via **Nixpacks, no Dockerfile** (one Railway project, frontend served static via `serve -s dist -l $PORT`). Backend prod start is `start:prod` (`node scripts/run_adaptation_fastify.mjs`) — NOT `start:adaptation-runtime`, whose `--env-file=../.env` crashes on Railway (no such file; env is injected). The `#admin` hash route means the static host needs NO SPA-fallback config.
 
 18. **Half the backend TS is NOT in the live path (measured 2026-08-13).** The adaptation engine is **1,114 lines — over half of `backend/src` — and `frontend/src` never calls `/adaptation/` once.** It is reachable only via `POST /adaptation/evaluate`, which no client hits. The live product is 13 routes, 9 of them called by the frontend (one of those, `/pilot/onboarding/draft`, has no server route at all — gotcha #6). Whole repo ≈ 4,800 lines (2,145 backend TS + 613 server shell + 2,080 frontend). The "multi-agent system" is 3 folders × 4 files (`soul.md`, `system_instructions.md`, `output_schema.ts`, `example_output.json`) + one runner that builds a single prompt and falls back across providers — no orchestration, no autonomy.
+
+19. **Student file (`pilot_student_events`, 2026-11-15, ADR-0025 step 1).** Logic lives in `backend/src/modules/student/` (typed, tested); the `.mjs` shell only wires it. Three things to not break: (a) misses are written lazily by `loadStudentFile` (on plan load, day completion, and the admin read), never on the missed day itself, so a user who never returns has no miss rows until something reads their file; (b) the partial unique index `uq_pilot_student_events_daily` is what enforces one-per-day events, not app code; (c) events hang off the user, not the plan, so they survive re-onboarding. "Today" is the user's `pilot_users.time_zone` (sent by the frontend on boot; NULL = UTC). **Deploy order:** apply migration 005 BEFORE deploying this code, or `GET /pilot/plan` 500s for every onboarded user. Local check without waiting days: `node scripts/dev_seed_student_file.mjs` (localhost DB only).
+
+20. **Comeback check-in + "keep going" (2026-11-15, ADR-0025 step 3, ADR-0027).** `backend/src/modules/student/comeback.ts` is the ONLY live caller of the adaptation engine: it wires one rule (`R_MISSED_2_IN_7D`) and feeds the other four counters as zero/false on purpose. Two separate conditions, don't merge them: the gap (2+ missed days in a row right before today, no session yet today) decides WHEN; the engine rule decides HOW MUCH (25%, rounded to 5, floor 10, so a 10-minute plan is not shortened). The server sets the Professor's `minutes_available_today` on a comeback day and ignores the client's number. The comeback note is fixed copy in `comebackNote()`, frozen for the n=3 test. The day gate and the 3-sessions-a-day cap (`MAX_SESSIONS_PER_DAY` in `App.jsx`) are client-side only; the server enforces neither.
 
 ## Key Documentation
 
