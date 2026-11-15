@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import OnboardingFlow from './onboarding/OnboardingFlow';
 import { PrimaryButton } from './onboarding/components/Button';
-import { agents, submitFeedback, planApi } from './onboarding/api';
+import { agents, submitFeedback, planApi, settingsApi } from './onboarding/api';
 import { CAREER_OPTIONS, RATIONALE_LABEL, RISK_FLAGS } from './onboarding/data';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
@@ -334,7 +334,7 @@ function PlanView({ plan, onSwitch, onContinue, error, onRestart, onRefine, refi
 }
 
 // ── Professor session for a given sprint day: pick one bounded task ──────────
-function SessionView({ output, interactionId, dayNumber, sprintDayCount, busy, onDone, onBack }) {
+function SessionView({ output, interactionId, dayNumber, sprintDayCount, comebackNote, busy, onDone, onBack }) {
   const options = [...(output.options || [])].sort((a, b) => {
     const order = { best_next: 0, easier_fallback: 1, catch_up: 2 };
     return (order[a.label] ?? 9) - (order[b.label] ?? 9);
@@ -348,6 +348,12 @@ function SessionView({ output, interactionId, dayNumber, sprintDayCount, busy, o
       <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-3">
         {isFirst ? "Today's first session" : `Day ${dayNumber} of ${sprintDayCount}`}
       </div>
+      {comebackNote && (
+        <div className="mb-4 rounded-2xl bg-accent-soft border border-accent px-4 py-3 text-[14px] text-ink-0 leading-[1.6]">{comebackNote}</div>
+      )}
+      {output.recall_note && (
+        <p className="text-[14px] text-ink-1 mb-3 leading-[1.6] border-l-2 border-accent pl-3">{output.recall_note}</p>
+      )}
       <h1 className="font-serif text-[24px] leading-tight text-ink-0 mb-3">{output.session_objective}</h1>
       <p className="text-[14px] text-ink-2 mb-5 leading-[1.6]">Pick the one you'll do right now — that's the whole session. Then mark it done.</p>
 
@@ -403,8 +409,11 @@ function SessionView({ output, interactionId, dayNumber, sprintDayCount, busy, o
   );
 }
 
+// ADR-0027: one session a day is the default; "keep going" allows up to this many.
+const MAX_SESSIONS_PER_DAY = 3;
+
 // ── Dashboard: the returning-user home. Sprint progress + today's CTA. ───────
-function DashboardView({ plan, completedDays, activeTrack, doneToday, starting, error, onStartSession, onViewPlan }) {
+function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsToday, comeback, starting, error, onStartSession, onViewPlan }) {
   const sprintDayCount = plan.sprint_day_count || plan.sprint?.duration_days || 14;
   const doneCount = completedDays.length;
   const nextDay = doneCount + 1;
@@ -439,13 +448,27 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, starting, 
             {doneToday ? "Today's session — done ✓" : `Today: day ${nextDay}`}
           </div>
           {doneToday ? (
-            <div className="text-[14px] text-ink-1 leading-[1.6]">
-              Nice — you did today's bite-size win. Come back tomorrow when your trigger fires and I'll have day {nextDay} ready.
-            </div>
+            <>
+              <div className="text-[14px] text-ink-1 leading-[1.6]">
+                Nice — you did today's bite-size win. Come back tomorrow when your trigger fires and I'll have day {nextDay} ready.
+              </div>
+              {sessionsToday < MAX_SESSIONS_PER_DAY && (
+                <button
+                  onClick={onStartSession}
+                  disabled={starting}
+                  className="mt-3 font-sans text-[13px] text-ink-2 underline underline-offset-2 hover:text-ink-0 disabled:opacity-50"
+                >
+                  {starting ? 'Setting up…' : `Keep going with day ${nextDay}`}
+                </button>
+              )}
+            </>
           ) : (
             <>
+              {comeback && (
+                <div className="text-[14px] text-ink-0 leading-[1.6] mb-3">{comeback.note}</div>
+              )}
               <div className="text-[14px] text-ink-1 leading-[1.6] mb-3">
-                One small, finishable thing on <strong>{activeTrack?.title}</strong>. About {plan.sprint?.daily_minutes_target || 20} minutes.
+                One small, finishable thing on <strong>{activeTrack?.title}</strong>. About {comeback?.minutes || plan.sprint?.daily_minutes_target || 20} minutes.
               </div>
               <PrimaryButton onClick={onStartSession} disabled={starting}>
                 {starting ? 'Setting up…' : nextDay === 1 ? "Start today's first session" : `Start day ${nextDay}`}
@@ -492,6 +515,7 @@ function MainApp() {
   const [loading, setLoading] = useState(true);           // loading the saved plan on mount
   const [plan, setPlan] = useState(null);                 // plan_json (+ sprint_day_count) or null
   const [completedDays, setCompletedDays] = useState([]);
+  const [comeback, setComeback] = useState(null);         // set by the server after 2+ missed days
   const [view, setView] = useState('dashboard');          // 'plan' | 'dashboard' | 'session'
   const [todaySession, setTodaySession] = useState(null); // professor run for the current day
   const [starting, setStarting] = useState(false);
@@ -506,12 +530,17 @@ function MainApp() {
     let cancelled = false;
     (async () => {
       try {
+        // Before the plan load: the server uses the zone to decide which days were missed.
+        await settingsApi
+          .save({ time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+          .catch(() => {});
         const res = await planApi.get();
         if (cancelled) return;
         const sp = res?.plan;
         if (sp) {
           setPlan({ ...sp.plan, active_track_id: sp.active_track_id, sprint_day_count: sp.sprint_day_count });
           setCompletedDays(sp.completed_days || []);
+          setComeback(res.comeback || null);
           setView('dashboard');
         }
       } catch {
@@ -543,7 +572,8 @@ function MainApp() {
   const activeTrack =
     (plan.tracks || []).find((t) => t.path_id === plan.active_track_id) || (plan.tracks || [])[0];
   const sprintDayCount = plan.sprint_day_count || plan.sprint?.duration_days || 14;
-  const doneToday = completedDays.some((d) => isSameLocalDay(d.completed_at));
+  const sessionsToday = completedDays.filter((d) => isSameLocalDay(d.completed_at)).length;
+  const doneToday = sessionsToday > 0;
 
   async function handleOnboardingComplete(p) {
     setSessionError('');
@@ -564,15 +594,16 @@ function MainApp() {
     setStarting(true);
     setSessionError('');
     const dayNum = completedDays.length + 1;
-    const priorSummaries = completedDays.map((d) => d.task_summary).filter(Boolean).join('; ');
     try {
       const res = await agents.professor({
         topic: activeTrack?.title || 'your first skill',
         comfort_level: 'beginner',
+        // On a comeback day the server overrides this with the shorter length.
         minutes_available_today: plan.sprint?.daily_minutes_target || 20,
         context: dayNum === 1
           ? 'first session immediately after onboarding'
-          : `Day ${dayNum} of a ${sprintDayCount}-day sprint on ${activeTrack?.title}. Already completed: ${priorSummaries || 'nothing logged'}. Give a fresh, slightly more advanced small task that builds on prior days — do not repeat earlier ones.`,
+          // Past sessions are no longer sent from here: the server adds them from the student file.
+          : `Day ${dayNum} of a ${sprintDayCount}-day sprint on ${activeTrack?.title}. Give a fresh, slightly more advanced small task that builds on prior days.`,
       });
       setTodaySession(res);
       setView('session');
@@ -594,6 +625,7 @@ function MainApp() {
         task_summary: pickedOption?.task_summary || null,
       });
       setCompletedDays(res.plan.completed_days || []);
+      setComeback(null); // first session back is done; the next one today is normal length
       setTodaySession(null);
       setView('dashboard');
     } catch (e) {
@@ -664,6 +696,7 @@ function MainApp() {
         interactionId={todaySession.interaction_id}
         dayNumber={completedDays.length + 1}
         sprintDayCount={sprintDayCount}
+        comebackNote={todaySession.comeback?.note}
         busy={savingDay}
         onDone={markDayDone}
         onBack={() => { setTodaySession(null); setView('dashboard'); }}
@@ -692,6 +725,8 @@ function MainApp() {
       completedDays={completedDays}
       activeTrack={activeTrack}
       doneToday={doneToday}
+      sessionsToday={sessionsToday}
+      comeback={comeback}
       starting={starting}
       error={sessionError}
       onStartSession={startSession}

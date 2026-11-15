@@ -63,6 +63,11 @@ export const planApi = {
     call('/pilot/plan/day', 'POST', { day_index, track_id, interaction_id, task_summary }),
 };
 
+// ── User settings ──────────────────────────────────
+export const settingsApi = {
+  save: (settings) => call('/pilot/me/settings', 'POST', settings),
+};
+
 // ── Feedback ───────────────────────────────────────
 export function submitFeedback({ component, interaction_id, helpful, comment }) {
   return call('/pilot/feedback', 'POST', { component, interaction_id, helpful, comment });
