@@ -16,6 +16,8 @@
     "src/modules/agents/phase2/ai/**/*.ts",
     "tests/agents/ai/**/*.ts",
     "tests/adaptation/**/*.ts",
-    "tests/agents/**/*.ts"
+    "tests/agents/**/*.ts",
+    "src/modules/student/**/*.ts",
+    "tests/student/**/*.ts"
   ]
 }
