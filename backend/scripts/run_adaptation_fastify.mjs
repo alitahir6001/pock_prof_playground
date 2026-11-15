@@ -7,6 +7,10 @@ import { handleAdaptationHttpRoute } from '../dist/src/modules/adaptation/phase3
 import { classifyAdaptationError } from '../dist/src/modules/adaptation/phase3/adaptationObservability.js';
 import { aiProviderConfigFromEnv } from '../dist/src/modules/agents/phase2/ai/aiProviderService.js';
 import { runAgentInference } from '../dist/src/modules/agents/phase2/ai/agentInferenceRunner.js';
+import { evaluateComeback } from '../dist/src/modules/student/comeback.js';
+import { buildProfessorHistory } from '../dist/src/modules/student/professorHistory.js';
+import { isValidTimeZone } from '../dist/src/modules/student/studentFile.js';
+import { appendEvent, loadStudentFile } from '../dist/src/modules/student/studentFileStore.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -372,6 +376,17 @@ app.get('/pilot/me', async (request) => {
   return { ok: true, user: { user_id: session.user_id, email: session.email } };
 });
 
+// The time zone decides what "today" and "a missed day" mean for this user.
+app.post('/pilot/me/settings', async (request) => {
+  const session = await requireSession(request);
+  const timeZone = request.body?.time_zone;
+  if (!isValidTimeZone(timeZone)) {
+    throw Object.assign(new Error('time_zone must be an IANA zone name.'), { statusCode: 400 });
+  }
+  await postgresPool.query('UPDATE pilot_users SET time_zone = $1 WHERE user_id = $2', [timeZone, session.user_id]);
+  return { ok: true, settings: { time_zone: timeZone } };
+});
+
 app.post('/pilot/agents/:agentType/run', async (request) => {
   const session = await requireSession(request);
   const agentType = String(request.params.agentType || '');
@@ -380,7 +395,28 @@ app.post('/pilot/agents/:agentType/run', async (request) => {
     throw Object.assign(new Error('Unsupported agent type.'), { statusCode: 400 });
   }
 
-  const input = request.body?.input && typeof request.body.input === 'object' ? request.body.input : {};
+  let input = request.body?.input && typeof request.body.input === 'object' ? request.body.input : {};
+  let comeback = null;
+
+  // The Professor's memory comes from the student file, never from the client:
+  // spread last so a client-sent student_history is overwritten.
+  if (agentType === 'professor_agent') {
+    const file = await loadStudentFile(postgresPool, session.user_id, new Date());
+    input = { ...input, student_history: buildProfessorHistory(file.events, file.today) };
+
+    comeback = await comebackFor(session.user_id, file);
+    if (comeback) {
+      // The server sizes a comeback session; the client's number is ignored.
+      input.minutes_available_today = comeback.minutes;
+      const { note, ...payload } = comeback;
+      await appendEvent(postgresPool, {
+        userId: session.user_id,
+        eventType: 'comeback_checkin',
+        localDate: file.today,
+        payload,
+      });
+    }
+  }
 
   const inference = await runAgentInference({
     agentType,
@@ -418,6 +454,7 @@ app.post('/pilot/agents/:agentType/run', async (request) => {
     interaction_id: interactionId,
     agent_type: agentType,
     output,
+    comeback,
     ai: { source: inference.source, tier: agentTierByType[agentType], used_fallback: inference.usedFallback },
   };
 });
@@ -486,6 +523,27 @@ app.get('/pilot/admin/cohort', async (request) => {
   return { ok: true, generated_at: new Date().toISOString(), users: out.rows || [] };
 });
 
+// --- Admin: one user's student file, in order (founder-only) --------------
+app.get('/pilot/admin/student-file', async (request) => {
+  await requireAdmin(request);
+  const email = normalizeEmail(request.query?.email);
+  const found = await postgresPool.query('SELECT user_id FROM pilot_users WHERE email = $1 LIMIT 1', [email]);
+  if (found.rowCount === 0) throw Object.assign(new Error('No user with that email.'), { statusCode: 404 });
+
+  const file = await loadStudentFile(postgresPool, found.rows[0].user_id, new Date());
+  return { ok: true, email, time_zone: file.timeZone, today: file.today, events: file.events };
+});
+
+// Null on an ordinary day. The base length is the one the student chose in onboarding.
+async function comebackFor(userId, file) {
+  const res = await postgresPool.query(
+    `SELECT plan_json->'sprint'->>'daily_minutes_target' AS minutes FROM pilot_plans WHERE user_id = $1 LIMIT 1`,
+    [userId],
+  );
+  const baseMinutes = Number(res.rows?.[0]?.minutes) || 20;
+  return evaluateComeback(file.events, file.today, baseMinutes, userId);
+}
+
 // --- Sprint plan persistence (one active plan per user) -------------------
 
 async function loadPlanForUser(userId) {
@@ -517,7 +575,13 @@ async function loadPlanForUser(userId) {
 app.get('/pilot/plan', async (request) => {
   const session = await requireSession(request);
   const plan = await loadPlanForUser(session.user_id);
-  return { ok: true, plan };
+  let comeback = null;
+  if (plan) {
+    // Opening the app is when misses since the last visit get written down.
+    const file = await loadStudentFile(postgresPool, session.user_id, new Date());
+    comeback = await comebackFor(session.user_id, file);
+  }
+  return { ok: true, plan, comeback };
 });
 
 // Upsert the user's single active plan. Re-onboarding replaces the prior plan
@@ -552,6 +616,15 @@ app.post('/pilot/plan', async (request) => {
       [planId, session.user_id, JSON.stringify(planJson), activeTrackId, sprintDayCount],
     );
   }
+
+  // Load first so misses under the old plan are recorded before the new start.
+  const file = await loadStudentFile(postgresPool, session.user_id, new Date());
+  await appendEvent(postgresPool, {
+    userId: session.user_id,
+    eventType: 'plan_started',
+    localDate: file.today,
+    payload: { plan_id: planId, active_track_id: activeTrackId },
+  });
 
   const plan = await loadPlanForUser(session.user_id);
   return { ok: true, plan };
@@ -593,12 +666,33 @@ app.post('/pilot/plan/day', async (request) => {
   const taskSummary = typeof request.body?.task_summary === 'string' ? request.body.task_summary.slice(0, 400) : null;
 
   const dayId = `day_${randomUUID()}`;
-  await postgresPool.query(
-    `INSERT INTO pilot_sprint_days (day_id, user_id, plan_id, day_index, track_id, interaction_id, task_summary)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     ON CONFLICT (plan_id, day_index) DO NOTHING`,
-    [dayId, session.user_id, planId, dayIndex, trackId, interactionId, taskSummary],
-  );
+  // One transaction: the sprint day and its student-file event land together or not at all.
+  const client = await postgresPool.connect();
+  try {
+    await client.query('BEGIN');
+    const file = await loadStudentFile(client, session.user_id, new Date());
+    const inserted = await client.query(
+      `INSERT INTO pilot_sprint_days (day_id, user_id, plan_id, day_index, track_id, interaction_id, task_summary)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (plan_id, day_index) DO NOTHING`,
+      [dayId, session.user_id, planId, dayIndex, trackId, interactionId, taskSummary],
+    );
+    // rowCount 0 = a repeat of a day already marked done; don't log it twice.
+    if (inserted.rowCount > 0) {
+      await appendEvent(client, {
+        userId: session.user_id,
+        eventType: 'session_completed',
+        localDate: file.today,
+        payload: { day_index: dayIndex, track_id: trackId, task_summary: taskSummary, interaction_id: interactionId },
+      });
+    }
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 
   const plan = await loadPlanForUser(session.user_id);
   return { ok: true, plan };
