@@ -79,7 +79,7 @@ _The n=3 test runs here._
    _Done when:_ it produces a resume bullet or portfolio entry from the student's own history.
 
 ## Decided: what the n=3 test tests
-_Decided 2026-11-14. Summary only. The binding version will be the re-freeze ADR and `.ai/pilot-test-design.md`; until that ADR lands, ADR-0021 and the test design still describe the old plan._
+_Decided 2026-11-14. Summary only. The binding version is ADR-0025 and `.ai/pilot-test-design.md`._
 
 The test runs on steps 1–4, each at its "done when" line, with email as the only outreach channel.
 
@@ -95,5 +95,5 @@ What gets tested is memory, initiative and one task a day: rows 1, 2 and 5 of th
 ## What building can't solve
 - **Judgment:** what to say to someone ashamed after 4 missed days is learned from real users, not designed upfront. Steps 3–4 ship a first guess anyway, and the test freezes it for 14 days with the founder silent. Treat that wording as a variable under test, not a settled design.
 - **Motivation:** information was never the bottleneck. The bet is that follow-up and "someone noticed" move people.
-- **Option creep:** a full-featured PP can become the paralyzing menu again. The surface stays one task per day, and the inbox counts as surface: one nudge, one task.
+- **Option creep:** a full-featured PP can become the paralyzing menu again. The surface stays one task per day by default (a student can opt to keep going, ADR-0027), and the inbox counts as surface: one nudge, one task.
 - **The last mile:** AI can make someone interview-ready, not hired. The first outcome story comes from a real person.

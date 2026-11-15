@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by ADR-0025
 date: 2026-08-13
 ---
 # Validate with an n=3 unpaid, founder-silent, 14-day efficacy test
@@ -19,4 +19,4 @@ Chosen option: "n=3 silent test", because the founder-in-loop design could not t
 * Bad, because n=3 gives a directional signal, not a measurement, and says nothing about willingness to pay.
 
 ## More Information
-Evidence: af26696, c80adb9, `.ai/pilot-test-design.md`, `CLAUDE.md:26-30`. Supersedes [ADR-0019](0019-paid-founder-run-pilot.md). Also drops the Wizard-of-Oz part of [ADR-0018](0018-do-not-wire-adaptation-engine-for-pilot.md). Scope may change via the open A/B decision in `.ai/vision.md`.
+Evidence: af26696, c80adb9, `.ai/pilot-test-design.md`, `CLAUDE.md:26-30`. Supersedes [ADR-0019](0019-paid-founder-run-pilot.md). Also drops the Wizard-of-Oz part of [ADR-0018](0018-do-not-wire-adaptation-engine-for-pilot.md). Scope may change via the open A/B decision in `.ai/vision.md`. Superseded by [ADR-0025](0025-n3-test-runs-on-vision-steps-1-4.md).

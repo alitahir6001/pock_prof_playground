@@ -1,6 +1,6 @@
 # Pilot Test Design — n=3 silent efficacy test
 
-Written 2026-08-13 (session 10), **before** any user sees the app.
+Written 2026-08-13 (session 10), **before** any user sees the app. Revised 2026-11-15, before day 0, per ADR-0025 and ADR-0027.
 Nothing in this file may be edited after day 0 of the first user. If the bar moves, the test is worthless.
 
 ## What this test is for
@@ -25,7 +25,7 @@ Willingness-to-pay is deferred, not abandoned. It is downstream of efficacy and 
 - **n = 3**, recruited from the founder's warm network. n=1 is uninterpretable on failure.
 - **Unpaid.** No money changes hands. No payment link, no Stripe, no code.
 - **14 days**, matching the built sprint length.
-- **Founder is silent between day 0 and day 14.** No texts, no nudges, no "how's it going" — even while watching someone stall in the admin portal. The silence *is* the experiment.
+- **Founder is silent between day 0 and day 14.** No texts, no nudges from the founder, no "how's it going", even while watching someone stall in the admin portal. The app sends its own automated email reminder: at most one a day, at the trigger time the tester set, skipped if that day's session is done. That email is the product under test, not founder contact. The founder does not write, time, trigger, resend or edit one during the 14 days. The founder's silence *is* the experiment.
 - Two conversations only: day 0 (setup + pre-registration) and day 14 (measurement). These are the instrument, not coaching.
 
 ## Day 0 — script
@@ -37,6 +37,8 @@ Say it close to this. The permission-to-quit line is load-bearing: at n=3 friend
 > Before I give it to you I want to write down one thing, then I'm going to leave you completely alone for two weeks. I won't text you about it, I won't check in. Then I'll ask you what you actually did.
 >
 > Use it or don't. Please don't use it to be nice to me — that's worse for me than you not using it at all."
+
+**Inbox check, before handing over the URL.** Ask which email address they will use and send one sample nudge to it (same sender and template as the real reminder; the send-sample script from build step 4). They confirm it is in their main inbox. If it landed in Spam or Promotions, they move it to the inbox. This is a delivery check, not watching them onboard, and it is the only nudge the founder ever sends by hand.
 
 Then hand over the URL and walk away. Do not watch them onboard. Do not explain the features.
 
@@ -63,7 +65,7 @@ One conversation. Ask in this order, and do not lead:
 3. "What made you open it, the times you opened it?" — or "what made you stop?"
 4. "If I took it away tomorrow, what would you miss, if anything?"
 
-Then pull the DB numbers (`days_done`, per-day rows in `pilot_sprint_days`, `last_session_at`) and record them next to what they said. Self-report and telemetry disagreeing is itself a finding.
+Then pull the DB numbers (`days_done`, per-day rows in `pilot_sprint_days`, `last_session_at`, and the student file: sessions, misses, nudges sent) and record them next to what they said. Include sessions per calendar day: the app allows up to 3 a day through "keep going" (ADR-0027), so note whether each tester worked one a day or in bursts. Self-report and telemetry disagreeing is itself a finding.
 
 ## Branch criteria — fixed before day 0
 
@@ -71,7 +73,7 @@ Then pull the DB numbers (`days_done`, per-day rows in `pilot_sprint_days`, `las
 ≥1 of 3 completed their pre-registered action by day 14.
 → Continue. Next question becomes *why* it worked and for whom. Willingness-to-pay test comes after this, not before.
 
-*Mechanism evidence (record, don't gate on it):* ≥1 of 3 opened the app on day 5 or later with zero contact from the founder. This is the signal that the **constraint** — one task, chosen for you, sized for a post-shift brain, no bingeing — is what they came back for.
+*Mechanism evidence (record, don't gate on it):* ≥1 of 3 opened the app on day 5 or later with zero contact from the founder. This shows the software brought them back, not the founder. It does not show which part: for each day-5+ return, record from the student file whether a nudge was sent earlier that day, and set it beside their answer to day-14 question 3. A return with no nudge that day points at the constraint; a return after a nudge points at outreach.
 
 **STOP — differentiation doubt confirmed.**
 0 of 3 completed their action **and** all three stopped opening the app by day 5.
@@ -91,14 +93,16 @@ Then pull the DB numbers (`days_done`, per-day rows in `pilot_sprint_days`, `las
 - **The day-0 conversation is itself an intervention.** Being asked by someone you know is a nudge. Question 4 partially controls for it; nothing at n=3 fully does. This test produces *evidence*, never proof.
 - **Politeness confound.** Mitigated only by the day-0 framing. If a user's usage looks dutiful and evenly spaced with no real-world action, suspect it.
 - **n=3, non-random, founder's network.** These are the most sympathetic possible users. A failure here is therefore more informative than a success.
+- **The nudge and comeback wording is a first guess, frozen for 14 days.** A null may be the wording, not the mechanism.
+- **A sprint can end early.** With "keep going", 14 sessions can be done in as few as 5 days. After that the app dead-ends and nudges stop, so that tester's remaining days test nothing.
 - **The app dead-ends at day 14** ("Sprint complete", `frontend/src/App.jsx` ~:420). Deliberate. The day-14 conversation is the ending. Do not build an exit-report feature to fix this.
 
 ## What this test deliberately does NOT test
 
-Willingness to pay · founder-led coaching · the adaptation engine (unwired, and not in the live path) · recruiting/funnel · retention past 14 days · anything about scale.
+Willingness to pay · founder-led coaching · four of the five adaptation rules (unwired; only the missed-session rule is live) · recruiting/funnel · retention past 14 days · anything about scale.
 
 ## Hard rules
 
 1. No edits to this file after day 0 of user 1.
-2. No contact between day 0 and day 14, including replies to unprompted messages about the app beyond "I'll ask you everything on the 14th."
+2. No founder contact between day 0 and day 14, including replies to unprompted messages about the app beyond "I'll ask you everything on the 14th." Automated app emails are not founder contact; manually sending or resending one is (the day-0 sample nudge is the one exception).
 3. Log the result against these criteria the same week it ends, before deciding anything.
