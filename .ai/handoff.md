@@ -1,29 +1,35 @@
 # Handoff — live state snapshot
 
 ## Last updated
-2026-11-14 (deploy session, part 2: build-vs-test decision)
+2026-11-14 (deploy session, part 3: build-vs-test decision, vision v1.1, work order)
 
 ## Current state
-The app is **live at `https://learn.pakfro.dev`** on Railway project `pocket-professor` (Postgres + backend + frontend, repo-linked, manual deploys only); server smoke checks pass, browser login/onboarding/`#admin` untested. **Decided 2026-11-14:** the n=3 test runs on `.ai/vision.md` build steps 1–4 (student file, professor memory, comeback check-in, outreach), not the thin version and not the full vision. Nothing for that decision is written into the frozen docs yet: ADR-0021, `.ai/pilot-test-design.md`, `vision.md`'s A/B section and CLAUDE.md still describe the old plan.
+The app is **live at `https://learn.pakfro.dev`** on Railway project `pocket-professor` (Postgres + backend + frontend, repo-linked, manual deploys only); server smoke checks pass, browser login/onboarding/`#admin` untested. **Decided 2026-11-14:** the n=3 test runs on `.ai/vision.md` build steps 1–4 (student file, professor memory, comeback check-in, email outreach), and **Claude writes the code for those steps**, with Ali reviewing (changes ADR-0022). `vision.md` is v1.1 with both decisions plus a "Beyond IT (someday)" section. ADR-0021, `.ai/pilot-test-design.md` and CLAUDE.md still describe the old plan.
 
 ## Active task
-**Re-freeze the test around steps 1–4, then build steps 1→4.** Ali types the code; Claude explains and reviews (ADR-0022). Personal side project, no deadline.
+**Smoke the live app, then re-freeze the test docs, then plan and build steps 1–4.** Personal side project, no deadline. Each phase runs in its own chat: smoke feedback first, then re-freeze + plan + build.
 
-Why (advisor consult, 2026-11-14): a 0/3 on the thin app wouldn't be believed. Stopping after step 3 has the same gap, because a comeback check-in only reaches people who come back, and the likely failure in a founder-silent test is quiet drop-off. Steps 5–6 mostly govern week 3+, so they add little to a 14-day test. Ali agreed that steps 1–4 is the smallest build where 0/3 counts as a real answer.
+Why steps 1–4 (advisor consult, 2026-11-14): a 0/3 on the thin app wouldn't be believed. Stopping after step 3 has the same gap, because a comeback check-in only reaches people who come back. Steps 5–6 mostly govern week 3+. Ali agreed that 1–4 is the smallest build where 0/3 counts as a real answer.
 
-1. [ ] (Claude drafts, Ali approves) **Re-freeze docs before any code:**
-   - a new ADR superseding or amending ADR-0021: product under test = steps 1–4 at their "done when" lines; same question, same ≥1/3 bar;
-   - edit `.ai/pilot-test-design.md`: automated app reminders are allowed, and founder contact is still banned (`:28`, `:103`). Reword the mechanism-evidence line (`:74`, "the constraint"), since a return can now be caused by outreach;
-   - edit `vision.md`'s "Open decision" section to mark it resolved;
-   - update ADR-0018 (engine not wired) and ADR-0020 (event journal deferred) where step 1/3 reverses them;
+1. [ ] (user, then Claude) **Phone smoke** on `learn.pakfro.dev`:
+   - login as `ali@pakfro.dev` (the code comes via the Porkbun forward to Gmail; check spam);
+   - onboarding, plan, day 1, then reload;
+   - `learn.pakfro.dev/#admin`.
+
+   Ali reports the results in a feedback chat; Claude pulls `railway logs --service backend` for failures. Fixes are bugs and copy only. Do it first, because steps 1–4 build on login and onboarding.
+2. [ ] (user) **AI spend caps** on OpenAI, Gemini and Anthropic, before step 4 ships or anyone else gets the URL.
+3. [ ] (Claude drafts, Ali approves) **Re-freeze the docs before any code:**
+   - a new ADR superseding or amending ADR-0021: the product under test is steps 1–4, quoting the four "done when" lines from vision v1.1 verbatim; same question, same ≥1/3 bar. Then put its number into vision's "Decided" note;
+   - a new ADR amending ADR-0022: Claude writes steps 1–4 and Ali reviews; the rest of the ownership ladder stays;
+   - `.ai/pilot-test-design.md`: automated app reminders are allowed and founder contact is still banned (`:28`, `:103`); reword mechanism evidence (`:74`, "the constraint"); add a day-0 check that each tester's first nudge lands in the inbox, not spam or Promotions;
+   - check ADR-0018 (engine not wired) and ADR-0020 (event journal deferred), which steps 1 and 3 reverse;
    - CLAUDE.md "thesis under test" and "no new build" wording: **needs Ali's explicit OK**.
-2. [ ] (Ali types) Step 1, student file: per-user append-only event log (sessions, answers, misses, check-ins). Done when every session and miss for a user reads back in order from one place. This is also the test's measuring instrument.
-3. [ ] (Ali types) Step 2, professor reads it. Done when a lesson references something from 3+ days ago unprompted.
-4. [ ] (Ali types) Step 3, comeback check-in (wire the missed-session rule). Done when returning after 2+ missed days gets a shorter session plus a no-guilt acknowledgement.
-5. [ ] (Ali types) Step 4, outreach, **email only via Resend** (SMS/push later). Done when a nudge arrives at the stated trigger time and stops once today's session is done.
-6. [ ] (user) Founder as user zero, as a gate and not as evidence: run the real A+ track on prod during the build and skip days on purpose. Gives tuned copy, catches breakage, and a measured AI cost per user-day.
-7. [ ] (user) Still pending: phone smoke on `learn.pakfro.dev`; AI spend caps on all 3 providers **before** anyone else gets the URL; name 2 more testers (1 identified); create `.ai/pilot-log.md` at user 1's day 0.
-8. [ ] (user) Run the n=3 with prod **frozen for 14 days**; step 5 can continue on a branch.
+4. [ ] (Claude) **Plan all 4 steps** in plan mode: schema, migrations, routes, frontend, tests, how each "done when" gets verified, and AI cost per user-day. Step 4: daily trigger-time send on Railway (cron or worker), send logging, testing without spamming real addresses.
+5. [ ] (Claude writes, Ali reviews) **Build steps 1→4 one at a time**: verify each against its "done when" line with real output, explain it in plain terms, and stop for review between steps.
+   - Step 4 rule: at most one nudge a day, skipped if today's session is done, logged in the student file.
+6. [ ] (user) **User zero**: run the real A+ track on prod during the build and skip days on purpose. This is a gate, not evidence. It yields tuned copy, catches breakage, and gives a measured AI cost per user-day.
+7. [ ] (user) Name 2 more testers (1 identified). Create `.ai/pilot-log.md` at user 1's day 0.
+8. [ ] (user) **Run the n=3** with prod frozen for 14 days; step 5 can continue on a branch.
 
 **Live deploy reference**
 - **Deploys are manual** (2026-11-14): GitHub push triggers deleted on both services, so pushes never touch the live app. To ship: `railway api 'mutation($s:String!,$e:String!,$c:String!){serviceInstanceDeployV2(serviceId:$s,environmentId:$e,commitSha:$c)}' --raw-var s=<serviceId> --raw-var e=<envId> --raw-var c=$(git rev-parse origin/main)` (IDs via `railway status --json`). Tested on both services.
@@ -37,13 +43,14 @@ Why (advisor consult, 2026-11-14): a 0/3 on the thin app wouldn't be believed. S
 **Run locally:** backend `cd backend && npm run build:phase3 && npm run start:adaptation-runtime` (:3040); frontend `cd frontend && npm run dev` (:5173). Local PG18, all 4 migrations; `.env` has `PILOT_EXPOSE_DEV_CODE=true`. Ali runs servers and browses himself.
 
 ## Open threads
-- **Scope guard:** pre-test scope grew twice (thin → 1–3 → 1–4). Any further addition needs a new ADR naming the new evidence. The one legitimate exception is SMS, if day-0 talks show email won't reach a tester; it needs carrier registration lead time.
-- **Unanswered vision questions** (2026-09-14): shape of a professor session incl. learning checks; what ends a "course" (day 14 dead end); coach cadence; what the deterministic rules control. Ideas: a bounded live tutor; an exit question on drop-off.
+- **Scope guard:** pre-test scope grew twice (thin → 1–3 → 1–4). Any further addition needs a new ADR naming the new evidence. The one foreseeable exception is SMS, if day-0 talks show email won't reach a tester (carrier registration lead time).
+- **Ownership:** Claude writing steps 1–4 trades away the advisor's ownership guard; per-step plain-terms explanations are the mitigation.
+- **Unanswered vision questions** (2026-09-14): shape of a professor session incl. learning checks; what ends a "course" (day 14 dead end); coach cadence; what the deterministic rules control.
 - **Pending Ali's OK:** CLAUDE.md Architecture calls the adaptation engine "the critical path" (gotcha #18 says nothing calls it; step 3 will wire one rule).
-- **Post-test pile:** WTP test, progression ladder, prompt-injection hardening, behavioral research, multi-mode, steps 5–6.
+- **Post-test pile:** WTP test, steps 5–6, progression ladder, prompt-injection hardening, behavioral research, multi-mode ("Beyond IT").
 
 ## Next recommended step
-New session: draft the re-freeze (new ADR + `pilot-test-design.md` edits) for Ali's approval, then plan step 1's schema with Ali typing.
+Ali runs the phone smoke on `learn.pakfro.dev` and reports results in a smoke-feedback chat.
 
 ## Out of scope
-Steps 5–6, payments, exit report, recruiting/B2B, Phases 5–6, SMS/push (unless day-0 evidence), cold B2B; no prod deploys during the 14-day test.
+Steps 5–6, payments, exit report, recruiting/B2B, SMS/push (unless day-0 evidence), non-IT tracks; no prod deploys during the 14-day test.
