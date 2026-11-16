@@ -466,6 +466,7 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
   const doneCount = completedDays.length;
   const nextDay = doneCount + 1;
   const finished = doneCount >= sprintDayCount;
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   return (
     <Shell>
@@ -546,9 +547,17 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
         </div>
       )}
 
-      <div className="flex justify-start">
+      <div className="flex items-center justify-between">
         <button onClick={onViewPlan} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">View &amp; adjust plan</button>
+        {!feedbackOpen && (
+          <button onClick={() => setFeedbackOpen(true)} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Send feedback</button>
+        )}
       </div>
+      {feedbackOpen && (
+        <div className="mt-4">
+          <Feedback component="dashboard" prompt="How is Pocket Professor working for you?" />
+        </div>
+      )}
     </Shell>
   );
 }
