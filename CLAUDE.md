@@ -50,6 +50,8 @@ npm run db:migrate:pilot:up        # Apply pilot_users/pilot_sessions schema
 npm run db:migrate:pilot:down
 npm run db:migrate:student:up      # Apply pilot_student_events (student file) + pilot_users.time_zone
 npm run db:migrate:student:down
+npm run db:migrate:nudge:up         # Apply pilot_users.reminder_time, nudges_stopped_at, nudge_stop_token
+npm run db:migrate:nudge:down
 ```
 
 ### Frontend (run from `/frontend`)
@@ -122,6 +124,8 @@ All agent output passes through `agentOutputGuard.ts` (schema validation + prohi
 - `POST /pilot/auth/email/request`
 - `POST /pilot/auth/email/verify`
 - `GET /pilot/agents/:agentType`
+- `POST /pilot/me/settings` — `time_zone` and/or `reminder_time` (HH:MM)
+- `POST /pilot/nudge/stop` — the email's stop link; token, no login
 
 ### Database Schema
 
@@ -173,6 +177,9 @@ The service is **wired into the live route** (`/pilot/agents/:agentType/run`) vi
 | `PILOT_EXPOSE_DEV_CODE` | `true` | **unset** | LOCAL ONLY — returns login code in API/logs. Setting in prod = auth bypass |
 | `ADMIN_EMAIL` | your email | your email | founder-only admin portal (`#admin`); unset = admin disabled (fail-closed) |
 | `ADAPTATION_INTERNAL_TOKEN` | — (open) | optional | gates `/adaptation/evaluate`; required in prod to use it (else disabled) |
+| `NUDGE_ENABLED` | unset | `true` | turns on the once-a-minute nudge timer; unset = no nudges at all |
+| `NUDGE_MODE` | unset (`log`) | `send` | anything but exactly `send` records a dry run and emails nobody |
+| `NUDGE_ALLOWLIST` | your email | unset | comma-separated; in send mode limits real mail to these addresses; empty = everyone |
 | `NODE_ENV` | — | `production` | enables prod guards: refuse wildcard CORS, fail-closed evaluate |
 
 ## Key Constraints
@@ -210,6 +217,8 @@ _Numbered in discovery order. Never delete — only add._
 19. **Student file (`pilot_student_events`, 2026-11-15, ADR-0025 step 1).** Logic lives in `backend/src/modules/student/` (typed, tested); the `.mjs` shell only wires it. Three things to not break: (a) misses are written lazily by `loadStudentFile` (on plan load, day completion, and the admin read), never on the missed day itself, so a user who never returns has no miss rows until something reads their file; (b) the partial unique index `uq_pilot_student_events_daily` is what enforces one-per-day events, not app code; (c) events hang off the user, not the plan, so they survive re-onboarding. "Today" is the user's `pilot_users.time_zone` (sent by the frontend on boot; NULL = UTC). **Deploy order:** apply migration 005 BEFORE deploying this code, or `GET /pilot/plan` 500s for every onboarded user. Local check without waiting days: `node scripts/dev_seed_student_file.mjs` (localhost DB only).
 
 20. **Comeback check-in + "keep going" (2026-11-15, ADR-0025 step 3, ADR-0027).** `backend/src/modules/student/comeback.ts` is the ONLY live caller of the adaptation engine: it wires one rule (`R_MISSED_2_IN_7D`) and feeds the other four counters as zero/false on purpose. Two separate conditions, don't merge them: the gap (2+ missed days in a row right before today, no session yet today) decides WHEN; the engine rule decides HOW MUCH (25%, rounded to 5, floor 10, so a 10-minute plan is not shortened). The server sets the Professor's `minutes_available_today` on a comeback day and ignores the client's number. The comeback note is fixed copy in `comebackNote()`, frozen for the n=3 test. The day gate and the 3-sessions-a-day cap (`MAX_SESSIONS_PER_DAY` in `App.jsx`) are client-side only; the server enforces neither.
+
+21. **Daily nudge email (2026-11-15, ADR-0025 step 4, ADR-0028).** Decision in `backend/src/modules/student/nudge.ts` (pure), the once-a-minute pass in `nudgeRunner.ts`, the timer in the `.mjs` shell. Things to not break: (a) the runner inserts `nudge_sent` BEFORE sending and only sends if the insert went in; with the unique index from migration 005 that is the whole "at most one a day" guarantee, so never send first; (b) a failed send writes `nudge_failed` and is not retried that day; (c) nothing is emailed unless `NUDGE_ENABLED=true` AND `NUDGE_MODE=send`; a `nudge_sent` row with `dry_run: true` is not an email; (d) the stop link is a frontend page that POSTs, never a GET route (mail scanners follow links); (e) the catch-up window is 60 minutes and stops at midnight; (f) the copy in `nudgeEmail()` is frozen for the n=3 test. New modules must be added to `backend/tsconfig.json` `include` or they are not compiled and the server crashes on import (how `modules/email/` was found). **Deploy order:** migration 006 before the code. Local test trap: set the user's time zone before creating the plan, or events get UTC dates and "done today" misfires. Day-0 inbox check: `node --env-file=../.env scripts/send_sample_nudge.mjs <email>`.
 
 ## Key Documentation
 
