@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import { createHash, randomInt, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,9 +7,12 @@ import { handleAdaptationHttpRoute } from '../dist/src/modules/adaptation/phase3
 import { classifyAdaptationError } from '../dist/src/modules/adaptation/phase3/adaptationObservability.js';
 import { aiProviderConfigFromEnv } from '../dist/src/modules/agents/phase2/ai/aiProviderService.js';
 import { runAgentInference } from '../dist/src/modules/agents/phase2/ai/agentInferenceRunner.js';
+import { emailConfigFromEnv, isEmailConfigured, sendEmail } from '../dist/src/modules/email/sendEmail.js';
 import { evaluateComeback } from '../dist/src/modules/student/comeback.js';
+import { isValidReminderTime } from '../dist/src/modules/student/nudge.js';
+import { nudgeModeFromEnv, parseAllowlist, runNudgeTick } from '../dist/src/modules/student/nudgeRunner.js';
 import { buildProfessorHistory } from '../dist/src/modules/student/professorHistory.js';
-import { isValidTimeZone } from '../dist/src/modules/student/studentFile.js';
+import { isValidTimeZone, localDateInZone } from '../dist/src/modules/student/studentFile.js';
 import { appendEvent, loadStudentFile } from '../dist/src/modules/student/studentFileStore.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -197,11 +200,10 @@ async function requireAdmin(request) {
   return session;
 }
 
-async function sendLoginCodeEmail(email, code) {
-  const resendApiKey = process.env.RESEND_API_KEY || '';
-  const resendFrom = process.env.RESEND_FROM_EMAIL || '';
+const emailConfig = emailConfigFromEnv(process.env);
 
-  if (!resendApiKey || !resendFrom) {
+async function sendLoginCodeEmail(email, code) {
+  if (!isEmailConfigured(emailConfig)) {
     // Only emit the code to logs when dev exposure is explicitly enabled —
     // never log secrets in a real deployment (finding C1).
     if (exposeDevCode) {
@@ -212,24 +214,11 @@ async function sendLoginCodeEmail(email, code) {
     return { delivered: false, mode: 'log_only' };
   }
 
-  const resp = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      authorization: `Bearer ${resendApiKey}`,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: resendFrom,
-      to: [email],
-      subject: 'Pocket Professor pilot login code',
-      text: `Your login code is ${code}. It expires in ${loginCodeTtlMinutes} minutes.`,
-    }),
+  await sendEmail(emailConfig, {
+    to: email,
+    subject: 'Pocket Professor pilot login code',
+    text: `Your login code is ${code}. It expires in ${loginCodeTtlMinutes} minutes.`,
   });
-
-  if (!resp.ok) {
-    const detail = await resp.text();
-    throw new Error(`Failed to deliver login code email: ${detail}`);
-  }
 
   return { delivered: true, mode: 'resend' };
 }
@@ -376,15 +365,63 @@ app.get('/pilot/me', async (request) => {
   return { ok: true, user: { user_id: session.user_id, email: session.email } };
 });
 
-// The time zone decides what "today" and "a missed day" mean for this user.
+// time_zone decides what "today" and "a missed day" mean; reminder_time is when
+// the daily nudge goes out, on the user's own clock. Send either or both.
 app.post('/pilot/me/settings', async (request) => {
   const session = await requireSession(request);
   const timeZone = request.body?.time_zone;
-  if (!isValidTimeZone(timeZone)) {
+  const reminderTime = request.body?.reminder_time;
+  if (timeZone === undefined && reminderTime === undefined) {
+    throw Object.assign(new Error('time_zone or reminder_time is required.'), { statusCode: 400 });
+  }
+  if (timeZone !== undefined && !isValidTimeZone(timeZone)) {
     throw Object.assign(new Error('time_zone must be an IANA zone name.'), { statusCode: 400 });
   }
-  await postgresPool.query('UPDATE pilot_users SET time_zone = $1 WHERE user_id = $2', [timeZone, session.user_id]);
-  return { ok: true, settings: { time_zone: timeZone } };
+  if (reminderTime !== undefined && !isValidReminderTime(reminderTime)) {
+    throw Object.assign(new Error('reminder_time must be HH:MM (24-hour).'), { statusCode: 400 });
+  }
+  // The stop token is minted with the first reminder time and never changes after.
+  const out = await postgresPool.query(
+    `UPDATE pilot_users
+     SET time_zone = COALESCE($1, time_zone),
+         reminder_time = COALESCE(($2::text)::time, reminder_time),
+         nudge_stop_token = CASE WHEN $2::text IS NULL THEN nudge_stop_token
+                                 ELSE COALESCE(nudge_stop_token, $3) END
+     WHERE user_id = $4
+     RETURNING time_zone, to_char(reminder_time, 'HH24:MI') AS reminder_time,
+               (nudges_stopped_at IS NOT NULL) AS nudges_stopped`,
+    [timeZone ?? null, reminderTime ?? null, randomBytes(24).toString('base64url'), session.user_id],
+  );
+  return { ok: true, settings: out.rows[0] };
+});
+
+// The stop link in the nudge email. No login: the token is the proof. POST, not
+// GET, because mail scanners follow GET links and would switch reminders off.
+app.post('/pilot/nudge/stop', async (request) => {
+  const token = typeof request.body?.token === 'string' ? request.body.token : '';
+  if (token.length < 16) throw Object.assign(new Error('Invalid stop link.'), { statusCode: 400 });
+
+  const found = await postgresPool.query(
+    'SELECT user_id, time_zone FROM pilot_users WHERE nudge_stop_token = $1 LIMIT 1',
+    [token],
+  );
+  const user = found.rows?.[0];
+  if (!user) throw Object.assign(new Error('Invalid stop link.'), { statusCode: 400 });
+
+  const stopped = await postgresPool.query(
+    'UPDATE pilot_users SET nudges_stopped_at = NOW() WHERE user_id = $1 AND nudges_stopped_at IS NULL',
+    [user.user_id],
+  );
+  // rowCount 0 = already stopped; a second click is not a second event.
+  if (stopped.rowCount > 0) {
+    const zone = isValidTimeZone(user.time_zone) ? user.time_zone : 'UTC';
+    await appendEvent(postgresPool, {
+      userId: user.user_id,
+      eventType: 'nudge_stopped',
+      localDate: localDateInZone(new Date(), zone),
+    });
+  }
+  return { ok: true };
 });
 
 app.post('/pilot/agents/:agentType/run', async (request) => {
@@ -697,6 +734,31 @@ app.post('/pilot/plan/day', async (request) => {
   const plan = await loadPlanForUser(session.user_id);
   return { ok: true, plan };
 });
+
+// --- Daily nudge: an in-process timer, off unless NUDGE_ENABLED=true ---------
+if (process.env.NUDGE_ENABLED === 'true') {
+  const nudgeDeps = {
+    mode: nudgeModeFromEnv(process.env.NUDGE_MODE),
+    allowlist: parseAllowlist(process.env.NUDGE_ALLOWLIST),
+    appUrl: frontendOrigin === '*' ? 'http://localhost:5173' : frontendOrigin,
+    sendEmail: (message) => sendEmail(emailConfig, message),
+    log: (info, message) => app.log.info(info, message),
+  };
+  let nudgeTickRunning = false;
+  const nudgeTimer = setInterval(async () => {
+    if (nudgeTickRunning) return; // a slow pass must not overlap the next one
+    nudgeTickRunning = true;
+    try {
+      await runNudgeTick(postgresPool, new Date(), nudgeDeps);
+    } catch (error) {
+      app.log.error({ err: error }, 'Nudge tick failed');
+    } finally {
+      nudgeTickRunning = false;
+    }
+  }, 60 * 1000);
+  app.addHook('onClose', async () => clearInterval(nudgeTimer));
+  app.log.info({ mode: nudgeDeps.mode, allowlist_size: nudgeDeps.allowlist.length }, 'Nudge timer on (checks once a minute)');
+}
 
 try {
   await app.listen({ port, host });
