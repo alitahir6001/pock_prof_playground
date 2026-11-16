@@ -35,15 +35,16 @@ function Shell({ children }) {
 // ── Feedback control. With `onRefine`, thumbs-down opens a "what didn't fit?"
 //    prompt that REGENERATES the plan; without it, thumbs-down just records. ──
 function Feedback({ component, interactionId, prompt = 'Was this helpful?', onRefine }) {
-  const [stage, setStage] = useState('ask'); // ask | refine | done
+  const [stage, setStage] = useState('ask'); // ask | comment | refine | done
+  const [helpful, setHelpful] = useState(null);
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
   const [redoing, setRedoing] = useState(false);
 
-  async function save(helpful) {
+  async function save(value, text) {
     setBusy(true);
     try {
-      await submitFeedback({ component, interaction_id: interactionId || null, helpful, comment: comment || null });
+      await submitFeedback({ component, interaction_id: interactionId || null, helpful: value, comment: text || null });
     } catch {
       // feedback is non-blocking; never trap the user on a failed save
     } finally {
@@ -51,28 +52,46 @@ function Feedback({ component, interactionId, prompt = 'Was this helpful?', onRe
     }
   }
 
-  async function thumbsUp() {
-    await save(true);
-    setStage('done');
-  }
-
-  async function thumbsDown() {
-    if (onRefine) {
+  // One tap records the rating; the comment is a separate, optional second step.
+  async function rate(value) {
+    if (!value && onRefine) {
       setStage('refine');
       return;
     }
-    await save(false);
+    setHelpful(value);
+    await save(value);
+    setStage('comment');
+  }
+
+  async function sendComment() {
+    await save(helpful, comment);
     setStage('done');
   }
 
   async function redo() {
     setRedoing(true); // stays true until the refreshed plan remounts this control
-    await save(false);
+    await save(false, comment);
     onRefine(comment);
   }
 
   if (stage === 'done') {
     return <div className="rounded-2xl bg-paper-2 border border-paper-edge p-4 text-[13px] text-ink-2">Thanks — that helps us tune it.</div>;
+  }
+
+  if (stage === 'comment') {
+    return (
+      <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4">
+        <div className="text-[14px] text-ink-1 mb-2 leading-[1.5]">Thanks. Anything to add?</div>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={2}
+          placeholder="Optional"
+          className="w-full rounded-xl bg-paper-0 border border-paper-edge px-3 py-2 text-[13px] text-ink-0 mb-3 focus:outline-none focus:border-accent"
+        />
+        <button disabled={busy || !comment.trim()} onClick={sendComment} className="rounded-full border border-paper-edge px-4 py-2 text-[14px] hover:border-accent hover:text-accent disabled:opacity-50">Send</button>
+      </div>
+    );
   }
 
   if (stage === 'refine') {
@@ -101,16 +120,9 @@ function Feedback({ component, interactionId, prompt = 'Was this helpful?', onRe
   return (
     <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4">
       <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-2">{prompt}</div>
-      <textarea
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        placeholder="Optional comment"
-        rows={2}
-        className="w-full rounded-xl bg-paper-0 border border-paper-edge px-3 py-2 text-[13px] text-ink-0 mb-3 focus:outline-none focus:border-accent"
-      />
       <div className="flex gap-2">
-        <button disabled={busy} onClick={thumbsUp} className="flex-1 rounded-full border border-paper-edge py-2 text-[14px] hover:border-accent hover:text-accent disabled:opacity-50">👍 Helpful</button>
-        <button disabled={busy} onClick={thumbsDown} className="flex-1 rounded-full border border-paper-edge py-2 text-[14px] hover:border-accent hover:text-accent disabled:opacity-50">👎 Not really</button>
+        <button disabled={busy} onClick={() => rate(true)} className="flex-1 rounded-full border border-paper-edge py-2 text-[14px] hover:border-accent hover:text-accent disabled:opacity-50">👍 Helpful</button>
+        <button disabled={busy} onClick={() => rate(false)} className="flex-1 rounded-full border border-paper-edge py-2 text-[14px] hover:border-accent hover:text-accent disabled:opacity-50">👎 Not really</button>
       </div>
     </div>
   );
