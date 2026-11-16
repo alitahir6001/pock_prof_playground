@@ -18,6 +18,7 @@
     "tests/adaptation/**/*.ts",
     "tests/agents/**/*.ts",
     "src/modules/student/**/*.ts",
+    "src/modules/email/**/*.ts",
     "tests/student/**/*.ts"
   ]
 }

@@ -7,7 +7,7 @@
     "build": "npm run build:phase3",
     "start:prod": "node scripts/run_adaptation_fastify.mjs",
     "build:phase3": "tsc -p tsconfig.json",
-    "test:phase3": "npm run build:phase3 && node --test dist/tests/adaptation/policyEngine.test.js dist/tests/adaptation/adaptationEvaluationPersistence.test.js dist/tests/adaptation/adaptationEvaluationService.test.js dist/tests/adaptation/adaptationEvaluationFileAdapter.test.js dist/tests/adaptation/adaptationEvaluationPostgresAdapter.test.js dist/tests/adaptation/adaptationEvaluationEntrypoints.test.js dist/tests/adaptation/adaptationFrameworkBindings.test.js dist/tests/adaptation/adaptationObservability.test.js dist/tests/adaptation/adaptationWorkerRetryPolicy.test.js dist/tests/adaptation/adaptationBrokerWorker.test.js dist/tests/agents/agentOutputGuard.test.js dist/tests/agents/ai/aiProviderService.test.js dist/tests/agents/ai/agentInferenceRunner.test.js dist/tests/agents/ai/agentSpecConsistency.test.js dist/tests/student/studentFile.test.js dist/tests/student/studentFileStore.test.js dist/tests/student/professorHistory.test.js dist/tests/student/comeback.test.js",
+    "test:phase3": "npm run build:phase3 && node --test dist/tests/adaptation/policyEngine.test.js dist/tests/adaptation/adaptationEvaluationPersistence.test.js dist/tests/adaptation/adaptationEvaluationService.test.js dist/tests/adaptation/adaptationEvaluationFileAdapter.test.js dist/tests/adaptation/adaptationEvaluationPostgresAdapter.test.js dist/tests/adaptation/adaptationEvaluationEntrypoints.test.js dist/tests/adaptation/adaptationFrameworkBindings.test.js dist/tests/adaptation/adaptationObservability.test.js dist/tests/adaptation/adaptationWorkerRetryPolicy.test.js dist/tests/adaptation/adaptationBrokerWorker.test.js dist/tests/agents/agentOutputGuard.test.js dist/tests/agents/ai/aiProviderService.test.js dist/tests/agents/ai/agentInferenceRunner.test.js dist/tests/agents/ai/agentSpecConsistency.test.js dist/tests/student/studentFile.test.js dist/tests/student/studentFileStore.test.js dist/tests/student/professorHistory.test.js dist/tests/student/comeback.test.js dist/tests/student/nudge.test.js dist/tests/student/nudgeRunner.test.js",
     "start:adaptation-runtime": "npm run build:phase3 && node --env-file=../.env scripts/run_adaptation_fastify.mjs",
     "smoke:adaptation-runtime": "bash scripts/smoke_adaptation_runtime.sh",
     "start:adaptation-worker": "npm run build:phase3 && node --env-file=../.env scripts/run_adaptation_worker.mjs",
@@ -25,7 +25,9 @@
     "db:migrate:logincodes:up": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20260614_004_login_code_attempts.up.sql",
     "db:migrate:logincodes:down": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20260614_004_login_code_attempts.down.sql",
     "db:migrate:student:up": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20261115_005_create_student_events.up.sql",
-    "db:migrate:student:down": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20261115_005_create_student_events.down.sql"
+    "db:migrate:student:down": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20261115_005_create_student_events.down.sql",
+    "db:migrate:nudge:up": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20261115_006_add_nudge_settings.up.sql",
+    "db:migrate:nudge:down": "psql \"$ADAPTATION_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/migrations/20261115_006_add_nudge_settings.down.sql"
   },
   "engines": {
     "node": ">=20"
