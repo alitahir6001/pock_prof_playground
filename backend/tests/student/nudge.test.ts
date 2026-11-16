@@ -53,6 +53,19 @@ test('the window does not wrap past midnight onto the next date', () => {
   assert.equal(decideNudge(new Date('2026-11-16T00:10:00Z'), late, STARTED), 'none');
 });
 
+test('signed up after today’s reminder time: no nudge that day, normal the next', () => {
+  // Plan started 18:20 local, reminder 18:00: still inside the 60-minute window.
+  const started = [{ ...ev('plan_started', '2026-11-15'), occurred_at: '2026-11-16T02:20:00.000Z' }];
+  assert.equal(decideNudge(minutesAfter(SIX_PM, 25), user(), started), 'none');
+  assert.equal(decideNudge(minutesAfter(SIX_PM, 24 * 60), user(), started), 'send');
+});
+
+test('signed up earlier the same day: the nudge still goes out', () => {
+  // Plan started 09:00 local.
+  const started = [{ ...ev('plan_started', '2026-11-15'), occurred_at: '2026-11-15T17:00:00.000Z' }];
+  assert.equal(decideNudge(SIX_PM, user(), started), 'send');
+});
+
 test('session already done today: skip', () => {
   const events = [...STARTED, ev('session_completed', '2026-11-15')];
   assert.equal(decideNudge(SIX_PM, user(), events), 'skip');

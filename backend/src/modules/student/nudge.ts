@@ -57,6 +57,14 @@ export function decideNudge(now: Date, user: NudgeUser, events: StudentEvent[]):
   });
   if (startIndex < 0) return 'none';
 
+  // Signed up after today's reminder time: don't email them while they are still in the app.
+  const start = events[startIndex];
+  const [h, m] = user.reminderTime.split(':').map(Number);
+  const startedAfterReminder =
+    start.local_date === today &&
+    localMinutesInZone(new Date(start.occurred_at), user.timeZone) >= h * 60 + m;
+  if (startedAfterReminder) return 'none';
+
   const completed = events.slice(startIndex + 1).filter((e) => e.event_type === 'session_completed');
   if (completed.some((e) => e.local_date === today)) return 'skip';
   // A finished sprint has nothing left to be reminded about.
