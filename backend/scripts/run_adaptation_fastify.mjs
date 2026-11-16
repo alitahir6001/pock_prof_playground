@@ -9,6 +9,7 @@ import { aiProviderConfigFromEnv } from '../dist/src/modules/agents/phase2/ai/ai
 import { runAgentInference } from '../dist/src/modules/agents/phase2/ai/agentInferenceRunner.js';
 import { emailConfigFromEnv, isEmailConfigured, sendEmail } from '../dist/src/modules/email/sendEmail.js';
 import { isEmailAllowed } from '../dist/src/modules/pilot/emailAllowlist.js';
+import { isLockedOut } from '../dist/src/modules/pilot/loginLimits.js';
 import { evaluateComeback } from '../dist/src/modules/student/comeback.js';
 import { isValidReminderTime } from '../dist/src/modules/student/nudge.js';
 import { nudgeModeFromEnv, parseAllowlist, runNudgeTick } from '../dist/src/modules/student/nudgeRunner.js';
@@ -40,8 +41,6 @@ const exposeDevCode = process.env.PILOT_EXPOSE_DEV_CODE === 'true';
 // /adaptation/evaluate internal-token gate (finding M1). In prod the token is
 // required (fail-closed); locally it's open unless a token is set.
 const adaptationInternalToken = process.env.ADAPTATION_INTERNAL_TOKEN || '';
-// Lock an email after this many failed verify attempts within the code TTL.
-const MAX_LOGIN_ATTEMPTS = 8;
 
 // Build the AI provider config once at startup (reads keys + model overrides from env).
 // Bound the per-provider timeout for the live request path so a slow/hung provider
@@ -308,47 +307,44 @@ app.post('/pilot/auth/email/verify', async (request) => {
     throw Object.assign(new Error('email and code are required.'), { statusCode: 400 });
   }
 
-  // Brute-force lockout (finding C2): sum failed attempts across all of this
-  // email's codes within the TTL window. Summing (not per-code) means requesting
-  // a fresh code can't reset the budget.
+  // Brute-force lockout (finding C2). The attempt is counted BEFORE it is judged:
+  // every guess sees at least its own increment, so never more than the allowed
+  // number get through (under a burst, fewer may). Summed across this email's codes within
+  // the TTL window, so requesting a fresh code can't reset the budget.
+  await postgresPool.query(
+    `UPDATE pilot_login_codes SET attempts = attempts + 1
+     WHERE code_id = (
+       SELECT code_id FROM pilot_login_codes
+       WHERE email = $1 AND expires_at > NOW() AND used_at IS NULL
+       ORDER BY created_at DESC LIMIT 1
+     )`,
+    [email],
+  );
   const fails = await postgresPool.query(
     `SELECT COALESCE(SUM(attempts), 0)::int AS fails
      FROM pilot_login_codes
      WHERE email = $1 AND created_at > NOW() - ($2 || ' minutes')::interval`,
     [email, String(loginCodeTtlMinutes)],
   );
-  if ((fails.rows?.[0]?.fails || 0) >= MAX_LOGIN_ATTEMPTS) {
+  if (isLockedOut(fails.rows?.[0]?.fails || 0)) {
     throw Object.assign(new Error('Too many attempts. Request a new code and wait a few minutes.'), { statusCode: 429 });
   }
 
+  // Claiming the code is one statement, so the same code cannot log in twice.
+  // A correct code is not a failed attempt: hand its increment back.
   const out = await postgresPool.query(
-    `SELECT code_id
-     FROM pilot_login_codes
-     WHERE email = $1
-       AND code_hash = $2
-       AND expires_at > NOW()
-       AND used_at IS NULL
-     ORDER BY created_at DESC
-     LIMIT 1`,
+    `UPDATE pilot_login_codes SET used_at = NOW(), attempts = GREATEST(attempts - 1, 0)
+     WHERE code_id = (
+       SELECT code_id FROM pilot_login_codes
+       WHERE email = $1 AND code_hash = $2 AND expires_at > NOW() AND used_at IS NULL
+       ORDER BY created_at DESC LIMIT 1
+     ) AND used_at IS NULL
+     RETURNING code_id`,
     [email, sha(code)],
   );
-
-  const codeId = out.rows?.[0]?.code_id;
-  if (!codeId) {
-    // Record the miss on the most recent active code for this email.
-    await postgresPool.query(
-      `UPDATE pilot_login_codes SET attempts = attempts + 1
-       WHERE code_id = (
-         SELECT code_id FROM pilot_login_codes
-         WHERE email = $1 AND expires_at > NOW() AND used_at IS NULL
-         ORDER BY created_at DESC LIMIT 1
-       )`,
-      [email],
-    );
+  if (!out.rows?.[0]?.code_id) {
     throw Object.assign(new Error('Invalid or expired login code.'), { statusCode: 401 });
   }
-
-  await postgresPool.query('UPDATE pilot_login_codes SET used_at = NOW() WHERE code_id = $1', [codeId]);
 
   const userId = await ensurePilotUser(email);
   await postgresPool.query('UPDATE pilot_users SET last_login_at = NOW() WHERE user_id = $1', [userId]);
