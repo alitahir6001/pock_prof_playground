@@ -8,6 +8,7 @@ import { classifyAdaptationError } from '../dist/src/modules/adaptation/phase3/a
 import { aiProviderConfigFromEnv } from '../dist/src/modules/agents/phase2/ai/aiProviderService.js';
 import { runAgentInference } from '../dist/src/modules/agents/phase2/ai/agentInferenceRunner.js';
 import { emailConfigFromEnv, isEmailConfigured, sendEmail } from '../dist/src/modules/email/sendEmail.js';
+import { isEmailAllowed } from '../dist/src/modules/pilot/emailAllowlist.js';
 import { evaluateComeback } from '../dist/src/modules/student/comeback.js';
 import { isValidReminderTime } from '../dist/src/modules/student/nudge.js';
 import { nudgeModeFromEnv, parseAllowlist, runNudgeTick } from '../dist/src/modules/student/nudgeRunner.js';
@@ -28,6 +29,8 @@ const loginCodeTtlMinutes = Number(process.env.PILOT_LOGIN_CODE_TTL_MINUTES || '
 // Admin portal is gated to a single email. Unset → admin is fully disabled
 // (fail-closed); no static admin token exists to leak.
 const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+// Comma-separated emails that may log in. Unset = anyone (local dev).
+const allowedEmails = parseAllowlist(process.env.PILOT_ALLOWED_EMAILS);
 
 const isProd = process.env.NODE_ENV === 'production';
 // Only ever return the login code in the HTTP response when explicitly enabled
@@ -181,6 +184,10 @@ async function requireSession(request) {
 
   const row = out.rows?.[0];
   if (!row?.user_id) throw Object.assign(new Error('Invalid or expired session.'), { statusCode: 401 });
+  // Checked here too, so a session made before the list was set stops working.
+  if (!isEmailAllowed(normalizeEmail(row.email), allowedEmails, adminEmail)) {
+    throw Object.assign(new Error('Invalid or expired session.'), { statusCode: 401 });
+  }
 
   await postgresPool.query(
     'UPDATE pilot_sessions SET last_seen_at = NOW() WHERE session_id = $1',
@@ -266,6 +273,10 @@ app.post('/pilot/auth/email/request', async (request) => {
   const email = normalizeEmail(request.body?.email);
   if (!email || !email.includes('@')) {
     throw Object.assign(new Error('Valid email is required.'), { statusCode: 400 });
+  }
+  // Before any code is stored or mailed: strangers must not be able to make us send email.
+  if (!isEmailAllowed(email, allowedEmails, adminEmail)) {
+    throw Object.assign(new Error("This email isn't on the pilot list."), { statusCode: 403 });
   }
 
   const code = randomCode();

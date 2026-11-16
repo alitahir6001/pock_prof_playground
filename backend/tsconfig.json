@@ -19,6 +19,8 @@
     "tests/agents/**/*.ts",
     "src/modules/student/**/*.ts",
     "src/modules/email/**/*.ts",
-    "tests/student/**/*.ts"
+    "tests/student/**/*.ts",
+    "src/modules/pilot/**/*.ts",
+    "tests/pilot/**/*.ts"
   ]
 }
