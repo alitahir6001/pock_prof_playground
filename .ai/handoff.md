@@ -4,7 +4,7 @@
 2026-11-15 (build session 2: vision step 4, the email nudge, built, verified locally, committed; ADR-0028; push and deploy requested by Ali)
 
 ## Current state
-Vision steps 1–4 (student file, Professor memory, comeback check-in, daily email nudge) plus "keep going" are built and committed on `main`. Step 4 was verified locally with unit tests, a log-mode run and one real email to Ali. Whether prod (`https://learn.pakfro.dev`) runs this code yet: check `railway status` and `/adaptation/health` before assuming; before this session it ran the pre-build code and lacked migrations 005 and 006.
+Vision steps 1–4 (student file, Professor memory, comeback check-in, daily email nudge) plus "keep going" are built and committed on `main`. Step 4 was verified locally with unit tests, a log-mode run and one real email to Ali. Prod (`https://learn.pakfro.dev`) runs this code as of `d7cda88`, with the nudge timer on in send mode; anyone who sets a reminder time gets real email.
 
 ## Active task
 **Deploy steps 1–4, review them, then run the n=3 test.** Personal side project, no deadline. Claude writes, Ali reviews (ADR-0026). Commit and push only when asked.
@@ -12,8 +12,8 @@ Vision steps 1–4 (student file, Professor memory, comeback check-in, daily ema
 1. [x] Docs re-frozen: ADR-0025 (test runs on steps 1–4), 0026, 0027, `.ai/pilot-test-design.md`.
 2. [x] Steps 1–3: student file, Professor reads it, comeback (CLAUDE.md gotchas 19–20).
 3. [x] Step 4, outreach (gotcha 21, ADR-0028). _Done when: at most one nudge a day arrives at the student's stated trigger time, is skipped if they've already done today's session, and is recorded in the student file._ Evidence: `test:phase3` 138/139 (26 nudge tests); local run over four timer ticks gave exactly one `nudge_sent` for a user with no session and one `nudge_skipped` for a user who had done today's; a failed send wrote `nudge_failed` with no retry; one real email reached Ali through `NUDGE_MODE=send` + `NUDGE_ALLOWLIST` while an unlisted user got a dry run; the stop route wrote `nudge_stopped` once across two presses.
-4. [~] (Claude, Ali said go) **Deploy:** migrations 005 and 006 on prod **before** the code, then prod env `NUDGE_ENABLED=true` and `NUDGE_MODE=send` (Ali approved both; no allowlist on prod), then backend, then frontend. Confirm with `/adaptation/health` and the backend log line "Nudge timer on".
-5. [ ] (Ali, with Claude's help) **Browser review of steps 1–4.** Nothing built in steps 1–4 has been looked at in a browser: `recall_note` on the session screen, comeback banner (dashboard and session), "Keep going" link, the "Remind me around" field in the onboarding Trigger step, the dashboard reminder prompt, the stop page (`/#stop=<token>`). The stop link has not been clicked from a delivered email.
+4. [x] **Deployed 2026-11-15** at `d7cda88`: migrations 005 and 006 applied on prod first, then prod env `NUDGE_ENABLED=true` and `NUDGE_MODE=send` (no allowlist), then backend, then frontend. Checked: health ok, backend log "Nudge timer on" mode `send`, live bundle contains the new screens, `POST /pilot/nudge/stop` answers. Not checked on prod: a logged-in session, and a nudge actually going out (the one prod user has no reminder time yet).
+5. [ ] (Ali, with Claude's help) **Browser review of steps 1–4.** Ali asked for help and paused before choosing how: he walks prod while Claude guides (comeback banner not visible until 2 missed days), or Claude runs a local throwaway stack and sends screenshots (needs Ali's OK; his default is no browser preview). Nothing built in steps 1–4 has been looked at in a browser: `recall_note` on the session screen, comeback banner (dashboard and session), "Keep going" link, the "Remind me around" field in the onboarding Trigger step, the dashboard reminder prompt, the stop page (`/#stop=<token>`). The stop link has not been clicked from a delivered email.
 6. [ ] (Ali) **Edit the copy**, all Claude's drafts and frozen once the test starts: `nudgeEmail()` in `backend/src/modules/student/nudge.ts`; `comebackNote()` in `student/comeback.ts`; on-screen wording in `ReminderTimeField` (`Trigger.jsx`), `ReminderPrompt` and `StopNudges` (`App.jsx`). Also decide the Risk-step line that promises triggers "instead of clock times" (`frontend/src/onboarding/data.js:110`) right before a clock time is asked for.
 7. [ ] (Ali) **AI spend caps** on OpenAI, Gemini, Anthropic before anyone else gets the URL.
 8. [ ] (Ali) **User zero** on prod: real A+ track, skip days on purpose. Gate, not evidence; gives tuned copy and a measured AI cost per user-day.
@@ -35,12 +35,12 @@ Vision steps 1–4 (student file, Professor memory, comeback check-in, daily ema
 ## Open threads
 - **Railway deadline 2026-12-01:** the CLI warns `railway.json` config stops working then (`railway config migrate`). Both services build from those files. Not done.
 - **Stale test:** `agentInferenceRunner.test.ts:109` expects "EXACTLY 3" career options; the prompt has said "3 to 6" since eebb05a. The test is wrong, not the code; fixing it is Ali's call.
-- **Scope guard:** pre-test scope grew three times. Anything more needs a new ADR naming new evidence. Ali's paused UI-feedback and security-pass work ("phone smoke test" chat) touches `App.jsx` and the route file; merge it now that step 4 is in.
+- **Scope guard:** pre-test scope grew three times. Anything more needs a new ADR naming new evidence. Ali's paused smoke-test notes (login/security fixes, UI tweaks) live in the "phone smoke test" chat and are parked in `.ai/backlog.md`; **remind Ali to go through that chat** before the test starts.
 - **Nudge limits, accepted for the test:** if the backend is down for a student's whole hour, that day's nudge is lost; a stop cannot be undone from the app; where the email lands (inbox, Promotions, Spam) is unmeasured.
 - **Post-test pile:** WTP test, vision steps 5–6, prompt-injection hardening, behavioral research, multi-mode. Step 2's memory was proven on two tidy live runs only; user zero is the real check.
 
 ## Next recommended step
-Finish the deploy if it is not live, then Ali reviews steps 1–4 in a browser (on prod as user zero, or locally) and edits the copy.
+Ali reviews steps 1–4 in a browser (on prod as user zero, or locally) and edits the copy.
 
 ## Out of scope
 Vision steps 5–6, payments, exit report, recruiting/B2B, SMS/push (unless day-0 evidence), non-IT tracks; no prod deploys during the 14-day test.
