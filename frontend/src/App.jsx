@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import OnboardingFlow from './onboarding/OnboardingFlow';
 import { PrimaryButton } from './onboarding/components/Button';
-import { agents, submitFeedback, planApi, settingsApi } from './onboarding/api';
+import { ReminderTimeField } from './onboarding/steps/Trigger';
+import { agents, submitFeedback, planApi, settingsApi, nudgeApi } from './onboarding/api';
 import { CAREER_OPTIONS, RATIONALE_LABEL, RISK_FLAGS } from './onboarding/data';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
@@ -413,7 +414,39 @@ function SessionView({ output, interactionId, dayNumber, sprintDayCount, comebac
 const MAX_SESSIONS_PER_DAY = 3;
 
 // ── Dashboard: the returning-user home. Sprint progress + today's CTA. ───────
-function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsToday, comeback, starting, error, onStartSession, onViewPlan }) {
+// Shown until a reminder time is saved: covers people who onboarded before the
+// nudge existed, and an onboarding save that failed.
+function ReminderPrompt({ onSave }) {
+  const [value, setValue] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function save() {
+    setBusy(true);
+    setError('');
+    try {
+      await onSave(value);
+    } catch (e) {
+      setError(e.message);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4 mb-4">
+      <div className="text-[14px] text-ink-1 leading-[1.6] mb-3">
+        When should I remind you each day?
+      </div>
+      <ReminderTimeField value={value} onChange={setValue} />
+      {error && <div className="mt-2 text-[13px] text-ink-1">{error}</div>}
+      <div className="mt-3">
+        <PrimaryButton onClick={save} disabled={!value || busy}>{busy ? 'Saving…' : 'Save'}</PrimaryButton>
+      </div>
+    </div>
+  );
+}
+
+function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsToday, comeback, needsReminderTime, onSaveReminderTime, starting, error, onStartSession, onViewPlan }) {
   const sprintDayCount = plan.sprint_day_count || plan.sprint?.duration_days || 14;
   const doneCount = completedDays.length;
   const nextDay = doneCount + 1;
@@ -478,6 +511,8 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
         </div>
       )}
 
+      {needsReminderTime && !finished && <ReminderPrompt onSave={onSaveReminderTime} />}
+
       {error && (
         <div className="mb-3 rounded-2xl bg-paper-2 border border-paper-edge px-4 py-3 text-[13px] text-ink-1">{error}</div>
       )}
@@ -516,6 +551,7 @@ function MainApp() {
   const [plan, setPlan] = useState(null);                 // plan_json (+ sprint_day_count) or null
   const [completedDays, setCompletedDays] = useState([]);
   const [comeback, setComeback] = useState(null);         // set by the server after 2+ missed days
+  const [reminderTime, setReminderTime] = useState(undefined); // undefined = not known yet; null = none saved
   const [view, setView] = useState('dashboard');          // 'plan' | 'dashboard' | 'session'
   const [todaySession, setTodaySession] = useState(null); // professor run for the current day
   const [starting, setStarting] = useState(false);
@@ -531,11 +567,12 @@ function MainApp() {
     (async () => {
       try {
         // Before the plan load: the server uses the zone to decide which days were missed.
-        await settingsApi
+        const saved = await settingsApi
           .save({ time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone })
-          .catch(() => {});
+          .catch(() => null);
         const res = await planApi.get();
         if (cancelled) return;
+        if (saved?.settings) setReminderTime(saved.settings.reminder_time ?? null);
         const sp = res?.plan;
         if (sp) {
           setPlan({ ...sp.plan, active_track_id: sp.active_track_id, sprint_day_count: sp.sprint_day_count });
@@ -575,8 +612,15 @@ function MainApp() {
   const sessionsToday = completedDays.filter((d) => isSameLocalDay(d.completed_at)).length;
   const doneToday = sessionsToday > 0;
 
+  async function saveReminderTime(value) {
+    const res = await settingsApi.save({ reminder_time: value });
+    setReminderTime(res.settings.reminder_time);
+  }
+
   async function handleOnboardingComplete(p) {
     setSessionError('');
+    // If this fails the dashboard asks for the time again.
+    if (p.triggers?.reminder_time) saveReminderTime(p.triggers.reminder_time).catch(() => {});
     try {
       const res = await planApi.save({ plan: p, active_track_id: p.active_track_id });
       setPlan({ ...p, sprint_day_count: res.plan.sprint_day_count });
@@ -727,6 +771,8 @@ function MainApp() {
       doneToday={doneToday}
       sessionsToday={sessionsToday}
       comeback={comeback}
+      needsReminderTime={reminderTime === null}
+      onSaveReminderTime={saveReminderTime}
       starting={starting}
       error={sessionError}
       onStartSession={startSession}
@@ -869,9 +915,51 @@ function AdminPortal() {
   );
 }
 
+// ── Stop link from the nudge email (#stop=<token>). Works without a login. ──
+function StopNudges({ token }) {
+  const [phase, setPhase] = useState('ask'); // ask | busy | done | error
+
+  async function stop() {
+    setPhase('busy');
+    try {
+      await nudgeApi.stop(token);
+      setPhase('done');
+    } catch {
+      setPhase('error');
+    }
+  }
+
+  return (
+    <Shell>
+      <h1 className="font-serif text-[26px] leading-tight text-ink-0 mb-3">Daily reminders</h1>
+      {phase === 'done' ? (
+        <p className="text-[14px] text-ink-1 leading-[1.6]">
+          Reminders are off. Your sprint is still here whenever you want it.
+        </p>
+      ) : (
+        <>
+          <p className="text-[14px] text-ink-1 leading-[1.6] mb-4">
+            Stop the daily reminder email? Your sprint and your progress stay as they are.
+          </p>
+          {phase === 'error' && (
+            <p className="text-[13px] text-ink-1 mb-3">That link didn't work. Try it again from the email.</p>
+          )}
+          <PrimaryButton onClick={stop} disabled={phase === 'busy'}>
+            {phase === 'busy' ? 'Stopping…' : 'Stop reminders'}
+          </PrimaryButton>
+        </>
+      )}
+      <div className="mt-6">
+        <a href="/" className="font-sans text-[13px] text-ink-3 hover:text-ink-1">
+          Open Pocket Professor
+        </a>
+      </div>
+    </Shell>
+  );
+}
+
 export function App() {
-  const isAdmin =
-    typeof window !== 'undefined' &&
-    window.location.hash.replace(/^#\/?/, '').toLowerCase() === 'admin';
-  return isAdmin ? <AdminPortal /> : <MainApp />;
+  const hash = typeof window !== 'undefined' ? window.location.hash.replace(/^#\/?/, '') : '';
+  if (hash.startsWith('stop=')) return <StopNudges token={hash.slice('stop='.length)} />;
+  return hash.toLowerCase() === 'admin' ? <AdminPortal /> : <MainApp />;
 }

@@ -62,7 +62,11 @@ export default function OnboardingFlow({ onComplete }) {
     agent_input: state.agent_input,    // lets the plan regenerate on thumbs-down
     agent_output: state.agent_output,  // risk_flags, next_actions, etc.
     sprint: { daily_minutes_target: state.daily_min, duration_days: 14, emphasis: state.emphasis },
-    triggers: { primary_trigger: state.primary_trig, fallback_trigger: state.fallback_trig },
+    triggers: {
+      primary_trigger: state.primary_trig,
+      fallback_trigger: state.fallback_trig,
+      reminder_time: state.reminder_time,
+    },
   }), [state]);
 
   const finish = useCallback(() => {
@@ -172,8 +176,10 @@ export default function OnboardingFlow({ onComplete }) {
           {stepId === 'trigger' && (
             <Trigger
               primary={state.primary_trig} fallback={state.fallback_trig}
+              reminderTime={state.reminder_time}
               onPrimary={(v) => setField('primary_trig', v)}
               onFallback={(v) => setField('fallback_trig', v)}
+              onReminderTime={(v) => setField('reminder_time', v)}
               onNext={advance}
             />
           )}

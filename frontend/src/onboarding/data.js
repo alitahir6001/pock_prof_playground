@@ -137,4 +137,5 @@ export const INITIAL_STATE = {
   risks_ack: { low_schedule_stability: false, high_fatigue_pattern: false },
   primary_trig: '',
   fallback_trig: '',
+  reminder_time: '',          // "HH:MM" on the user's own clock; when the daily email goes out
 };

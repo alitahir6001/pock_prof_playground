@@ -68,6 +68,12 @@ export const settingsApi = {
   save: (settings) => call('/pilot/me/settings', 'POST', settings),
 };
 
+// ── Nudge email ────────────────────────────────────
+export const nudgeApi = {
+  // The token comes from the stop link in the email; no login needed.
+  stop: (token) => call('/pilot/nudge/stop', 'POST', { token }),
+};
+
 // ── Feedback ───────────────────────────────────────
 export function submitFeedback({ component, interaction_id, helpful, comment }) {
   return call('/pilot/feedback', 'POST', { component, interaction_id, helpful, comment });

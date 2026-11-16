@@ -31,8 +31,25 @@ function TriggerField({ label, value, onChange, suggestions, placeholder }) {
   );
 }
 
-export default function Trigger({ primary, fallback, onPrimary, onFallback, onNext }) {
-  const ok = primary.trim().length >= 3 && fallback.trim().length >= 3;
+export function ReminderTimeField({ value, onChange }) {
+  return (
+    <div>
+      <YouLabel>Remind me around</YouLabel>
+      <input
+        type="time"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="bg-paper-1 border border-paper-edge rounded-2xl p-3 font-serif text-[16px] text-ink-0 focus:outline-none focus:border-ink-2"
+      />
+      <div className="mt-1 font-sans text-[12px] text-ink-3">
+        One email a day at this time. None if you've already done that day's session.
+      </div>
+    </div>
+  );
+}
+
+export default function Trigger({ primary, fallback, reminderTime, onPrimary, onFallback, onReminderTime, onNext }) {
+  const ok = primary.trim().length >= 3 && fallback.trim().length >= 3 && /^\d{2}:\d{2}$/.test(reminderTime);
   return (
     <div className="flex flex-col gap-5 py-4">
       <CoachNote>
@@ -47,6 +64,8 @@ export default function Trigger({ primary, fallback, onPrimary, onFallback, onNe
         suggestions={TRIGGER_SUGGESTIONS_PRIMARY}
         placeholder="After my first coffee on a closing day…"
       />
+
+      <ReminderTimeField value={reminderTime} onChange={onReminderTime} />
 
       <TriggerField
         label="Fallback — for chaos days"
