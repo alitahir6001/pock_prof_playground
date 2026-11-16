@@ -548,6 +548,8 @@ function isSameLocalDay(iso) {
 function MainApp() {
   const [session, setSession] = useState(() => localStorage.getItem(TOKEN_KEY) || '');
   const [loading, setLoading] = useState(true);           // loading the saved plan on mount
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);      // bump to retry the load
   const [plan, setPlan] = useState(null);                 // plan_json (+ sprint_day_count) or null
   const [completedDays, setCompletedDays] = useState([]);
   const [comeback, setComeback] = useState(null);         // set by the server after 2+ missed days
@@ -580,14 +582,21 @@ function MainApp() {
           setComeback(res.comeback || null);
           setView('dashboard');
         }
-      } catch {
-        // no saved plan / fetch failure → fall through to onboarding
+      } catch (e) {
+        if (cancelled) return;
+        // Never fall through to onboarding here: finishing it would replace the saved plan.
+        if (e.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          setSession('');
+        } else {
+          setLoadError(true);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [session]);
+  }, [session, loadAttempt]);
 
   if (!session) {
     return <Login onAuthed={() => { setLoading(true); setSession(localStorage.getItem(TOKEN_KEY) || ''); }} />;
@@ -599,6 +608,15 @@ function MainApp() {
           <div className="w-8 h-8 rounded-full border-2 border-paper-edge border-t-accent animate-spin" />
           <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2">Loading your sprint…</div>
         </div>
+      </Shell>
+    );
+  }
+  if (loadError) {
+    return (
+      <Shell>
+        <h1 className="font-serif text-[26px] leading-tight text-ink-0 mb-3">Couldn't load your sprint.</h1>
+        <p className="text-[14px] text-ink-1 leading-[1.6] mb-4">Your progress is safe. Check your connection and try again.</p>
+        <PrimaryButton onClick={() => { setLoadError(false); setLoading(true); setLoadAttempt((n) => n + 1); }}>Try again</PrimaryButton>
       </Shell>
     );
   }
