@@ -214,7 +214,7 @@ const PROF_LABEL = {
 };
 
 // ── The plan: switchable tracks + the user's sprint/cues + risks ─────────────
-function PlanView({ plan, onSwitch, onContinue, error, onRestart, onRefine, refining, refineError }) {
+function PlanView({ plan, locked, onSwitch, onContinue, error, onRestart, onRefine, refining, refineError }) {
   const tracks = [...(plan.tracks || [])].sort((a, b) => a.rank - b.rank);
   const out = plan.agent_output || {};
   const sprint = plan.sprint || {};
@@ -313,7 +313,7 @@ function PlanView({ plan, onSwitch, onContinue, error, onRestart, onRefine, refi
           component="onboarding_plan"
           interactionId={plan.interaction_id}
           prompt="Do these feel right for you?"
-          onRefine={onRefine}
+          onRefine={locked ? undefined : onRefine}
         />
       </div>
 
@@ -325,7 +325,10 @@ function PlanView({ plan, onSwitch, onContinue, error, onRestart, onRefine, refi
       )}
 
       <div className="flex items-center justify-between">
-        <button onClick={onRestart} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Adjust my answers</button>
+        {/* Redoing the plan wipes completed days, so it is only offered before the first one. */}
+        {locked ? <span /> : (
+          <button onClick={onRestart} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Adjust my answers</button>
+        )}
         <PrimaryButton onClick={onContinue} disabled={refining}>
           Continue to my sprint
         </PrimaryButton>
@@ -770,6 +773,7 @@ function MainApp() {
     return (
       <PlanView
         plan={plan}
+        locked={completedDays.length > 0}
         onSwitch={switchTrack}
         onContinue={() => setView('dashboard')}
         error={sessionError}
