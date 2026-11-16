@@ -29,3 +29,4 @@ One file per design, architecture, or product decision that shapes Pocket Profes
 - [0025 - Run the n=3 founder-silent test on vision build steps 1–4, with email outreach - accepted - 2026-11-14](0025-n3-test-runs-on-vision-steps-1-4.md)
 - [0026 - Claude writes vision steps 1–4; the founder reviews - accepted - 2026-11-14](0026-claude-writes-vision-steps-1-4-founder-reviews.md)
 - [0027 - Let a student keep going after the day's session; one task a day stays the default - accepted - 2026-11-15](0027-keep-going-after-the-days-session.md)
+- [0028 - The nudge email's stop link opens a confirm page and stops by POST, not by a GET route - accepted - 2026-11-15](0028-nudge-stop-link-confirms-on-the-frontend.md)
