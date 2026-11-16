@@ -9,7 +9,7 @@ import { aiProviderConfigFromEnv } from '../dist/src/modules/agents/phase2/ai/ai
 import { runAgentInference } from '../dist/src/modules/agents/phase2/ai/agentInferenceRunner.js';
 import { emailConfigFromEnv, isEmailConfigured, sendEmail } from '../dist/src/modules/email/sendEmail.js';
 import { isEmailAllowed } from '../dist/src/modules/pilot/emailAllowlist.js';
-import { isLockedOut } from '../dist/src/modules/pilot/loginLimits.js';
+import { isLockedOut, mayRequestCode } from '../dist/src/modules/pilot/loginLimits.js';
 import { evaluateComeback } from '../dist/src/modules/student/comeback.js';
 import { isValidReminderTime } from '../dist/src/modules/student/nudge.js';
 import { nudgeModeFromEnv, parseAllowlist, runNudgeTick } from '../dist/src/modules/student/nudgeRunner.js';
@@ -282,11 +282,33 @@ app.post('/pilot/auth/email/request', async (request) => {
   const codeId = `code_${randomUUID()}`;
   const expiresAt = new Date(Date.now() + loginCodeTtlMinutes * 60 * 1000).toISOString();
 
-  await postgresPool.query(
-    `INSERT INTO pilot_login_codes (code_id, email, code_hash, expires_at)
-     VALUES ($1, $2, $3, $4)`,
-    [codeId, email, sha(code), expiresAt],
-  );
+  // The lock makes count-then-insert atomic per email, so a burst cannot outrun the limit.
+  const client = await postgresPool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [email]);
+    const sent = await client.query(
+      `SELECT COUNT(*) FILTER (WHERE created_at > NOW() - ($2 || ' minutes')::interval)::int AS in_window,
+              COUNT(*)::int AS in_day
+       FROM pilot_login_codes
+       WHERE email = $1 AND created_at > NOW() - interval '24 hours'`,
+      [email, String(loginCodeTtlMinutes)],
+    );
+    if (!mayRequestCode(sent.rows[0].in_window, sent.rows[0].in_day)) {
+      throw Object.assign(new Error('Too many codes requested. Try again later.'), { statusCode: 429 });
+    }
+    await client.query(
+      `INSERT INTO pilot_login_codes (code_id, email, code_hash, expires_at)
+       VALUES ($1, $2, $3, $4)`,
+      [codeId, email, sha(code), expiresAt],
+    );
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 
   const delivery = await sendLoginCodeEmail(email, code);
 
