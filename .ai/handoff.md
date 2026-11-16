@@ -13,6 +13,8 @@ Vision steps 1–4 (student file, Professor memory, comeback check-in, daily ema
 4. No nudge on the day a plan starts if it started after that day's reminder time. `student/nudge.ts` + 2 tests.
 5. Feedback: thumb tap saves the rating, then an optional comment with Send (a typed comment used to be lost). `App.jsx`.
 
+**Committed on `main` (2026-11-16, later), not deployed: a security pass, four fixes, one commit each** (CLAUDE.md gotcha 23): exact login lockout; per-email throttle on code requests; browser security headers via `frontend/public/serve.json`; non-breaking dependency patches (backend `fastify` 5.12.8, frontend `serve` 14.2.8; backend audit now 0, frontend has 2 left that only affect the Vite dev server). `test:phase3` 147/148 (same stale test). Measured locally: 100 parallel wrong codes, never more than 8 judged; 12 parallel code requests, exactly 5 sent; a code cannot be used twice. Not yet deployed; after deploy, check on prod that the login page loads with fonts and that a code request reaches the backend (that proves the `connect-src` entry).
+
 Evidence: `test:phase3` 144/145 (only the known stale test fails). Checked in a local browser: 1, 2, 5. Checked over HTTP: 3 (stranger 403 and no code row; unlisted old session 401). Checked on prod after deploy: health ok, "Nudge timer on" mode `send`, live bundle has the new login wording, feedback link and retry screen, and an unlisted email gets "This email isn't on the pilot list." Not checked on prod: a logged-in session. Fix 4 is covered by unit tests only. `frontend` `npm run build` passes.
 
 ## Active task
