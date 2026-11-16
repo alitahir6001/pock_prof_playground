@@ -167,9 +167,9 @@ function Login({ onAuthed }) {
   return (
     <Shell>
       <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-3">Pocket Professor</div>
-      <h1 className="font-serif text-[28px] leading-tight text-ink-0 mb-2">Let's get you set up.</h1>
+      <h1 className="font-serif text-[28px] leading-tight text-ink-0 mb-2">Sign in or get started.</h1>
       <p className="text-[14px] text-ink-2 mb-6 leading-[1.6]">
-        Enter your email and we'll send a one-time code — no password to remember.
+        New or coming back, enter your email and we'll send a one-time code. No password.
       </p>
 
       <label className="block font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-1">Email</label>
