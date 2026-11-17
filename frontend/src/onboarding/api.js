@@ -72,6 +72,7 @@ export const settingsApi = {
 export const nudgeApi = {
   // The token comes from the stop link in the email; no login needed.
   stop: (token) => call('/pilot/nudge/stop', 'POST', { token }),
+  status: (token) => call('/pilot/nudge/status', 'POST', { token }),
 };
 
 // ── Feedback ───────────────────────────────────────

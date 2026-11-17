@@ -424,6 +424,18 @@ app.post('/pilot/me/settings', async (request) => {
   return { ok: true, settings: out.rows[0] };
 });
 
+// Lets the stop page say "already off" after a reload. Reads only, never stops.
+app.post('/pilot/nudge/status', async (request) => {
+  const token = typeof request.body?.token === 'string' ? request.body.token : '';
+  if (token.length < 16) throw Object.assign(new Error('Invalid stop link.'), { statusCode: 400 });
+  const found = await postgresPool.query(
+    'SELECT (nudges_stopped_at IS NOT NULL) AS stopped FROM pilot_users WHERE nudge_stop_token = $1 LIMIT 1',
+    [token],
+  );
+  if (found.rowCount === 0) throw Object.assign(new Error('Invalid stop link.'), { statusCode: 400 });
+  return { ok: true, stopped: found.rows[0].stopped };
+});
+
 // The stop link in the nudge email. No login: the token is the proof. POST, not
 // GET, because mail scanners follow GET links and would switch reminders off.
 app.post('/pilot/nudge/stop', async (request) => {

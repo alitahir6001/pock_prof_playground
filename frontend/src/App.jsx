@@ -972,6 +972,13 @@ function AdminPortal() {
 function StopNudges({ token }) {
   const [phase, setPhase] = useState('ask'); // ask | busy | done | error
 
+  // Already stopped (a reload, or a second click from the email): say so.
+  useEffect(() => {
+    nudgeApi.status(token)
+      .then((res) => { if (res?.stopped) setPhase((p) => (p === 'ask' ? 'done' : p)); })
+      .catch(() => {});
+  }, [token]);
+
   async function stop() {
     setPhase('busy');
     try {
