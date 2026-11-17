@@ -164,6 +164,14 @@ function Login({ onAuthed }) {
     }
   }
 
+  // A form so Enter does what the button does.
+  function onSubmit(e) {
+    e.preventDefault();
+    if (loading) return;
+    if (!sent) { if (email) requestCode(); }
+    else if (code) verify();
+  }
+
   return (
     <Shell>
       <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-3">Pocket Professor</div>
@@ -172,6 +180,7 @@ function Login({ onAuthed }) {
         New or coming back, enter your email and we'll send a one-time code. No password.
       </p>
 
+      <form onSubmit={onSubmit}>
       <label className="block font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-1">Email</label>
       <input
         type="email"
@@ -198,11 +207,12 @@ function Login({ onAuthed }) {
 
       <div className="flex justify-end">
         {!sent ? (
-          <PrimaryButton onClick={requestCode} disabled={loading || !email}>Send code</PrimaryButton>
+          <PrimaryButton type="submit" disabled={loading || !email}>Send code</PrimaryButton>
         ) : (
-          <PrimaryButton onClick={verify} disabled={loading || !code}>Verify &amp; continue</PrimaryButton>
+          <PrimaryButton type="submit" disabled={loading || !code}>Verify &amp; continue</PrimaryButton>
         )}
       </div>
+      </form>
 
       {message && (
         <div className="mt-4 rounded-2xl bg-paper-2 border border-paper-edge px-4 py-3 text-[13px] text-ink-1">
