@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import OnboardingFlow from './onboarding/OnboardingFlow';
 import { PrimaryButton } from './onboarding/components/Button';
 import { ReminderTimeField } from './onboarding/steps/Trigger';
-import { agents, submitFeedback, planApi, settingsApi, nudgeApi } from './onboarding/api';
+import { agents, submitFeedback, planApi, settingsApi, nudgeApi, authApi } from './onboarding/api';
 import { CAREER_OPTIONS, RATIONALE_LABEL, RISK_FLAGS } from './onboarding/data';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
@@ -471,7 +471,7 @@ function ReminderPrompt({ onSave }) {
   );
 }
 
-function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsToday, comeback, needsReminderTime, onSaveReminderTime, starting, error, onStartSession, onViewPlan }) {
+function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsToday, comeback, needsReminderTime, onSaveReminderTime, starting, error, onStartSession, onViewPlan, onLogout }) {
   const sprintDayCount = plan.sprint_day_count || plan.sprint?.duration_days || 14;
   const doneCount = completedDays.length;
   const nextDay = doneCount + 1;
@@ -559,9 +559,12 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
 
       <div className="flex items-center justify-between">
         <button onClick={onViewPlan} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">View &amp; adjust plan</button>
-        {!feedbackOpen && (
-          <button onClick={() => setFeedbackOpen(true)} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Send feedback</button>
-        )}
+        <div className="flex items-center gap-4">
+          {!feedbackOpen && (
+            <button onClick={() => setFeedbackOpen(true)} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Send feedback</button>
+          )}
+          <button onClick={onLogout} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Log out</button>
+        </div>
       </div>
       {feedbackOpen && (
         <div className="mt-4">
@@ -631,6 +634,13 @@ function MainApp() {
     })();
     return () => { cancelled = true; };
   }, [session, loadAttempt]);
+
+  // Reload after: the plan held in memory must not be shown to whoever signs in next.
+  async function logout() {
+    await authApi.logout().catch(() => {});
+    localStorage.removeItem(TOKEN_KEY);
+    window.location.reload();
+  }
 
   if (!session) {
     return <Login onAuthed={() => { setLoading(true); setSession(localStorage.getItem(TOKEN_KEY) || ''); }} />;
@@ -830,6 +840,7 @@ function MainApp() {
       error={sessionError}
       onStartSession={startSession}
       onViewPlan={() => setView('plan')}
+      onLogout={logout}
     />
   );
 }

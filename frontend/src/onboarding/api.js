@@ -75,6 +75,11 @@ export const nudgeApi = {
   status: (token) => call('/pilot/nudge/status', 'POST', { token }),
 };
 
+// ── Auth ───────────────────────────────────────────
+export const authApi = {
+  logout: () => call('/pilot/auth/logout', 'POST', {}), // {}: Fastify rejects an empty JSON body
+};
+
 // ── Feedback ───────────────────────────────────────
 export function submitFeedback({ component, interaction_id, helpful, comment }) {
   return call('/pilot/feedback', 'POST', { component, interaction_id, helpful, comment });

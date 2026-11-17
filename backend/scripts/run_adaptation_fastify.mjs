@@ -389,6 +389,13 @@ app.post('/pilot/auth/email/verify', async (request) => {
   };
 });
 
+// Ends this one session; the user's other devices stay signed in.
+app.post('/pilot/auth/logout', async (request) => {
+  const session = await requireSession(request);
+  await postgresPool.query('DELETE FROM pilot_sessions WHERE session_id = $1', [session.session_id]);
+  return { ok: true };
+});
+
 app.get('/pilot/me', async (request) => {
   const session = await requireSession(request);
   return { ok: true, user: { user_id: session.user_id, email: session.email } };
