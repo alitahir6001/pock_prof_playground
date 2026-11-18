@@ -514,13 +514,16 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
                 Nice — you did today's bite-size win. Come back tomorrow when your trigger fires and I'll have day {nextDay} ready.
               </div>
               {sessionsToday < MAX_SESSIONS_PER_DAY && (
-                <button
-                  onClick={onStartSession}
-                  disabled={starting}
-                  className="mt-3 font-sans text-[13px] text-ink-2 underline underline-offset-2 hover:text-ink-0 disabled:opacity-50"
-                >
-                  {starting ? 'Setting up…' : `Keep going with day ${nextDay}`}
-                </button>
+                // Set apart: optional, and the line above says to come back tomorrow.
+                <div className="mt-4 pt-3 border-t border-paper-edge">
+                  <button
+                    onClick={onStartSession}
+                    disabled={starting}
+                    className="font-sans text-[13px] text-ink-2 underline underline-offset-2 hover:text-ink-0 disabled:opacity-50"
+                  >
+                    {starting ? 'Setting up…' : `Keep going with day ${nextDay}`}
+                  </button>
+                </div>
               )}
             </>
           ) : (
