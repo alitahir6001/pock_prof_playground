@@ -476,6 +476,8 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
   const doneCount = completedDays.length;
   const nextDay = doneCount + 1;
   const finished = doneCount >= sprintDayCount;
+  // Once today's session is done, "today" is still the day just finished.
+  const headerDay = doneToday ? doneCount : nextDay;
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   return (
@@ -485,7 +487,7 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
         {finished ? 'Sprint complete.' : activeTrack?.title || 'Your track'}
       </h1>
       <p className="text-[13px] text-ink-2 mb-5 leading-[1.6]">
-        {finished ? 'You finished all 14 days. That’s a real streak.' : `Day ${nextDay} of ${sprintDayCount} · ${doneCount} done`}
+        {finished ? 'You finished all 14 days. That’s a real streak.' : `Day ${headerDay} of ${sprintDayCount} · ${doneCount} done`}
       </p>
 
       {/* progress dots */}
