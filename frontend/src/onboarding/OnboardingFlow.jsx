@@ -27,7 +27,7 @@ import Risk         from './steps/Risk';
 import Trigger      from './steps/Trigger';
 import Done         from './steps/Done';
 
-export default function OnboardingFlow({ onComplete }) {
+export default function OnboardingFlow({ onComplete, onLogout }) {
   const draft = useOnboardingDraft();
   const { state, setField, stepIdx, go, status, clearDraft } = draft;
 
@@ -94,7 +94,7 @@ export default function OnboardingFlow({ onComplete }) {
         <header className="flex items-center gap-3 h-12">
           {stepIdx > 0 && stepId !== 'done' ? <BackChevron onClick={back} /> : <div className="w-9" />}
           <div className="flex-1"><TrailBar stepId={stepId} /></div>
-          <div className="w-9" />
+          <button onClick={onLogout} className="font-sans text-[12px] text-ink-3 hover:text-ink-1 whitespace-nowrap">Log out</button>
         </header>
 
         <main>

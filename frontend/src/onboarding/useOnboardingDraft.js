@@ -11,7 +11,7 @@ import { INITIAL_STATE, STEPS } from './data';
 
 // v2: onboarding state shape changed (domains/direction_note replaced the
 // path-picker). Bumping the key invalidates incompatible v1 drafts.
-const LS_KEY = 'pp_onboarding_draft_v2';
+export const LS_KEY = 'pp_onboarding_draft_v2';
 
 function readLocal() {
   try {

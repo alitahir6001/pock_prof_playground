@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import OnboardingFlow from './onboarding/OnboardingFlow';
+import { LS_KEY as DRAFT_KEY } from './onboarding/useOnboardingDraft';
 import { PrimaryButton } from './onboarding/components/Button';
 import { ReminderTimeField } from './onboarding/steps/Trigger';
 import { agents, submitFeedback, planApi, settingsApi, nudgeApi, authApi } from './onboarding/api';
@@ -646,6 +647,8 @@ function MainApp() {
   async function logout() {
     await authApi.logout().catch(() => {});
     localStorage.removeItem(TOKEN_KEY);
+    // The draft is not tied to an account: the next person here must not see these answers.
+    localStorage.removeItem(DRAFT_KEY);
     window.location.reload();
   }
 
@@ -672,7 +675,7 @@ function MainApp() {
     );
   }
   if (!plan) {
-    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+    return <OnboardingFlow onComplete={handleOnboardingComplete} onLogout={logout} />;
   }
 
   const activeTrack =
