@@ -527,7 +527,9 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
                 <div className="text-[14px] text-ink-0 leading-[1.6] mb-3">{comeback.note}</div>
               )}
               <div className="text-[14px] text-ink-1 leading-[1.6] mb-3">
-                One small, finishable thing on <strong>{activeTrack?.title}</strong>. About {comeback?.minutes || plan.sprint?.daily_minutes_target || 20} minutes.
+                One small, finishable thing on <strong>{activeTrack?.title}</strong>.
+                {/* The comeback note above already gives the minutes. */}
+                {!comeback && ` About ${plan.sprint?.daily_minutes_target || 20} minutes.`}
               </div>
               <PrimaryButton onClick={onStartSession} disabled={starting}>
                 {starting ? 'Setting up…' : nextDay === 1 ? "Start today's first session" : `Start day ${nextDay}`}
