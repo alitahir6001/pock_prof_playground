@@ -67,3 +67,22 @@ export function evaluateComeback(
     note: comebackNote(minutes),
   };
 }
+
+/**
+ * The canned lesson (used when every AI provider fails) is written for a full
+ * day. On a comeback day its minutes must not contradict the comeback note.
+ */
+export function fitLessonToMinutes(lesson: Record<string, unknown>, minutes: number): Record<string, unknown> {
+  const fitted: Record<string, unknown> = { ...lesson };
+  if (typeof lesson.session_objective === 'string') {
+    fitted.session_objective = lesson.session_objective.replace(/\b\d+ minutes\b/g, `${minutes} minutes`);
+  }
+  if (Array.isArray(lesson.options)) {
+    fitted.options = lesson.options.map((o: Record<string, unknown>) =>
+      typeof o?.estimated_minutes === 'number' && o.estimated_minutes > minutes
+        ? { ...o, estimated_minutes: minutes }
+        : o,
+    );
+  }
+  return fitted;
+}

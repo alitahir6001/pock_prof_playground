@@ -10,7 +10,7 @@ import { runAgentInference } from '../dist/src/modules/agents/phase2/ai/agentInf
 import { emailConfigFromEnv, isEmailConfigured, sendEmail } from '../dist/src/modules/email/sendEmail.js';
 import { isEmailAllowed } from '../dist/src/modules/pilot/emailAllowlist.js';
 import { isLockedOut, mayRequestCode } from '../dist/src/modules/pilot/loginLimits.js';
-import { evaluateComeback } from '../dist/src/modules/student/comeback.js';
+import { evaluateComeback, fitLessonToMinutes } from '../dist/src/modules/student/comeback.js';
 import { isValidReminderTime } from '../dist/src/modules/student/nudge.js';
 import { nudgeModeFromEnv, parseAllowlist, runNudgeTick } from '../dist/src/modules/student/nudgeRunner.js';
 import { buildProfessorHistory } from '../dist/src/modules/student/professorHistory.js';
@@ -521,8 +521,13 @@ app.post('/pilot/agents/:agentType/run', async (request) => {
     inference.usedFallback ? 'Agent inference fell back to example output' : 'Agent inference completed',
   );
 
+  // The canned lesson is sized for a full day; a comeback day is shorter.
+  const lesson = inference.usedFallback && comeback
+    ? fitLessonToMinutes(inference.output, comeback.minutes)
+    : inference.output;
+
   const output = {
-    ...inference.output,
+    ...lesson,
     generated_at: new Date().toISOString(),
     generated_for_user: session.user_id,
   };
