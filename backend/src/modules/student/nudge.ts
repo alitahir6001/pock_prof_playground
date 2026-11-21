@@ -76,7 +76,7 @@ export function decideNudge(now: Date, user: NudgeUser, events: StudentEvent[]):
 export function nudgeEmail(links: { appUrl: string; stopUrl: string }): { subject: string; text: string; html: string } {
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return {
-    subject: 'Hey, this is the professor',
+    subject: 'Hey, this is The Professor',
     // Plain-text part is the fallback for clients that don't render HTML.
     text: [
       'Just wanted to let you know your next lesson is ready for you to try.',
