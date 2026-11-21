@@ -15,7 +15,7 @@ export interface Comeback {
 
 // Fixed wording, frozen for the n=3 test (.ai/vision.md: a variable under test).
 export function comebackNote(minutes: number): string {
-  return `You've been away a few days. That happens, and there's nothing to catch up on. Today is a shorter one: about ${minutes} minutes.`;
+  return `You've been away for a few days. No worries, it happens. Let's pick up where we left off with a shorter one, about ${minutes} minutes.`;
 }
 
 /**
