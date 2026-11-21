@@ -12,9 +12,9 @@ export default function Schedule({ value, onChange, onNext }) {
   return (
     <div className="flex flex-col gap-6 py-4">
       <CoachNote>What does your week actually look like?</CoachNote>
-      <div className="text-ink-2 text-[13px] font-sans">Pick all that apply. Be honest — chaos is data.</div>
+      <div className="text-ink-2 text-[13px] font-sans">Pick all that apply. Be honest. Chaos is data.</div>
       <div>
-        <YouLabel>You — write back</YouLabel>
+        <YouLabel>You: write back</YouLabel>
         <ChipRow options={SCHEDULES} selected={value} onToggle={toggle} />
       </div>
       <div className="flex justify-end pt-2">

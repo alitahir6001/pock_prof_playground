@@ -13,7 +13,7 @@ export default function Energy({ value, onChange, onNext }) {
     <div className="flex flex-col gap-6 py-4">
       <CoachNote>When does your brain work best?</CoachNote>
       <div className="text-ink-2 text-[13px] font-sans">Tap the windows you're sharpest. We'll only schedule hard tasks here.</div>
-      <YouLabel>You — write back</YouLabel>
+      <YouLabel>You: write back</YouLabel>
       <div className="grid grid-cols-2 gap-2">
         {BANDS.map((b) => {
           const on = value.includes(b.id);

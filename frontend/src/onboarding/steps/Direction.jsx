@@ -13,7 +13,7 @@ export default function Direction({ domains, note, onToggleDomain, onNote, onNex
     <div className="flex flex-col gap-5 py-4">
       <CoachNote>What career domains pull at you?</CoachNote>
       <div className="-mt-2 text-ink-2 text-[14px] font-sans leading-[1.6]">
-        Tap any that spark something — pick a few. Not sure what you want? Tell me what
+        Tap any that spark something. Pick a few. Not sure what you want? Tell me what
         you'd rather avoid. You don't need to know the exact job; I'll do that part.
       </div>
 
@@ -39,7 +39,7 @@ export default function Direction({ domains, note, onToggleDomain, onNote, onNex
         <textarea
           value={note}
           onChange={(e) => onNote(e.target.value.slice(0, 200))}
-          placeholder="e.g. something with computers, but not phone support — or just 'anything but late nights'"
+          placeholder="e.g. something with computers, but not phone support, or just 'anything but late nights'"
           className="w-full min-h-[72px] bg-paper-1 border border-paper-edge rounded-2xl p-3 font-serif text-[16px] text-ink-0 placeholder:text-ink-3 focus:outline-none focus:border-ink-2"
         />
         <div className="mt-1 font-mono text-[10px] text-ink-3 text-right">{note.length}/200</div>

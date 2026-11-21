@@ -10,8 +10,8 @@ export default function Welcome({ onNext }) {
       <StripedCircle size={72} label="POCKET PROFESSOR" />
       <CoachNote sign="P">
         I won't tell you this is easy. I won't promise a new career in 30 days.
-        I will help you find the next small thing you can do — tonight, after
-        your shift — and the one after that.
+        I will help you find the next small thing you can do tonight, after
+        your shift. Then the one after that.
       </CoachNote>
       <div className="text-ink-2 text-[14px] font-sans leading-[1.6]">
         Five minutes now. We'll save your answers as you go.

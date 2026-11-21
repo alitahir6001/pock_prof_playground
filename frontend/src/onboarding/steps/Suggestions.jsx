@@ -92,7 +92,7 @@ export default function Suggestions({ state, phase, error, onResult, onError, on
   return (
     <div className="flex flex-col gap-5 py-4">
       <CoachNote>
-        Here's where I'd start — pick the one you want your first two-week sprint to be. You can switch later.
+        Here's where I'd start. Pick the one you want your first two-week sprint to be. You can switch later.
       </CoachNote>
 
       <div className="flex flex-col gap-3">
@@ -136,7 +136,7 @@ export default function Suggestions({ state, phase, error, onResult, onError, on
             value={escapeNote}
             onChange={(e) => setEscapeNote(e.target.value)}
             rows={2}
-            placeholder="e.g. something hands-on, not a desk job — maybe working with animals"
+            placeholder="e.g. something hands-on, not a desk job, maybe working with animals"
             className="w-full rounded-xl bg-paper-0 border border-paper-edge px-3 py-2 text-[13px] text-ink-0 mb-3 focus:outline-none focus:border-accent"
           />
           <div className="flex gap-2">

@@ -58,7 +58,7 @@ export default function Trigger({ primary, fallback, reminderTime, onPrimary, on
       </CoachNote>
 
       <TriggerField
-        label="Primary — for normal days"
+        label="Primary: for normal days"
         value={primary}
         onChange={onPrimary}
         suggestions={TRIGGER_SUGGESTIONS_PRIMARY}
@@ -68,7 +68,7 @@ export default function Trigger({ primary, fallback, reminderTime, onPrimary, on
       <ReminderTimeField value={reminderTime} onChange={onReminderTime} />
 
       <TriggerField
-        label="Fallback — for chaos days"
+        label="Fallback: for chaos days"
         value={fallback}
         onChange={onFallback}
         suggestions={TRIGGER_SUGGESTIONS_FALLBACK}

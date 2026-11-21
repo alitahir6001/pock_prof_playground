@@ -11,8 +11,8 @@ export default function Skills({ value, custom, onChange, onCustomChange, onNext
     onChange(value.includes(id) ? value.filter(v => v !== id) : [...value, id]);
   return (
     <div className="flex flex-col gap-6 py-4">
-      <CoachNote>What are you already good at — even if it doesn't feel like a "skill"?</CoachNote>
-      <YouLabel>You — write back</YouLabel>
+      <CoachNote>What are you already good at, even if it doesn't feel like a "skill"?</CoachNote>
+      <YouLabel>You: write back</YouLabel>
       <ChipRow options={SKILLS} selected={value} onToggle={toggle} grid />
       <div>
         <YouLabel>Anything else, in your words</YouLabel>

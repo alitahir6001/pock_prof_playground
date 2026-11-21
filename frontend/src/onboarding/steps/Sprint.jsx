@@ -29,7 +29,7 @@ export default function Sprint({ minutes, emphasis, onMinutes, onEmphasis, onNex
         <div className="mt-1 font-mono text-[11px] text-ink-2">
           {minutes <= 15 ? 'Honest start. Keeps the streak alive on bad days.' :
            minutes <= 30 ? 'Sustainable for shift work.' :
-                          'Ambitious — only if your shifts allow.'}
+                          'Ambitious: only if your shifts allow.'}
         </div>
       </div>
 

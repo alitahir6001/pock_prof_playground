@@ -76,7 +76,7 @@ function Feedback({ component, interactionId, prompt = 'Was this helpful?', onRe
   }
 
   if (stage === 'done') {
-    return <div className="rounded-2xl bg-paper-2 border border-paper-edge p-4 text-[13px] text-ink-2">Thanks — that helps us tune it.</div>;
+    return <div className="rounded-2xl bg-paper-2 border border-paper-edge p-4 text-[13px] text-ink-2">Thanks, that helps us tune it.</div>;
   }
 
   if (stage === 'comment') {
@@ -98,7 +98,7 @@ function Feedback({ component, interactionId, prompt = 'Was this helpful?', onRe
   if (stage === 'refine') {
     return (
       <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4">
-        <div className="text-[14px] text-ink-1 mb-2 leading-[1.5]">No worries — what didn't fit? Tell me and I'll take another pass.</div>
+        <div className="text-[14px] text-ink-1 mb-2 leading-[1.5]">No worries. What didn't fit? Tell me and I'll take another pass.</div>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
@@ -225,7 +225,7 @@ function Login({ onAuthed }) {
 }
 
 const EMPHASIS_LABEL = {
-  micro_proof: 'Bite-size wins — small, finishable proof',
+  micro_proof: 'Bite-size wins: small, finishable proof',
   foundational_skills: 'Foundational skills',
   schedule_stability: 'Schedule stability',
 };
@@ -249,7 +249,7 @@ function PlanView({ plan, locked, onSwitch, onContinue, error, onRestart, onRefi
     <Shell>
       <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-3">Your plan</div>
       <h1 className="font-serif text-[28px] leading-tight text-ink-0 mb-2">Here's where we'd start.</h1>
-      <p className="text-[13px] text-ink-2 mb-5 leading-[1.6]">Your pick drives the first sprint — tap another any time to switch.</p>
+      <p className="text-[13px] text-ink-2 mb-5 leading-[1.6]">Your pick drives the first sprint. Tap another any time to switch.</p>
 
       {refining && (
         <div className="mb-4 rounded-2xl bg-accent-soft border border-accent px-4 py-3 text-[13px] text-ink-1">
@@ -382,7 +382,7 @@ function SessionView({ output, interactionId, dayNumber, sprintDayCount, comebac
         <p className="text-[14px] text-ink-1 mb-3 leading-[1.6] border-l-2 border-accent pl-3">{output.recall_note}</p>
       )}
       <h1 className="font-serif text-[24px] leading-tight text-ink-0 mb-3">{output.session_objective}</h1>
-      <p className="text-[14px] text-ink-2 mb-5 leading-[1.6]">Pick the one you'll do right now — that's the whole session. Then mark it done.</p>
+      <p className="text-[14px] text-ink-2 mb-5 leading-[1.6]">Pick the one you'll do right now. That's the whole session. Then mark it done.</p>
 
       <div className="flex flex-col gap-3 mb-6">
         {options.map((o, i) => {
@@ -507,7 +507,7 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
       {!finished && (
         <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4 mb-4">
           <div className="font-mono text-[11px] uppercase tracking-wider text-ink-2 mb-1">
-            {doneToday ? "Today's session — done ✓" : `Today: day ${nextDay}`}
+            {doneToday ? "Today's session: done ✓" : `Today: day ${nextDay}`}
           </div>
           {doneToday ? (
             <>
@@ -701,7 +701,7 @@ function MainApp() {
       // Even if the save fails, let the user see their plan — just surface it.
       setPlan(p);
       setCompletedDays([]);
-      setSessionError(`Heads up — couldn't save your plan to the server (${e.message}). Your progress may not persist.`);
+      setSessionError(`Heads up: couldn't save your plan to the server (${e.message}). Your progress may not persist.`);
     }
     setView('plan');
   }
@@ -883,9 +883,9 @@ function cohortSegment(u) {
 function nudgeUrl(u) {
   const subject = 'Checking in from Pocket Professor';
   let body;
-  if (!u.onboarded) body = `Hey — saw you started setting up Pocket Professor but didn't finish. Want a hand getting your plan going?`;
-  else if ((Number(u.days_done) || 0) === 0) body = `Hey — your plan's ready and your first 20-minute thing is waiting whenever you've got a window.`;
-  else body = `Hey — your next session is ready whenever your cue hits. No rush, just here when you are.`;
+  if (!u.onboarded) body = `Hey, saw you started setting up Pocket Professor but didn't finish. Want a hand getting your plan going?`;
+  else if ((Number(u.days_done) || 0) === 0) body = `Hey, your plan's ready and your first 20-minute thing is waiting whenever you've got a window.`;
+  else body = `Hey, your next session is ready whenever your cue hits. No rush, just here when you are.`;
   // Gmail web compose (opens a draft in the browser, not the OS mail client).
   return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(u.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
