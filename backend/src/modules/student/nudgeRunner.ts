@@ -10,7 +10,7 @@ export interface NudgeRunnerDeps {
   /** Lowercased addresses. Empty = everyone; otherwise only these get real mail. */
   allowlist: string[];
   appUrl: string;
-  sendEmail(message: { to: string; subject: string; text: string }): Promise<void>;
+  sendEmail(message: { to: string; subject: string; text: string; html?: string }): Promise<void>;
   log(info: Record<string, unknown>, message: string): void;
 }
 
