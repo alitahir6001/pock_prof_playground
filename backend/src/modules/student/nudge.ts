@@ -73,17 +73,22 @@ export function decideNudge(now: Date, user: NudgeUser, events: StudentEvent[]):
 }
 
 // Fixed wording, frozen for the n=3 test (.ai/pilot-test-design.md: a variable under test).
-export function nudgeEmail(links: { appUrl: string; stopUrl: string }): { subject: string; text: string } {
+export function nudgeEmail(links: { appUrl: string; stopUrl: string }): { subject: string; text: string; html: string } {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return {
-    subject: "Today's session is ready",
+    subject: 'Hey, this is the professor',
+    // Plain-text part is the fallback for clients that don't render HTML.
     text: [
-      "It's the time you picked for today's session.",
+      'Just wanted to let you know your next lesson is ready for you to try.',
       '',
-      'One small task is waiting. It takes about as long as you planned for.',
+      `Open it here: ${links.appUrl}`,
       '',
-      `Open it: ${links.appUrl}`,
-      '',
-      `Stop these reminders: ${links.stopUrl}`,
+      `Good luck, and remember you got this! Oh, and if you want these reminders to stop, click here: ${links.stopUrl}`,
+    ].join('\n'),
+    html: [
+      '<p>Just wanted to let you know your next lesson is ready for you to try.</p>',
+      `<p><a href="${esc(links.appUrl)}">Open it here</a></p>`,
+      `<p>Good luck, and remember you got this! Oh, and if you want these reminders to stop, <a href="${esc(links.stopUrl)}">click here</a>.</p>`,
     ].join('\n'),
   };
 }

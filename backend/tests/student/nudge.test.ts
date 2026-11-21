@@ -141,3 +141,9 @@ test('the email is plain text with the app link and the stop link', () => {
   assert.ok(email.text.includes('https://app.example/#stop=tok'));
   assert.ok(!email.text.includes('<'));
 });
+
+test('the HTML part links both texts to the right URLs and escapes them', () => {
+  const email = nudgeEmail({ appUrl: 'https://app.example', stopUrl: 'https://app.example/?a=1&b="2"' });
+  assert.ok(email.html.includes('<a href="https://app.example">Open it here</a>'));
+  assert.ok(email.html.includes('<a href="https://app.example/?a=1&amp;b=&quot;2&quot;">click here</a>'));
+});
