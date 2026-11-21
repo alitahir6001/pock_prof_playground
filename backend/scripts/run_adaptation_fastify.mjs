@@ -275,7 +275,7 @@ app.post('/pilot/auth/email/request', async (request) => {
   }
   // Before any code is stored or mailed: strangers must not be able to make us send email.
   if (!isEmailAllowed(email, allowedEmails, adminEmail)) {
-    throw Object.assign(new Error("This email isn't on the pilot list."), { statusCode: 403 });
+    throw Object.assign(new Error("This email isn't on the pilot list. If you're a tester, try the address you gave us."), { statusCode: 403 });
   }
 
   const code = randomCode();

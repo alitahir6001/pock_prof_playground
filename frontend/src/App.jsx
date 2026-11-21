@@ -512,7 +512,7 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
           {doneToday ? (
             <>
               <div className="text-[14px] text-ink-1 leading-[1.6]">
-                Nice — you did today's bite-size win. Come back tomorrow when your trigger fires and I'll have day {nextDay} ready.
+                Nice work, that's today done. Come back tomorrow when your trigger fires and I'll have day {nextDay} ready.
               </div>
               {sessionsToday < MAX_SESSIONS_PER_DAY && (
                 // Set apart: optional, and the line above says to come back tomorrow.

@@ -107,7 +107,7 @@ export const TRIGGER_SUGGESTIONS_FALLBACK = [
 export const RISK_FLAGS = {
   low_schedule_stability: {
     label: 'Schedule swings week to week',
-    body:  "We'll route triggers around fixed events — coffee, shower, clock-out — instead of clock times.",
+    body:  "We'll hang your triggers on things that happen anyway, like coffee, a shower, or clocking out, not on clock times. Your daily reminder email is the one exception.",
   },
   high_fatigue_pattern: {
     label: 'High fatigue pattern',
