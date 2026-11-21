@@ -106,7 +106,7 @@ test('system prompt embeds the strict contract, content rules, and example', () 
   assert.ok(prompt.includes('SINGLE JSON object'));
   assert.ok(prompt.includes('STRICT OUTPUT CONTRACT'));
   // schema-spec specifics that the example alone would not convey
-  assert.ok(prompt.includes('career_options: an array of EXACTLY 3 objects'));
+  assert.ok(prompt.includes('career_options: an array of 3 to 6 objects'));
   assert.ok(prompt.includes('fast_interview_path'));
   assert.ok(prompt.includes('therapy, diagnosis, medical')); // content rules
   assert.ok(prompt.includes('"agent": "onboarding_agent"')); // example
