@@ -1,20 +1,21 @@
 # Handoff — live state snapshot
 
 ## Last updated
-2026-11-17 (prod walk session: walk passed, 8 fixes committed, pushed and deployed)
+2026-11-20 (copy session: item 5 checked, copy edited and committed; not yet deployed)
 
 ## Current state
-Vision steps 1–4 plus "keep going" are live on prod (`https://learn.pakfro.dev`), backend and frontend at `7729a2f`, nudge timer on in send mode. This session: the prod walk passed, then 8 commits from `3671b53` to `7729a2f` fixed Ali's walk notes and handoff UI notes 1–4. `test:phase3` is 149/150, the one failure being the known stale test. Signup is closed: `PILOT_ALLOWED_EMAILS` holds Ali's personal address only, and `ADMIN_EMAIL` is always allowed.
+Vision steps 1–4 plus "keep going" are live on prod (`https://learn.pakfro.dev`) at `7729a2f`, nudge timer on in send mode. Since then, 7 local commits (`9847df7` to `cb6fc82`) hold the copy edits: Log out as a button, the nudge email rewritten and sent as HTML (`EmailMessage.html`, plain-text part kept), the comeback note, the reminder helper and prompt, the after-session, risk-step and not-on-list lines, and em dashes removed from all user-facing frontend copy. **These are not deployed.** `test:phase3` is 150/151, the one failure being the known stale test. Signup is closed: `PILOT_ALLOWED_EMAILS` holds Ali's personal address only, and `ADMIN_EMAIL` is always allowed.
 
 ## Active task
-**Edit the copy, then run the n=3 test.** Personal side project, no deadline. Claude writes, Ali reviews (ADR-0026). Commit and push only when asked.
+**Deploy the copy, then run the n=3 test.** Personal side project, no deadline. Claude writes, Ali reviews (ADR-0026). Commit and push only when asked.
 
 1. [x] Steps 1–4 built and deployed (gotchas 19–21, ADR-0025 to 0028).
 2. [x] Code review, local browser review, pre-test fixes and security pass, 2026-11-16 (gotchas 22–23).
 3. [x] **Prod walk, 2026-11-16.** Login code in inbox. Nudge set 23:01, arrived 23:02 in inbox, `nudge_sent` with `dry_run: false`. Stop link pressed on `alitahir6001@gmail.com`, `nudge_stopped` recorded; that account gets no more nudges. Recall note seen on `ali@pakfro.dev` day 2. Student file read as admin. Not seen on prod: comeback banner (needs 2 missed days in a row).
 4. [x] **Walk fixes, deployed 2026-11-17 at `7729a2f`:** Enter submits login; stop page says "Reminders are off" after a reload (`POST /pilot/nudge/status`, reads only); "Log out" on the dashboard and in the onboarding header (`POST /pilot/auth/logout` deletes that one session; logout also clears the onboarding draft, which is per browser, not per account); comeback dashboard gives the minutes once; header shows the day just finished; divider sets "Keep going" apart; canned lesson on a comeback day uses the comeback minutes (`fitLessonToMinutes` in `student/comeback.ts`, tested). Checked locally in a browser and on prod by route probes and the live bundle.
-5. [ ] (Ali) **Look at the new screens on prod:** Enter on login, Log out in both places, the stop link from the 23:02 email now opening on "Reminders are off".
-6. [ ] (Ali) **Edit the copy**, all Claude's drafts, frozen once the test starts: `nudgeEmail()` in `backend/src/modules/student/nudge.ts`; `comebackNote()` in `student/comeback.ts`; `ReminderTimeField` (`Trigger.jsx`); in `App.jsx`: `ReminderPrompt`, `StopNudges`, the login body line, the retry screen ("Couldn't load your sprint."), the feedback comment step ("Thanks. Anything to add?"), the dashboard feedback prompt, "Come back tomorrow…" above "Keep going", and "Log out" (also in `OnboardingFlow.jsx`); in `run_adaptation_fastify.mjs`: "This email isn't on the pilot list." and "Too many codes requested. Try again later." Also the Risk-step line promising triggers "instead of clock times" (`frontend/src/onboarding/data.js:110`), shown one screen before a clock time is asked for.
+5. [x] **New screens checked on prod, 2026-11-20:** Enter on login and Log out in both places work. The stop link was not re-checked from the real email (Ali deleted it); skipped by choice. Route and local checks stand.
+6. [x] **Copy edited, 2026-11-20** (committed locally, not deployed). Sentence case throughout, no em dashes in user-facing frontend copy. The nudge email and the comeback note are Ali's wording (links and HTML added by Claude); Claude drafted the rest at Ali's request: the reminder helper, the dashboard reminder prompt, the after-session message, the risk-step line, the not-on-list error and the em-dash swaps. Unchanged on purpose: StopNudges, the login body, the retry screen, the feedback strings, "Log out" wording, "Too many codes requested. Try again later." Still has em dashes: the "—" empty-value placeholders in the admin table, the "— P" coach-note signature, and the Professor's live lesson text (a prompt-wording change). The nudge email's HTML has not been seen in an inbox yet; `scripts/send_sample_nudge.mjs <email>` sends a real one.
+6b. [ ] (Ali) **Deploy the copy.** Push, then backend and frontend by the manual deploy recipe below (none needs a migration or a new route, so order does not matter). Then send one sample nudge to check the HTML in an inbox.
 7. [ ] (Ali) **AI spend caps** on OpenAI, Gemini, Anthropic.
 8. [ ] (Ali) **User zero** is `ali@pakfro.dev`. It is on a Commercial Pilot track, not the A+ track the test uses, and has no reminder time (fill in the dashboard box). Real A+ track, skip days on purpose. Gate, not evidence; gives tuned copy and a measured AI cost per user-day.
 9. [ ] (Ali) Name 2 more testers (1 identified). **Add each tester's email to `PILOT_ALLOWED_EMAILS` at their day 0 or they cannot log in** (comma-separated; changing it restarts the backend). Create `.ai/pilot-log.md` at user 1's day 0. Day-0 inbox check: `scripts/send_sample_nudge.mjs <email>`.
@@ -41,7 +42,7 @@ Vision steps 1–4 plus "keep going" are live on prod (`https://learn.pakfro.dev
 - **Nudge limits, accepted for the test:** a backend outage for a student's whole hour loses that day's nudge; a stop cannot be undone from the app (undo = SQL on `pilot_users.nudges_stopped_at`); a dropout is emailed daily until they press Stop. **Post-test pile:** WTP test, vision steps 5–6, prompt-injection hardening, behavioral research, multi-mode.
 
 ## Next recommended step
-Ali looks at the three new screens on prod (item 5), then edits the copy (item 6).
+Deploy the copy (item 6b) and send a sample nudge to check the HTML email, then work through the open items (7 to 10) before day 0.
 
 ## Out of scope
 Vision steps 5–6, payments, exit report, recruiting/B2B, SMS/push (unless day-0 evidence), non-IT tracks; no prod deploys during the 14-day test.
