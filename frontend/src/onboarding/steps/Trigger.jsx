@@ -42,7 +42,7 @@ export function ReminderTimeField({ value, onChange }) {
         className="bg-paper-1 border border-paper-edge rounded-2xl p-3 font-serif text-[16px] text-ink-0 focus:outline-none focus:border-ink-2"
       />
       <div className="mt-1 font-sans text-[12px] text-ink-3">
-        One email a day at this time. None if you've already done that day's session.
+        One email a day around this time, and none on days you've already done your session.
       </div>
     </div>
   );

@@ -461,7 +461,7 @@ function ReminderPrompt({ onSave }) {
   return (
     <div className="rounded-2xl bg-paper-1 border border-paper-edge p-4 mb-4">
       <div className="text-[14px] text-ink-1 leading-[1.6] mb-3">
-        When should I remind you each day?
+        You don't have a reminder set yet. Pick a time and I'll email you each day.
       </div>
       <ReminderTimeField value={value} onChange={setValue} />
       {error && <div className="mt-2 text-[13px] text-ink-1">{error}</div>}
