@@ -571,7 +571,7 @@ function DashboardView({ plan, completedDays, activeTrack, doneToday, sessionsTo
           {!feedbackOpen && (
             <button onClick={() => setFeedbackOpen(true)} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Send feedback</button>
           )}
-          <button onClick={onLogout} className="font-sans text-[13px] text-ink-3 hover:text-ink-1">Log out</button>
+          <button onClick={onLogout} className="rounded-full border border-paper-edge px-4 py-1.5 font-sans text-[13px] text-ink-2 hover:border-accent hover:text-accent">Log out</button>
         </div>
       </div>
       {feedbackOpen && (
