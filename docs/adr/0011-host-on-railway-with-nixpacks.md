@@ -20,4 +20,4 @@ Chosen option: "One Railway project, both services built by Nixpacks, no Dockerf
 * Bad, because `NODE_ENV=production` makes `npm install` skip devDependencies, so builds must use `npm install --include=dev` (gotcha 17).
 
 ## More Information
-Evidence: 4309cb5, gotcha 17, `docs/railway_pilot_deploy_guide.md`, `.ai/history.md`. Related: [ADR-0017](0017-pilot-on-subdomain-via-cname.md).
+Evidence: 4309cb5, gotcha 17, `docs/railway_pilot_deploy_guide.md`, `.ai/history.md`. Related: [ADR-0017](0017-pilot-on-subdomain-via-cname.md). Supersedes [ADR-0030](0030-host-v1-backend-on-railway.md): v1's backend already ran on Railway from 2025-07-14.
