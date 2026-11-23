@@ -19,4 +19,4 @@ Chosen option: "React + Vite in plain JSX". The first v2 frontend landed with th
 * Bad, because the frontend is not type-checked against the backend's TypeScript contracts (inferred from `CLAUDE.md:156`).
 
 ## More Information
-Evidence: `9725c1e^:readme.md:80`, `docs/phase1_system_architecture_plan.md:174-180`, 6fb57d1, 9639850, 7852f89, `CLAUDE.md:142`, `:156`. v1's demo page was deleted in 08602c6. Related: [ADR-0011](0011-host-on-railway-with-nixpacks.md), [ADR-0032](0032-v2-stack-node-typescript-fastify-postgres.md).
+Evidence: `9725c1e^:readme.md:80`, `docs/phase1_system_architecture_plan.md:174-180`, 6fb57d1, 9639850, 7852f89, `CLAUDE.md:142`, `:156`. v1's demo page was deleted in 08602c6. Related: [ADR-0011](0011-host-on-railway-with-nixpacks.md), [ADR-0034](0034-v2-stack-node-typescript-fastify-postgres.md).

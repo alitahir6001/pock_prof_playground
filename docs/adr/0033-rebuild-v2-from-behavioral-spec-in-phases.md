@@ -5,7 +5,7 @@ date: 2026-02-22
 # Rebuild as v2 from a written behavioral spec, phase by phase, before user contact
 
 ## Context and Problem Statement
-By late 2025, v1 was a hosted syllabus generator ([ADR-0002](0002-hosted-gemini-api-over-local-ollama.md), [ADR-0030](0030-host-v1-backend-on-railway.md)). Its README roadmap aimed at an adaptive engine: a gap-analysis agent loop, a Study, Test, Feedback UI, Firestore logging of quiz interactions, then alpha testing with career-switchers (`9725c1e^:readme.md:155-161`). The question was whether to extend v1 along that roadmap or start again from a written design.
+By late 2025, v1 was a hosted syllabus generator ([ADR-0002](0002-hosted-gemini-api-over-local-ollama.md), [ADR-0031](0031-host-v1-backend-on-railway.md)). Its README roadmap aimed at an adaptive engine: a gap-analysis agent loop, a Study, Test, Feedback UI, Firestore logging of quiz interactions, then alpha testing with career-switchers (`9725c1e^:readme.md:155-161`). The question was whether to extend v1 along that roadmap or start again from a written design.
 
 ## Considered Options
 * Extend v1 along its README roadmap (the prior plan)
@@ -19,4 +19,4 @@ Chosen option: "Rebuild from a behavioral spec, phase by phase". On 2026-02-22 t
 * Bad, because Phases 0 to 3 were built before any user contact. The 2026-07-12 evaluation called this "backwards sequencing" (`.ai/history.md:17`), and the Phase 3 engine is not in the live path (gotcha 18, [ADR-0018](0018-do-not-wire-adaptation-engine-for-pilot.md)).
 
 ## More Information
-Evidence: 7ce7b28, fa3f780, 9faefe4, d1bcc89, f532135, 08602c6, `9725c1e^:readme.md:155-161`, `docs/phase1_system_architecture_plan.md:3-4`, `CLAUDE.md:77-85`, `.ai/history.md:17`. Supersedes [ADR-0029](0029-syllabus-generator-over-knowledge-base-qa-cli.md). Related: [ADR-0032](0032-v2-stack-node-typescript-fastify-postgres.md) (the stack), [ADR-0013](0013-ship-pilot-first-research-as-fast-follow.md), [ADR-0018](0018-do-not-wire-adaptation-engine-for-pilot.md).
+Evidence: 7ce7b28, fa3f780, 9faefe4, d1bcc89, f532135, 08602c6, `9725c1e^:readme.md:155-161`, `docs/phase1_system_architecture_plan.md:3-4`, `CLAUDE.md:77-85`, `.ai/history.md:17`. Supersedes [ADR-0030](0030-syllabus-generator-over-knowledge-base-qa-cli.md). Related: [ADR-0034](0034-v2-stack-node-typescript-fastify-postgres.md) (the stack), [ADR-0013](0013-ship-pilot-first-research-as-fast-follow.md), [ADR-0018](0018-do-not-wire-adaptation-engine-for-pilot.md).

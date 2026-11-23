@@ -15,9 +15,9 @@ Chosen option: two separate conditions in `backend/src/modules/student/comeback.
 
 * **When:** today is a comeback day if the student has no session yet today and missed 2 or more days in a row right before today (`COMEBACK_MIN_MISSED_DAYS = 2`).
 * **How much:** `evaluatePolicies` runs with the real 7-day miss count and the other four counters fed as zero or false. Its 25% cut is applied to the plan's minutes, rounded to the nearest 5, with a floor of 10, so a 10-minute plan is not shortened.
-* It is the only live caller of the adaptation engine. A `comeback_checkin` event records it in the student file ([ADR-0036](0036-student-file-append-only-event-log.md)).
+* It is the only live caller of the adaptation engine. A `comeback_checkin` event records it in the student file ([ADR-0046](0046-student-file-append-only-events-table.md)).
 * On a comeback day the server sets the Professor's `minutes_available_today` and ignores the client's number (`run_adaptation_fastify.mjs`). If the canned lesson is served because every AI provider failed, its "N minutes" is rewritten to match; real AI output is not rewritten (`fitLessonToMinutes`, 5fe200c, gotcha 24(b)).
-* The note is fixed copy in `comebackNote()`, frozen for the n=3 test ([ADR-0040](0040-freeze-user-facing-copy-for-the-n3-test.md)).
+* The note is fixed copy in `comebackNote()`, frozen for the n=3 test ([ADR-0051](0051-freeze-user-facing-copy-for-the-n3-test.md)).
 * The one-session-a-day gate and the 3-a-day cap (`MAX_SESSIONS_PER_DAY`, [ADR-0027](0027-keep-going-after-the-days-session.md)) are enforced only in the client; the server enforces neither (gotcha 20).
 
 ### Consequences

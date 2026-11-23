@@ -16,8 +16,8 @@ Chosen option: "A normal pilot login, authorized on the server when the session'
 ### Consequences
 * Good, because the gate is on the server: knowing the `#admin` route grants nothing (gotcha 16).
 * Good, because the founder logs in like any tester, with no second credential to manage (gotcha 16).
-* Bad, because `ADMIN_EMAIL` is always allowed past the login allowlist (413feeb, [ADR-0043](0043-invite-only-login-allowlist-provider-spend-caps.md)), so admin access rests on that one mailbox (inferred).
+* Bad, because `ADMIN_EMAIL` is always allowed past the login allowlist (413feeb, [ADR-0049](0049-invite-only-login-allowlist-provider-spend-caps.md)), so admin access rests on that one mailbox (inferred).
 * Bad, because the student-file route takes the tester's email in the URL, so it appears in request logs (`.ai/handoff.md:37`).
 
 ## More Information
-Evidence: 8195b42, ed724be, 1b0fb29, 413feeb, `backend/scripts/run_adaptation_fastify.mjs:30-32`, `:199-207`, gotcha 16, `.ai/history.md:33`, `.ai/handoff.md:37`. Related: [ADR-0007](0007-email-one-time-code-login.md), [ADR-0039](0039-production-guards-keyed-on-node-env.md).
+Evidence: 8195b42, ed724be, 1b0fb29, 413feeb, `backend/scripts/run_adaptation_fastify.mjs:30-32`, `:199-207`, gotcha 16, `.ai/history.md:33`, `.ai/handoff.md:37`. Related: [ADR-0007](0007-email-one-time-code-login.md), [ADR-0043](0043-production-guards-keyed-on-node-env.md).

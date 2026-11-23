@@ -23,7 +23,7 @@ Chosen option: "Ship a narrower slice and move the rest to later phases". The re
 | BullMQ job queue | A JSON file-queue worker with retry, dead-letter and idempotency (9937900, 0ec27ef), never deployed; the doc names a real broker (SQS, Rabbit or Redis Streams) as the open gap | Replaced by a simulation, unwired (`docs/phase3_broker_telemetry_slice.md`) |
 | Resilience Coach agent | Not built; three agents only | Not scheduled; listed as missing (`.ai/behavioral-science-and-engine-alignment.md`, principle 11) |
 | Agent orchestrator | One runner that builds a prompt and falls back across providers | Narrowed (gotcha 18, [ADR-0009](0009-multi-provider-ai-fallback-via-raw-fetch.md)) |
-| React + TypeScript frontend | React in JSX | Narrowed ([ADR-0031](0031-rebuild-on-node-typescript-and-postgres.md)) |
+| React + TypeScript frontend | React in JSX | Narrowed ([ADR-0034](0034-v2-stack-node-typescript-fastify-postgres.md)) |
 
 ### Consequences
 * Good, because a pilot shipped without billing, a graph or a queue to run.

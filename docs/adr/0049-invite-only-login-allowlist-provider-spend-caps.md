@@ -24,4 +24,4 @@ Chosen option: "An email allowlist checked at code request and on every session"
 * Bad, because spend is capped per provider account, not per user, so one heavy user could exhaust a month's cap for everyone (inferred).
 
 ## More Information
-Evidence: 413feeb, 962b71d, 5add55d (allowlist set on prod), 899f7cf, `backend/src/modules/pilot/emailAllowlist.ts`, gotcha 22c, `.ai/history.md:25`, `.ai/handoff.md:14`, `:16`, `:37`. Amends [ADR-0007](0007-email-one-time-code-login.md). Related: [ADR-0009](0009-multi-provider-ai-fallback-via-raw-fetch.md), [ADR-0038](0038-admin-portal-server-enforced-by-admin-email.md).
+Evidence: 413feeb, 962b71d, 5add55d (allowlist set on prod), 899f7cf, `backend/src/modules/pilot/emailAllowlist.ts`, gotcha 22c, `.ai/history.md:25`, `.ai/handoff.md:14`, `:16`, `:37`. Amends [ADR-0007](0007-email-one-time-code-login.md). Related: [ADR-0009](0009-multi-provider-ai-fallback-via-raw-fetch.md), [ADR-0042](0042-admin-portal-server-enforced-by-admin-email.md).

@@ -1,5 +1,5 @@
 ---
-status: superseded by ADR-0031
+status: superseded by ADR-0033
 date: 2025-04-19
 ---
 # Turn the knowledge-base Q&A command-line app into a syllabus generator
@@ -19,4 +19,4 @@ Chosen option: "Generate a syllabus from the user's own information". Syllabus g
 * Bad, because the knowledge base and typo check were never brought back; they were deleted with the rest of the v1 code on 2026-04-05 (08602c6).
 
 ## More Information
-Evidence: d374bbb, 0e3e590, 7c4e32a, 0ec17cb, 433071e, e3e3fd0, 46aac92, f570ad4, 0ceb56c, 38533e1, 3e7d8cf, 55d6a2a (head of the frozen branch), b03ff20, 2459e14, `a9157c2:readme.md:16`, 08602c6. Every commit cited is also in this repo ([ADR-0037](0037-continue-in-pock-prof-playground.md)). Followed by [ADR-0001](0001-prototype-local-llm-ollama-behind-fastapi.md), the web prototype of the same generator. Superseded by [ADR-0031](0031-rebuild-v2-from-behavioral-spec-in-phases.md).
+Evidence: d374bbb, 0e3e590, 7c4e32a, 0ec17cb, 433071e, e3e3fd0, 46aac92, f570ad4, 0ceb56c, 38533e1, 3e7d8cf, 55d6a2a (head of the frozen branch), b03ff20, 2459e14, `a9157c2:readme.md:16`, 08602c6. Every commit cited is also in this repo ([ADR-0041](0041-continue-in-pock-prof-playground.md)). Followed by [ADR-0001](0001-prototype-local-llm-ollama-behind-fastapi.md), the web prototype of the same generator. Superseded by [ADR-0033](0033-rebuild-v2-from-behavioral-spec-in-phases.md).

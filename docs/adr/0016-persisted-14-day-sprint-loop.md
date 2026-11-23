@@ -20,4 +20,4 @@ Chosen option: "Persisted sprint loop": tables `pilot_plans` and `pilot_sprint_d
 * Bad, because one plan per user means re-onboarding discards history.
 
 ## More Information
-Evidence: 8195b42, ed724be, migration 003, `CLAUDE.md:138`, `docs/what-is-pocket-professor.md:96-97`, `.ai/history.md`. Related: [ADR-0021](0021-n3-unpaid-founder-silent-efficacy-test.md). Amended by [ADR-0027](0027-keep-going-after-the-days-session.md): one session a day is the default, with an opt-in "keep going" up to 3 a day. Amended by [ADR-0041](0041-student-file-append-only-events-table.md): the student file keeps a user's history across re-onboarding.
+Evidence: 8195b42, ed724be, migration 003, `CLAUDE.md:138`, `docs/what-is-pocket-professor.md:96-97`, `.ai/history.md`. Related: [ADR-0021](0021-n3-unpaid-founder-silent-efficacy-test.md). Amended by [ADR-0027](0027-keep-going-after-the-days-session.md): one session a day is the default, with an opt-in "keep going" up to 3 a day. Amended by [ADR-0046](0046-student-file-append-only-events-table.md): the student file keeps a user's history across re-onboarding.

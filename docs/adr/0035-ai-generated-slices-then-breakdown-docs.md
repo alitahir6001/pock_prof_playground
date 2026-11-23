@@ -5,7 +5,7 @@ date: 2026-02-22
 # Build the rewrite in small AI-generated slices merged by PR, then add breakdown docs to explain the code
 
 ## Context and Problem Statement
-The Node/TypeScript rewrite ([ADR-0031](0031-rebuild-on-node-typescript-and-postgres.md)) was a large amount of code for a solo founder. The question was how to produce it, and later how the founder would keep up with what had been produced.
+The Node/TypeScript rewrite ([ADR-0034](0034-v2-stack-node-typescript-fastify-postgres.md)) was a large amount of code for a solo founder. The question was how to produce it, and later how the founder would keep up with what had been produced.
 
 ## Considered Options
 * (alternatives not recorded)

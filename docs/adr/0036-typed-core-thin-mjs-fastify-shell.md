@@ -5,7 +5,7 @@ date: 2026-03-10
 # Keep logic in typed, tested TypeScript modules; the server is a thin plain-`.mjs` Fastify shell
 
 ## Context and Problem Statement
-The engine's entrypoints were written without a web framework. A binding module takes plain request objects and returns status and JSON (c8faa06, `backend/src/modules/adaptation/phase3/adaptationFrameworkBindings.ts`). They needed a real HTTP server ([ADR-0032](0032-v2-stack-node-typescript-fastify-postgres.md) chose Fastify).
+The engine's entrypoints were written without a web framework. A binding module takes plain request objects and returns status and JSON (c8faa06, `backend/src/modules/adaptation/phase3/adaptationFrameworkBindings.ts`). They needed a real HTTP server ([ADR-0034](0034-v2-stack-node-typescript-fastify-postgres.md) chose Fastify).
 
 ## Considered Options
 * (alternatives not recorded)
@@ -19,4 +19,4 @@ Chosen option: "A plain-JavaScript Fastify script that imports the compiled Type
 * Bad, because a new TypeScript module must be listed in `backend/tsconfig.json` `include`, or it is not compiled and the shell crashes on import (gotcha 21).
 
 ## More Information
-Evidence: c8faa06, 2fead2d, 6fb57d1, `backend/scripts/run_adaptation_fastify.mjs`, gotchas 17, 18, 19, 21. Related: [ADR-0032](0032-v2-stack-node-typescript-fastify-postgres.md), [ADR-0034](0034-worker-broker-on-file-queue-defer-production-broker.md).
+Evidence: c8faa06, 2fead2d, 6fb57d1, `backend/scripts/run_adaptation_fastify.mjs`, gotchas 17, 18, 19, 21. Related: [ADR-0034](0034-v2-stack-node-typescript-fastify-postgres.md), [ADR-0037](0037-worker-broker-on-file-queue-defer-production-broker.md).

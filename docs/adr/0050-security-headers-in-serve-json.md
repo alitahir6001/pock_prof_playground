@@ -19,4 +19,4 @@ Chosen option: "Set the headers in `frontend/public/serve.json`": a Content-Secu
 * Bad, because `npm run dev` ignores the file, so the headers only apply under `npm run start`, and a local `start` against a local backend is blocked by design (gotcha 23c).
 
 ## More Information
-Evidence: c30d0fd, `frontend/public/serve.json`, gotcha 23c, `.ai/handoff.md:31`. Related: [ADR-0011](0011-host-on-railway-with-nixpacks.md), [ADR-0023](0023-pilot-address-learn-pakfro-dev.md), [ADR-0039](0039-production-guards-keyed-on-node-env.md).
+Evidence: c30d0fd, `frontend/public/serve.json`, gotcha 23c, `.ai/handoff.md:31`. Related: [ADR-0011](0011-host-on-railway-with-nixpacks.md), [ADR-0023](0023-pilot-address-learn-pakfro-dev.md), [ADR-0043](0043-production-guards-keyed-on-node-env.md).

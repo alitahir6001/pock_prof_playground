@@ -20,4 +20,4 @@ Chosen option: "Key the guards on `NODE_ENV=production`, with explicit opt-ins f
 * Bad, because setting `PILOT_EXPOSE_DEV_CODE=true` in production is an auth bypass (gotcha 14, `.ai/handoff.md:28`).
 
 ## More Information
-Evidence: 8195b42, `backend/scripts/run_adaptation_fastify.mjs:27`, `:37-43`, `:70-74`, gotchas 5, 14, 15, 17, `.ai/history.md:33`. Related: [ADR-0007](0007-email-one-time-code-login.md), [ADR-0023](0023-pilot-address-learn-pakfro-dev.md), [ADR-0038](0038-admin-portal-server-enforced-by-admin-email.md).
+Evidence: 8195b42, `backend/scripts/run_adaptation_fastify.mjs:27`, `:37-43`, `:70-74`, gotchas 5, 14, 15, 17, `.ai/history.md:33`. Related: [ADR-0007](0007-email-one-time-code-login.md), [ADR-0023](0023-pilot-address-learn-pakfro-dev.md), [ADR-0042](0042-admin-portal-server-enforced-by-admin-email.md).

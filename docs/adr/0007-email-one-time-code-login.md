@@ -20,4 +20,4 @@ Chosen option: "Email one-time code", because passwords add friction and reset-f
 * Bad, because login depends on email delivery; the dev-code fallback is local-only and is an auth bypass if enabled in production (`CLAUDE.md` gotcha 14).
 
 ## More Information
-Evidence: 6fb57d1, gotcha 14, `docs/understanding/auth-sessions.md`, `docs/phase1_system_architecture_plan.md:20`. Amended by [ADR-0036](0036-resend-for-app-email.md) (Resend sends the codes) and [ADR-0043](0043-invite-only-login-allowlist-provider-spend-caps.md) (only allowlisted emails can log in).
+Evidence: 6fb57d1, gotcha 14, `docs/understanding/auth-sessions.md`, `docs/phase1_system_architecture_plan.md:20`. Amended by [ADR-0039](0039-resend-for-app-email.md) (Resend sends the codes) and [ADR-0049](0049-invite-only-login-allowlist-provider-spend-caps.md) (only allowlisted emails can log in).
