@@ -20,10 +20,10 @@ Chosen option: "Ship a narrower slice and move the rest to later phases". The re
 | Market-gap service | Not built | Deferred to Phase 5 (same doc) |
 | Freemium entitlements and billing | Not built | Deferred to Phase 6 (same doc) |
 | OAuth/JWT | Email one-time code and opaque session tokens | Replaced ([ADR-0007](0007-email-one-time-code-login.md)) |
-| BullMQ job queue | A JSON file-queue worker with retry, dead-letter and idempotency (9937900, 0ec27ef), never deployed; the doc names a real broker (SQS, Rabbit or Redis Streams) as the open gap | Replaced by a simulation, unwired (`docs/phase3_broker_telemetry_slice.md`) |
+| BullMQ job queue | A JSON file-queue worker with retry, dead-letter and idempotency (9937900, 0ec27ef), never deployed | Replaced by a simulation, unwired ([ADR-0037](0037-worker-broker-on-file-queue-defer-production-broker.md)) |
 | Resilience Coach agent | Not built; three agents only | Not scheduled; listed as missing (`.ai/behavioral-science-and-engine-alignment.md`, principle 11) |
 | Agent orchestrator | One runner that builds a prompt and falls back across providers | Narrowed (gotcha 18, [ADR-0009](0009-multi-provider-ai-fallback-via-raw-fetch.md)) |
-| React + TypeScript frontend | React in JSX | Narrowed ([ADR-0034](0034-v2-stack-node-typescript-fastify-postgres.md)) |
+| React + TypeScript frontend | React in JSX | Narrowed ([ADR-0038](0038-v2-frontend-react-vite-jsx-tailwind.md)) |
 
 ### Consequences
 * Good, because a pilot shipped without billing, a graph or a queue to run.
