@@ -20,4 +20,4 @@ Chosen option: "Do not wire it" (9d16f26), so the pilot first tests whether adap
 * Bad, because over half the backend TypeScript is not in the live path (gotcha 18).
 
 ## More Information
-Evidence: 9d16f26, c80adb9, gotcha 18, `.ai/handoff.md:10`, `.ai/history.md`. Related: [ADR-0019](0019-paid-founder-run-pilot.md), [ADR-0020](0020-defer-event-journal-rearchitecture-to-phase-4.md). Amended by [ADR-0025](0025-n3-test-runs-on-vision-steps-1-4.md): the missed-session rule is wired; the other four stay unwired.
+Evidence: 9d16f26, c80adb9, gotcha 18, `.ai/handoff.md:10`, `.ai/history.md`. Related: [ADR-0019](0019-paid-founder-run-pilot.md), [ADR-0020](0020-defer-event-journal-rearchitecture-to-phase-4.md). Amended by [ADR-0025](0025-n3-test-runs-on-vision-steps-1-4.md): the missed-session rule is wired; the other four stay unwired. How it is wired: [ADR-0047](0047-comeback-check-in-wires-one-engine-rule.md).
