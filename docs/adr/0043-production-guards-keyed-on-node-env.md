@@ -11,7 +11,7 @@ A pre-deploy security pass on 2026-06-14 found three problems: the login code wa
 * (alternatives not recorded)
 
 ## Decision Outcome
-Chosen option: "Key the guards on `NODE_ENV=production`, with explicit opt-ins for local dev". In production the server refuses to boot when `FRONTEND_ORIGIN` is `*`, which is also its value when unset (`backend/scripts/run_adaptation_fastify.mjs:27`, `:70-74`). `/adaptation/evaluate` is disabled unless `ADAPTATION_INTERNAL_TOKEN` is set (`:41-43`). The login code is returned only when `PILOT_EXPOSE_DEV_CODE=true`, never because delivery failed (`:37-40`, gotcha 14). Shipped in 8195b42.
+Chosen option: "Key the guards on `NODE_ENV=production`, with explicit opt-ins for local dev". In production the server refuses to boot when `FRONTEND_ORIGIN` is `*`, which is also its value when unset (`backend/scripts/run_adaptation_fastify.mjs:27`, `:70-74`). `/adaptation/evaluate` is disabled unless `ADAPTATION_INTERNAL_TOKEN` is set (`:41-43`). The login code is returned only when `PILOT_EXPOSE_DEV_CODE=true`, never because delivery failed (`:37-40`, gotcha 14). The same pass switched login codes to `crypto.randomInt` from `Math.random` (gotcha 16). Shipped in 8195b42, committed 2026-06-24. The login lockout from that pass is in [ADR-0044](0044-login-lockout-and-code-request-throttle.md); the browser headers added later are in [ADR-0050](0050-security-headers-in-serve-json.md).
 
 ### Consequences
 * Good, because one variable turns on every production guard, and the local smoke scripts pass unchanged (gotcha 15).
@@ -20,4 +20,4 @@ Chosen option: "Key the guards on `NODE_ENV=production`, with explicit opt-ins f
 * Bad, because setting `PILOT_EXPOSE_DEV_CODE=true` in production is an auth bypass (gotcha 14, `.ai/handoff.md:28`).
 
 ## More Information
-Evidence: 8195b42, `backend/scripts/run_adaptation_fastify.mjs:27`, `:37-43`, `:70-74`, gotchas 5, 14, 15, 17, `.ai/history.md:33`. Related: [ADR-0007](0007-email-one-time-code-login.md), [ADR-0023](0023-pilot-address-learn-pakfro-dev.md), [ADR-0042](0042-admin-portal-server-enforced-by-admin-email.md).
+Evidence: 8195b42, `backend/scripts/run_adaptation_fastify.mjs:27`, `:37-43`, `:70-74`, gotchas 5, 14, 15, 16, 17, `.ai/history.md:33`. Related: [ADR-0007](0007-email-one-time-code-login.md), [ADR-0023](0023-pilot-address-learn-pakfro-dev.md), [ADR-0042](0042-admin-portal-server-enforced-by-admin-email.md).
