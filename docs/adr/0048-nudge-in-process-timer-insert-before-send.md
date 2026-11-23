@@ -11,13 +11,21 @@ date: 2026-11-15
 * (alternatives not recorded)
 
 ## Decision Outcome
-Chosen option: "An in-process timer in the backend server": a `setInterval` every 60 seconds that skips a pass while the previous one is still running, off unless `NUDGE_ENABLED=true` (`backend/scripts/run_adaptation_fastify.mjs:791-812`; 5c1fcc4). The decision is a pure function, `decideNudge` (`backend/src/modules/student/nudge.ts`), and the pass is `runNudgeTick` (`backend/src/modules/student/nudgeRunner.ts`; 717baf6). The runner inserts `nudge_sent` before sending and sends only if the insert went in. With the unique index from [ADR-0046](0046-student-file-append-only-events-table.md), that is the whole at-most-one-a-day guarantee (717baf6; gotcha 21a). A failed send writes `nudge_failed` and is not retried that day (gotcha 21b). The catch-up window, send modes, allowlist and stop link are in [ADR-0028](0028-nudge-stop-link-confirms-on-the-frontend.md).
+Chosen option: "An in-process timer in the backend server": a `setInterval` every 60 seconds that skips a pass while the previous one is still running, off unless `NUDGE_ENABLED=true` (`backend/scripts/run_adaptation_fastify.mjs:791-812`; 5c1fcc4). The decision is a pure function, `decideNudge` (`backend/src/modules/student/nudge.ts`), and the pass is `runNudgeTick` (`backend/src/modules/student/nudgeRunner.ts`; 717baf6). The runner inserts `nudge_sent` before sending and sends only if the insert went in. With the unique index from [ADR-0046](0046-student-file-append-only-events-table.md), that is the whole at-most-one-a-day guarantee (717baf6; gotcha 21a). A failed send writes `nudge_failed` and is not retried that day (gotcha 21b). The catch-up window, send modes, allowlist and stop link are in [ADR-0028](0028-nudge-stop-link-confirms-on-the-frontend.md). The reason for an in-process timer over a scheduled job is not recorded.
+
+Also settled, so they are not undone:
+* `decideNudge` sends nothing if the student stopped, was already sent or skipped today, or finished the sprint, and returns `skip` if a session is already done today (`nudge.ts`).
+* No nudge on the signup day if the plan started at or after that day's reminder time, so nobody is emailed while still onboarding (b37653b, gotcha 22(d)).
+* A dry run is a row too: outside send mode, or for an address not on `NUDGE_ALLOWLIST`, the pass writes `nudge_sent` with `dry_run: true` and emails nobody (gotcha 21(c)).
+* Since 2026-11-20 the nudge is sent as HTML and plain text, with the links in both; a test checks the links and their escaping (ab22a0b). The sender takes an optional HTML part, and login emails stay plain text (af75ce2). The wording is frozen ([ADR-0051](0051-freeze-user-facing-copy-for-the-n3-test.md)).
 
 ### Consequences
 * Good, because there is no separate scheduler, worker or queue to deploy (inferred from `backend/railway.json`, which starts only `start:prod`).
 * Good, because a crash between insert and send loses a nudge rather than sending two (inferred from gotcha 21a).
+* Good, because a dry run leaves the same trail in the student file as a real send, so the logic can be checked on production data before mail goes out.
 * Bad, because a backend outage for a student's whole hour loses that day's nudge (`.ai/handoff.md:38`, accepted for the test).
 * Bad, because a student who drops out is emailed daily until they press Stop (`.ai/handoff.md:38`).
+* Bad, because a second backend instance would run a second timer; the unique index still stops a duplicate email (inferred from the timer code).
 
 ## More Information
-Evidence: 5c1fcc4, 717baf6, `backend/scripts/run_adaptation_fastify.mjs:791-812`, `backend/src/modules/student/nudge.ts`, `backend/src/modules/student/nudgeRunner.ts`, gotcha 21, `.ai/handoff.md:38`. Related: [ADR-0025](0025-n3-test-runs-on-vision-steps-1-4.md), [ADR-0028](0028-nudge-stop-link-confirms-on-the-frontend.md), [ADR-0039](0039-resend-for-app-email.md), [ADR-0046](0046-student-file-append-only-events-table.md).
+Evidence: 5c1fcc4, 717baf6, b37653b, af75ce2, ab22a0b, `backend/scripts/run_adaptation_fastify.mjs:791-812`, `backend/src/modules/student/nudge.ts`, `backend/src/modules/student/nudgeRunner.ts`, gotcha 21, `.ai/handoff.md:38`. Related: [ADR-0025](0025-n3-test-runs-on-vision-steps-1-4.md), [ADR-0028](0028-nudge-stop-link-confirms-on-the-frontend.md), [ADR-0039](0039-resend-for-app-email.md), [ADR-0046](0046-student-file-append-only-events-table.md).
