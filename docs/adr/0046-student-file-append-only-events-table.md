@@ -27,6 +27,7 @@ Chosen option: "One append-only per-user events table now": `pilot_student_event
 * Bad, because a user who never returns has no miss rows until something reads their file (gotcha 19a).
 * Bad, because migration 005 must be applied before the code, or `GET /pilot/plan` fails for every onboarded user (gotcha 19).
 * Bad, because there is still no deterministic tick or replay; those stay deferred to Phase 4 (ADR-0020, ADR-0025).
+* Bad, because a wrong or missing time zone files events under the wrong day (gotcha 21, local test trap).
 
 ## More Information
-Evidence: d23e543, 1b0fb29, `backend/db/migrations/20261115_005_create_student_events.up.sql`, `backend/src/modules/student/`, gotcha 19. Amends [ADR-0016](0016-persisted-14-day-sprint-loop.md): history now survives re-onboarding, though the plan and its sprint days are still replaced. Related: [ADR-0020](0020-defer-event-journal-rearchitecture-to-phase-4.md), [ADR-0025](0025-n3-test-runs-on-vision-steps-1-4.md), [ADR-0048](0048-nudge-in-process-timer-insert-before-send.md).
+Evidence: d23e543, 1b0fb29, `backend/db/migrations/20261115_005_create_student_events.up.sql`, `backend/src/modules/student/`, gotcha 19. Amends [ADR-0016](0016-persisted-14-day-sprint-loop.md): history now survives re-onboarding, though the plan and its sprint days are still replaced. The POC repo had an untyped per-user event table first ([ADR-0034](0034-v2-stack-node-typescript-fastify-postgres.md)). Read by the comeback check-in ([ADR-0047](0047-comeback-check-in-wires-one-engine-rule.md)). Related: [ADR-0020](0020-defer-event-journal-rearchitecture-to-phase-4.md), [ADR-0025](0025-n3-test-runs-on-vision-steps-1-4.md), [ADR-0048](0048-nudge-in-process-timer-insert-before-send.md).
