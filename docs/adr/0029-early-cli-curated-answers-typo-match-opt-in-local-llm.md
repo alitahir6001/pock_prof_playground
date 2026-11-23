@@ -1,5 +1,5 @@
 ---
-status: superseded by ADR-0001
+status: superseded by ADR-0030
 date: 2025-03-27
 ---
 # Early CLI: curated answers first, then typo matching, then an opt-in local LLM
@@ -26,4 +26,4 @@ The system prompt cast the model as "a graduate-level college professor" and nam
 * Bad, because the LLM step needed Ollama running on the same machine.
 
 ## More Information
-Evidence: d374bbb, 0e3e590, 2bc94c0, 36ccc04, 0ec17cb, 433071e, e3e3fd0 (all 2025-03-27 to 2025-04-08); later syllabus generation through the same Ollama call, 38533e1 (2025-04-23). The CLI code (`learning/`) was removed in 08602c6. Superseded by [ADR-0001](0001-prototype-local-llm-ollama-behind-fastapi.md), which moved the Ollama call behind a FastAPI backend.
+Evidence: d374bbb, 0e3e590, 2bc94c0, 36ccc04, 0ec17cb, 433071e, e3e3fd0 (all 2025-03-27 to 2025-04-08); later syllabus generation through the same Ollama call, 38533e1 (2025-04-23). The CLI code (`learning/`) was removed in 08602c6. Superseded by [ADR-0030](0030-syllabus-generator-over-knowledge-base-qa-cli.md), which turned the CLI into a syllabus generator; [ADR-0001](0001-prototype-local-llm-ollama-behind-fastapi.md) then moved the Ollama call behind a FastAPI backend.
