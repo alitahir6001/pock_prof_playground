@@ -2,7 +2,7 @@
 
 One file per design, architecture, or product decision that shapes Pocket Professor, with its context and consequences (MADR 4.0); read this index first.
 
-This repo carries the full history of the original `alitahir6001/pocket_professor` repo up to d9805da (2026-04-12), so commit hashes cited from it (ADRs 0001 to 0006, among others) resolve here ([ADR-0041](0041-continue-in-pock-prof-playground.md)). Commits from the separate proof-of-concept repo `alitahir6001/pocket_professor_POC` are cited with that repo's name.
+This repo carries the full history of the original `alitahir6001/pocket_professor` repo up to d9805da (2026-04-12), so commit hashes cited from it (ADRs 0001 to 0006, among others) resolve here ([ADR-0041](0041-continue-in-pock-prof-playground.md)).
 
 - [0001 - Prototype: local LLM (Ollama + Gemma3) behind a Python FastAPI backend - superseded by ADR-0002 - 2025-06-23](0001-prototype-local-llm-ollama-behind-fastapi.md)
 - [0002 - Use the hosted Gemini API instead of a local Ollama model - superseded by ADR-0009 - 2025-07-14](0002-hosted-gemini-api-over-local-ollama.md)
