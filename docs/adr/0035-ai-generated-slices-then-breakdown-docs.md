@@ -13,7 +13,7 @@ The Node/TypeScript rewrite ([ADR-0034](0034-v2-stack-node-typescript-fastify-po
 ## Decision Outcome
 Chosen option: generate the code in numbered slices on `codex/...` branches and merge each by pull request. The reason is not recorded.
 
-* 15 distinct `codex/...` branches were merged through 29 merge commits, from PR #18 (2026-02-22) to PR #36 (2026-04-11). The `codex/` prefix is the branch naming of OpenAI's Codex agent (inferred from the prefix; the POC repo's single PR branch is `codex/create-minimal-backend-project-setup`).
+* 15 distinct `codex/...` branches were merged through 29 merge commits, from PR #18 (2026-02-22) to PR #36 (2026-04-11). The `codex/` prefix is the branch naming of OpenAI's Codex agent (inferred from the prefix).
 * Each slice landed with its tests and a slice summary doc, for example "Slice A" file adapter (a12f7d7), "Slice B" entrypoints (a10f89b), "Slice C" bindings (c8faa06), and `docs/phase3_broker_telemetry_slice.md` (0ec27ef).
 * From 2026-03-28 a breakdown plan asked for a block-by-block walk of every module, "for micro-pilot readiness and incident response" (`docs/code_breakdown_plan.md`, 9937900). Per-file breakdowns followed in `docs/breakdowns/` (22d0970, b38d992, 08602c6, 2026-04-04 to 04-05).
 * The breakdowns were deleted on 2026-05-10 as "all derivative" and replaced by `docs/understanding/` (1185db0, 1b6ebd6, `docs/INDEX.md`).
